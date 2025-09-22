@@ -23,4 +23,4 @@ Glide+ is an AI-powered student life platform that combines:
 ## Setup Instructions
 1. Clone the repo:
    ```bash
-   git clone https://github.com/YOUR-USERNAME/glide-capstone.git
+   git clone https://github.com/hannaberhane/glide-capstone.git
