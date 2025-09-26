@@ -15,10 +15,10 @@ Glide+ is an AI-powered student life platform that combines:
 - Integrations: Canvas API, Google Calendar API
 
 ## Team Members
-- Hanna Berhane
-- Anthony Soria
-- Wafae Benkassou
-- Joseph DiMartino
+- Hanna Berhane : Primarily Backend 
+- Anthony Soria : Primarily Frontend
+- Wafae Benkassou : Primarily Frontend 
+- Joseph DiMartino : Primarily Backend
 
 ## Setup Instructions
 1. Clone the repo:
