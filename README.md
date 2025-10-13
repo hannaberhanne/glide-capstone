@@ -6,16 +6,18 @@ Glide+ is an AI-powered student life platform that helps college students manage
 - Gamified habit tracking with XP, streaks, and rewards
 - Course navigation with prerequisites and balanced schedule suggestions
 - Social and travel planning with cost-splitting and group coordination
+- 
 ## Project Links
 - [Trello Board](https://trello.com/b/ojeLj9Bu/glide)  
 - [Requirements Document](https://spartansut-my.sharepoint.com/:w:/g/personal/hanna_berhane_spartans_ut_edu/EYtv0MSXZS1FieKw-US5ifEBTQNF6m7p-EJdWJzJNHyumw?e=VgKGCj)  
 - [Presentation Slides](https://www.canva.com/design/DAGztzdzz1Q/dPnlwVj2nlOrsNdMaiBZpA/edit?utm_content=DAGztzdzz1Q&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)  
 - [Google Survey](https://forms.gle/examplelink)
+- 
 ## Tech Stack
-- Frontend: React (web) + React Native (mobile)
-- Backend: Node.js with Express (possible microservices)
+- Frontend: Vite + React (web)
+- Backend: Node.js with Express
 - Database: Firebase Firestore / PostgreSQL
-- AI/NLP: OpenAI API (+ HuggingFace optional)
+- AI/NLP: OpenAI API (+ HuggingFace for ML)
 - Integrations: Canvas API, Google Calendar API
 
 ## Team Members
