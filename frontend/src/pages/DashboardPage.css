@@ -1,0 +1,166 @@
+/* Palette (local so you don't need globals) */
+:root {
+    --bg1: #e9f7f7;
+    --bg2: #f4eefe;
+    --ink: #0f172a;
+    --muted: #475569;
+    --card: #ffffff;
+    --brand: #1976d2;
+    --accent: #0ea5e9;
+  }
+  
+  /* page background */
+  body {
+    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+    color: var(--ink);
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  }
+  
+  /* container */
+  .dash {
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  /* top bar */
+  .dash-topbar {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .dash-date { color: var(--muted); font-weight: 600; }
+  .dash-nav { display: flex; gap: 10px; }
+  .nav-btn {
+    text-decoration: none;
+    color: var(--ink);
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  
+  /* hero */
+  .dash-hero { text-align: center; }
+  .dash-hero h1 { margin: 8px 0 0; font-size: clamp(26px, 3.2vw, 40px); font-weight: 800; }
+  .sub { margin: 6px 0 0; color: var(--muted); }
+  
+  /* KPI cards row */
+  .dash-kpis {
+    width: 100%;
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .kpi {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    display: grid;
+    align-content: center;
+    gap: 6px;
+    text-align: center;
+  }
+  .kpi-title { font-size: 14px; color: var(--muted); }
+  .kpi-value { font-size: 32px; font-weight: 800; }
+  .kpi-note  { font-size: 12px; color: var(--muted); }
+  
+  .kpi-accent { border: 2px solid rgba(14,165,233,0.25); }
+  .break-btn {
+    margin: 6px auto 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(14,165,233,0.3);
+    background: linear-gradient(180deg, #e0f2fe, #bae6fd);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  
+  /* main two-column area */
+  .dash-main {
+    width: 100%;
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .panel {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .panel-head h2 { margin: 0; font-size: 18px; }
+  .link { text-decoration: none; color: var(--brand); font-weight: 600; }
+  
+  /* upcoming list */
+  .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .list-item {
+    display: grid;
+    grid-template-columns: 10px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+    margin-top: 6px;
+  }
+  .item-body { display: grid; gap: 2px; }
+  .item-text { font-weight: 600; }
+  .item-meta { font-size: 12px; color: var(--muted); }
+  
+  /* quick links & XP */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .quick {
+    text-decoration: none;
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #f8fafc;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .xp-card {
+    margin-top: 6px;
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .xp-left .xp-title { font-size: 12px; color: var(--muted); }
+  .xp-left .xp-value { font-size: 24px; font-weight: 800; }
+  .xp-bar {
+    height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden;
+  }
+  .xp-fill { height: 100%; background: linear-gradient(90deg, #60a5fa, #34d399); }
+  
+  /* responsive */
+  @media (max-width: 900px) {
+    .dash-kpis { grid-template-columns: 1fr; }
+    .dash-main { grid-template-columns: 1fr; }
+  }
+  
