@@ -9,12 +9,10 @@ const ROUTES = [
 
 export default function FooterNav() {
   const { pathname } = useLocation();
-
-  // show exactly two buttons: all routes except the current one
-  const buttons = ROUTES.filter(r => r.path !== pathname).slice(0, 2);
+  const buttons = ROUTES.filter((r) => r.path !== pathname).slice(0, 2);
 
   return (
-    <div className="footer-nav">
+    <footer className="footer-nav">
       <div className="footer-nav-inner">
         {buttons.map((b) => (
           <Link key={b.path} to={b.path} className="footer-btn">
@@ -22,6 +20,6 @@ export default function FooterNav() {
           </Link>
         ))}
       </div>
-    </div>
+    </footer>
   );
 }

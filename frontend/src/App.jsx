@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
-import LandingPage from "./pages/LandingPage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import PlannerPage from "./pages/PlannerPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -19,7 +19,7 @@ export default function App() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/login" element={<LoginPage />} />

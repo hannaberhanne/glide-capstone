@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import "./LandingPage.css";
+import "./HomePage.css";
 
-export default function LandingPage() {
+export default function HomePage() {
   // Pretty date like: "Sunday, Oct 26"
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -14,7 +14,7 @@ export default function LandingPage() {
   }, []);
 
   const [tasks, setTasks] = useState([
-    { id: 1, text: "Whatever the task is (1)", done: true },
+    { id: 1, text: "Whatever the task is (1)", done: false },
     { id: 2, text: "Whatever the task is (2)", done: false },
     { id: 3, text: "Whatever the task is (3)", done: false },
   ]);
