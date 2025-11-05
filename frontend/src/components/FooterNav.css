@@ -1,0 +1,42 @@
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 15vh;
+  background: transparent;     /* make footer see-through */
+  backdrop-filter: none;       /* remove blur effect */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-top: none;            /* remove black line divider */
+  z-index: 50;
+}
+
+
+.footer-nav-inner {
+  display: flex;
+  justify-content: center;     /* center the whole row */
+  align-items: center;
+  gap: 3rem;                   /* add consistent space between buttons */
+  width: 100%;
+  max-width: 800px;
+  padding: 12px 0 16px;
+}
+
+.footer-btn {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  color: #000;
+  font-size: 1.4rem;
+  font-weight: 800;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.footer-btn:hover {
+  transform: scale(1.05);
+}

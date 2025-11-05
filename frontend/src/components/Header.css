@@ -1,0 +1,47 @@
+.header {
+    width: 100%;
+    padding: 16px 28px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    position: static;
+    z-index: 100;
+  }
+  
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .header-logo {
+    text-decoration: none;
+    color: #0f172a;
+    font-weight: 900;
+    font-size: 22px;
+  }
+  .header-logo span { color: #1976d2; }
+  
+  /* 🔧 Make the button text definitely visible */
+  .header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    min-width: 140px;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+    color: #0f172a;              /* <-- force dark text */
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .header-btn:hover { transform: translateY(-1px); }
+  .header-btn:focus { outline: 2px solid #60a5fa; outline-offset: 2px; }
+  
