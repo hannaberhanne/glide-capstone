@@ -1,0 +1,11 @@
+.app-layout {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr auto; /* main + footer */
+  }
+  
+  /* keep content from bumping into the sticky footer on short screens */
+  .app-main {
+    padding-bottom: 90px;
+  }
+  
