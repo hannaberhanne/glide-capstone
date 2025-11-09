@@ -32,3 +32,5 @@ Thumbs.db
 # Misc
 *.swp
 backend/config/glide-a52df-firebase-adminsdk-fbsvc-52ec769993.json
+.env
+*.env

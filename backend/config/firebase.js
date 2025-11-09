@@ -1,7 +1,10 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./glide-a52df-firebase-adminsdk-fbsvc-52ec769993.json");
 
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(
+        projectId: admin.credential.FIREBASE_PROJECT_ID
+    )
 });
