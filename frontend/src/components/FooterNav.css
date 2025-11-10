@@ -18,9 +18,9 @@
   display: flex;
   justify-content: center;     /* center the whole row */
   align-items: center;
-  gap: 3rem;                   /* add consistent space between buttons */
+  gap: 1rem;                   /* add consistent space between buttons */
   width: 100%;
-  max-width: 800px;
+  max-width: 1700px;
   padding: 12px 0 16px;
 }
 
