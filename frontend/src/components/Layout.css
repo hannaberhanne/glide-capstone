@@ -1,11 +1,66 @@
-.app-layout {
-    min-height: 100vh;
-    display: grid;
-    grid-template-rows: 1fr auto; /* main + footer */
-  }
-  
-  /* keep content from bumping into the sticky footer on short screens */
-  .app-main {
-    padding-bottom: 90px;
-  }
-  
+/* === NAVBAR === */
+.main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+  z-index: 50;
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 6vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-weight: 900;
+  font-size: 22px;
+  color: #111827;
+}
+
+.plus {
+  color: #f97316;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #111827;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+  color: #f97316;
+}
+
+/* === LOGIN BUTTON === */
+.login-btn {
+  border: 1.5px solid #111827;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  background: #f97316;
+  color: #fff;
+  border-color: #f97316;
+}
+
+/* === Push content down so it’s not under navbar === */
+main {
+  margin-top: 80px;
+}
