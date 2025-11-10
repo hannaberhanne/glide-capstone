@@ -8,7 +8,8 @@ The server file to run the Express backend, be the central backend file for the 
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = process.env.PORT ||8080;
+const path = require('path');
+const PORT = process.env.PORT || 8080;
 const { db } = require('./config/firebase');
 
 
@@ -16,14 +17,10 @@ const { db } = require('./config/firebase');
 app.use(cors());
 app.use(express.json());
 
-// delete response ************************************************************************************** delete this response
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 app.get('/', (req, res) => {
-    res.json({
-        message: 'Glide+ Backend Server is running',
-        timestamp: new Date().toISOString()
-    });
+    res.sendFile(path.resolve(__dirname, '../frontend/dist', 'index.html'));
 });
-
 
 
 app.listen(PORT, () => {
