@@ -26,6 +26,20 @@ Glide+ is an AI-powered student life platform that helps college students manage
 - Wafae Benkassou : Primarily Frontend 
 - Joseph DiMartino : Primarily Backend
 
+## Sprint 1 Summary
+
+The main goal for Sprint 1 was to set up all the basic stuff we needed to get the project running. We focused on making sure both the backend and frontend were connected to Firebase, getting environment variables set up, and making sure routing worked for all our pages.
+
+By the end of this sprint, we were able to:
+- Connect Firebase to our project and get authentication working (login + signup)
+- Create `.env` files for both frontend and backend
+- Set up our `users` and `tasks` collections in Firestore
+- Successfully read and write data from the database
+- Add all main routes (`/login`, `/signup`, `/dashboard`, `/planner`, `/habits`)
+- Build the basic dashboard layout and show data from Firestore
+
+Everything runs locally now and works how we expected it to. We’re planning to use Sprint 2 to start adding more UI styling, the task creation feature, and start working on the habits section.
+
 ## Setup Instructions
 1. Clone the repo:
    ```bash

@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
+import { db } from "../firebase";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
@@ -15,11 +17,42 @@ export default function DashboardPage() {
   const [streak] = useState(4);
   const [xp] = useState(1250);
 
-  const [tasks] = useState([
+  const [tasks, setTasks] = useState([
     { id: 1, text: "Finish COMS essay outline", due: "Today 4:00 PM" },
     { id: 2, text: "Gym — pull day", due: "Today 6:30 PM" },
     { id: 3, text: "Email Prof. Collins", due: "Tomorrow 9:00 AM" },
   ]);
+
+  const [newTask, setNewTask] = useState("");
+
+  const fetchTasks = async () => {
+    const querySnapshot = await getDocs(collection(db, "Task")); // or "tasks" if renamed
+    const fetched = [];
+    querySnapshot.forEach((doc) => {
+      fetched.push({ id: doc.id, ...doc.data() });
+    });
+    setTasks((prev) => [...prev, ...fetched]);
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const handleAddTask = async () => {
+    if (!newTask.trim()) return;
+    try {
+      await addDoc(collection(db, "Task"), {
+        title: newTask.trim(),
+        dueDate: Timestamp.now(),
+        userId: "0",
+        isComplete: false,
+      });
+      setNewTask("");
+      fetchTasks();
+    } catch (error) {
+      console.error("Error adding task: ", error);
+    }
+  };
 
   return (
     <div className="dash">
@@ -68,12 +101,22 @@ export default function DashboardPage() {
             <h2>Upcoming</h2>
             <Link to="/planner" className="link">Open Calendar →</Link>
           </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="New task"
+              style={{ padding: "0.25rem", marginRight: "0.5rem" }}
+            />
+            <button type="button" onClick={handleAddTask}>Add</button>
+          </div>
           <ul className="list">
             {tasks.map(t => (
               <li key={t.id} className="list-item">
                 <div className="dot" />
                 <div className="item-body">
-                  <div className="item-text">{t.text}</div>
+                  <div className="item-text">{t.title || t.text}</div>
                   <div className="item-meta">{t.due}</div>
                 </div>
               </li>

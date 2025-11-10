@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./LoginPage.css";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
 export default function LoginPage() {
   const nav = useNavigate();
@@ -9,12 +11,16 @@ export default function LoginPage() {
 
   const canSubmit = user.trim() !== "" && pass.trim() !== "";
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit) return;
-    // TODO: replace with real auth later
-    alert("Logging in (stub). Redirecting to dashboard…");
-    nav("/dashboard");
+    try {
+      await signInWithEmailAndPassword(auth, user, pass);
+      alert("Login successful!");
+      nav("/dashboard");
+    } catch (error) {
+      alert(`Login failed: ${error.message}`);
+    }
   }
 
   return (
@@ -59,6 +65,12 @@ export default function LoginPage() {
           <button className="login-btn" type="submit" disabled={!canSubmit}>
             LOG IN
           </button>
+          <p style={{ marginTop: "1rem" }}>
+            Don’t have an account?{" "}
+            <Link to="/signup" style={{ color: "#4a7bf7", fontWeight: 500 }}>
+              Sign up here
+            </Link>
+          </p>
         </form>
 
         <button className="help-link" type="button" onClick={() => alert("Password help (stub)")}>

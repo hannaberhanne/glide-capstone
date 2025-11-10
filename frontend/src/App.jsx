@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import PlannerPage from "./pages/PlannerPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import SignupPage from "./pages/SignupPage.jsx";
 import "./App.css";
 
 function NotFound() {
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>
