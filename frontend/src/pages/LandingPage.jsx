@@ -49,21 +49,25 @@ export default function LandingPage() {
     </div>
   </div>
 </header>
-<section className="hero" style={{ height: "100vh" }}>
-  <video
-    autoPlay
-    muted
-    loop
-    playsInline
-    style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "cover",
-      display: "block",
-    }}
-  >
-    <source src="/assets/skate-hero.mp4" type="video/mp4" />
+<section className="hero">
+  <video autoPlay muted loop playsInline className="hero-video">
+    <source src="/videos/skate-hero.mp4" type="video/mp4" />
   </video>
+
+  <div className="hero-overlay"></div>
+
+  <div className="hero-content">
+    <p className="hero-eyebrow">GLIDE+</p>
+    <h1 className="hero-title">YOUR JOURNEY STARTS HERE</h1>
+    <p className="hero-subtitle">
+      All your goals, tasks, and habits in one AI-powered space synced with your calendar — built to adapt to your student life.
+    </p>
+
+    <div className="hero-actions">
+      <Link to="/login" className="btn-primary">Get Started</Link>
+      <Link to="/dashboard" className="btn-secondary">View Demo</Link>
+    </div>
+  </div>
 </section>
 
       {/* ===== CAROUSEL (auto switch) ===== */}
