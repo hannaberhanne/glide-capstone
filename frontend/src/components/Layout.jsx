@@ -1,7 +1,28 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 import "./Layout.css";
 
 export default function Layout() {
+  const nav = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(setUser);
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      nav("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
+    }
+  };
+
   return (
     <>
       <header className="main-header">
@@ -13,9 +34,15 @@ export default function Layout() {
             <Link to="/home">Home</Link>
             <Link to="/planner">Planner</Link>
             <Link to="/dashboard">Dashboard</Link>
-            <Link to="/login" className="login-btn">
-              Log In / Logout
-            </Link>
+            {user ? (
+              <button onClick={handleLogout} className="login-btn">
+                Logout
+              </button>
+            ) : (
+              <Link to="/login" className="login-btn">
+                Log In
+              </Link>
+            )}
           </nav>
         </div>
       </header>
