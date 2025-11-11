@@ -1,71 +1,102 @@
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { auth } from "../firebase";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    }).format(d);
-  }, []);
-
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newTask, setNewTask] = useState("");
+  const [addingTask, setAddingTask] = useState(false);
   const [streak] = useState(4);
   const [xp] = useState(1250);
 
-  const [tasks, setTasks] = useState([
-    { id: 1, text: "Finish COMS essay outline", due: "Today 4:00 PM" },
-    { id: 2, text: "Gym — pull day", due: "Today 6:30 PM" },
-    { id: 3, text: "Email Prof. Collins", due: "Tomorrow 9:00 AM" },
-  ]);
-
-<<<<<<< HEAD
-  const [newTask, setNewTask] = useState("");
-
-  const fetchTasks = async () => {
-    const querySnapshot = await getDocs(collection(db, "Task")); // or "tasks" if renamed
-    const fetched = [];
-    querySnapshot.forEach((doc) => {
-      fetched.push({ id: doc.id, ...doc.data() });
-    });
-    setTasks((prev) => [...prev, ...fetched]);
-  };
+  const todayStr = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
 
   useEffect(() => {
+    const fetchTasks = async () => {
+      if (!auth.currentUser) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch("http://localhost:5001/api/tasks", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setTasks(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to fetch tasks:", err);
+      }
+      setLoading(false);
+    };
     fetchTasks();
   }, []);
 
   const handleAddTask = async () => {
-    if (!newTask.trim()) return;
+    if (!newTask.trim() || !auth.currentUser || addingTask) return;
+    
+    setAddingTask(true);
     try {
-      await addDoc(collection(db, "Task"), {
-        title: newTask.trim(),
-        dueDate: Timestamp.now(),
-        userId: "0",
-        isComplete: false,
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch("http://localhost:5001/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title: newTask.trim() }),
       });
+      
+      const newTaskData = await res.json();
+      setTasks((prev) => [...prev, newTaskData]);
       setNewTask("");
-      fetchTasks();
-    } catch (error) {
-      console.error("Error adding task: ", error);
+    } catch (err) {
+      console.error("Failed to add task:", err);
+      alert("Failed to add task. Please try again.");
+    } finally {
+      setAddingTask(false);
     }
   };
-=======
-  const todayTasks = tasks.filter((t) => t.due.startsWith("Today")).length;
->>>>>>> origin/landinPage
+
+  const handleDeleteTask = async (taskId) => {
+    if (!auth.currentUser) return;
+    
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    
+    try {
+      const token = await auth.currentUser.getIdToken();
+      await fetch(`http://localhost:5001/api/tasks/${taskId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+    }
+  };
+
+  if (loading) return <div className="loading">Loading your day...</div>;
+
+  const todayTasks = tasks.filter((t) => {
+    if (!t.dueDate) return false;
+    const due = new Date(t.dueDate.seconds * 1000);
+    const today = new Date();
+    return due.toDateString() === today.toDateString();
+  }).length;
 
   return (
     <div className="dash">
       {/* HERO / INTRO */}
       <section className="dash-hero">
         <p className="dash-date">{todayStr}</p>
-        <h1 className="dash-title">Welcome back, User</h1>
+        <h1 className="dash-title">Welcome back, {auth.currentUser?.email?.split("@")[0] || "User"}</h1>
         <p className="dash-sub">
-          Here’s a quick snapshot of your day across tasks, habits, and XP.
+          Here's a quick snapshot of your day across tasks, habits, and XP.
         </p>
       </section>
 
@@ -109,36 +140,62 @@ export default function DashboardPage() {
               Open Calendar →
             </Link>
           </div>
-<<<<<<< HEAD
+          
           <div style={{ marginBottom: "1rem" }}>
             <input
               type="text"
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
-              placeholder="New task"
-              style={{ padding: "0.25rem", marginRight: "0.5rem" }}
+              onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+              placeholder="Add a new task..."
+              disabled={addingTask}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "2px solid #e5e7eb",
+                borderRadius: "10px",
+                fontSize: "15px",
+                outline: "none",
+              }}
             />
-            <button type="button" onClick={handleAddTask}>Add</button>
           </div>
-          <ul className="list">
-            {tasks.map(t => (
-              <li key={t.id} className="list-item">
-                <div className="dot" />
-                <div className="item-body">
-                  <div className="item-text">{t.title || t.text}</div>
-                  <div className="item-meta">{t.due}</div>
-=======
+
           <ul className="task-list">
-            {tasks.map((t) => (
-              <li key={t.id} className="task-item">
-                <span className="task-dot" />
+            {tasks.length === 0 ? (
+              <li className="task-item">
                 <div className="task-body">
-                  <div className="task-text">{t.text}</div>
-                  <div className="task-meta">{t.due}</div>
->>>>>>> origin/landinPage
+                  <div className="task-text">No tasks yet — you're crushing it! ✨</div>
                 </div>
               </li>
-            ))}
+            ) : (
+              tasks.map((t) => (
+                <li key={t.id} className="task-item">
+                  <span className="task-dot" />
+                  <div className="task-body">
+                    <div className="task-text">{t.title || t.text}</div>
+                    <div className="task-meta">
+                      {t.dueDate ? new Date(t.dueDate.seconds * 1000).toLocaleString() : (t.due || "No due date")}
+                    </div>
+                  </div>
+                  <button 
+                    className="delete-task-btn"
+                    onClick={() => handleDeleteTask(t.id)}
+                    aria-label="Delete task"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px",
+                      marginLeft: "auto",
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </li>
+              ))
+            )}
           </ul>
         </div>
 

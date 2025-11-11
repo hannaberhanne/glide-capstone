@@ -23,24 +23,17 @@ export default function App() {
       {/* Public pages — no navbar, no layout */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
 
       {/* All other routes inside Layout (with navbar/footer) */}
       <Route element={<Layout />}>
         <Route path="/home" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/planner" element={<PlannerPage />} />
-<<<<<<< HEAD
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Layout>
-=======
       </Route>
 
       {/* 404 fallback */}
       <Route path="*" element={<NotFound />} />
     </Routes>
->>>>>>> origin/landinPage
   );
 }

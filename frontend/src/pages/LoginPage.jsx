@@ -1,31 +1,34 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./LoginPage.css";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 
 export default function LoginPage() {
   const nav = useNavigate();
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
-
-  const canSubmit = user.trim() && pass.trim();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const canSubmit = email.trim() !== "" && password.trim() !== "";
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!canSubmit) return;
-<<<<<<< HEAD
+    if (!canSubmit || loading) return;
+    
+    setError("");
+    setLoading(true);
+    
     try {
-      await signInWithEmailAndPassword(auth, user, pass);
-      alert("Login successful!");
+      await signInWithEmailAndPassword(auth, email, password);
       nav("/dashboard");
     } catch (error) {
-      alert(`Login failed: ${error.message}`);
+      console.error("Login error:", error);
+      setError(error.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-=======
-    alert("Logging in (demo)...");
-    nav("/dashboard");
->>>>>>> origin/landinPage
   }
 
   return (
@@ -35,32 +38,37 @@ export default function LoginPage() {
           <h1>
             Log in to <span>Glide+</span>
           </h1>
-          <p>Welcome back! Let’s pick up where you left off.</p>
+          <p>Welcome back! Let's pick up where you left off.</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <label>
-            <span>Username</span>
+            <span>Email</span>
             <input
-              type="text"
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
           </label>
           <label>
             <span>Password</span>
             <input
               type="password"
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
             />
           </label>
-          <button type="submit" disabled={!canSubmit}>
-            Log In
+          
+          {error && <p style={{ color: "red", marginTop: "1rem", fontSize: "0.9rem" }}>{error}</p>}
+          
+          <button type="submit" disabled={!canSubmit || loading}>
+            {loading ? "Logging in..." : "Log In"}
           </button>
           <p style={{ marginTop: "1rem" }}>
-            Don’t have an account?{" "}
-            <Link to="/signup" style={{ color: "#4a7bf7", fontWeight: 500 }}>
+            Don't have an account?{" "}
+            <Link to="/signup" style={{ color: "#f97316", fontWeight: 500 }}>
               Sign up here
             </Link>
           </p>
@@ -70,7 +78,13 @@ export default function LoginPage() {
           <Link to="/signup" className="create-link">
             Create Account
           </Link>
-          <button className="help-link">Can’t log in?</button>
+          <button 
+            className="help-link"
+            type="button"
+            onClick={() => alert("Password reset coming soon!")}
+          >
+            Can't log in?
+          </button>
         </div>
       </div>
     </div>
