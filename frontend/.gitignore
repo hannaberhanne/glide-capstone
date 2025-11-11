@@ -11,8 +11,13 @@ node_modules
 dist
 dist-ssr
 *.local
+<<<<<<< HEAD
 *.env
 .env
+=======
+.env
+*.env
+>>>>>>> origin/landinPage
 
 # Editor directories and files
 .vscode/*

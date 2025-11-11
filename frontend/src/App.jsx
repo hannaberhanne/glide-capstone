@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import PlannerPage from "./pages/PlannerPage.jsx";
@@ -18,15 +19,28 @@ function NotFound() {
 
 export default function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
+    <Routes>
+      {/* Public pages — no navbar, no layout */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* All other routes inside Layout (with navbar/footer) */}
+      <Route element={<Layout />}>
+        <Route path="/home" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/planner" element={<PlannerPage />} />
+<<<<<<< HEAD
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>
+=======
+      </Route>
+
+      {/* 404 fallback */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+>>>>>>> origin/landinPage
   );
 }
