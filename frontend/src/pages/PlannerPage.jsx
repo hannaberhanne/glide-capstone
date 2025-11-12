@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth } from "../config/firebase.js";
 import "./PlannerPage.css";
 
 const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
