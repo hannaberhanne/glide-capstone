@@ -12,7 +12,7 @@ const getTasks = async (req, res) => {
 
         // cleanup tasks and put them in a map
         const tasks = snapshot.docs.map(doc => ({
-            taskId: doc.taskId,
+            taskId: doc.id,
             ...doc.data()
         }));
 
