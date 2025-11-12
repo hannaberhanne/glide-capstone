@@ -17,7 +17,7 @@ const taskRoutes = require('./routes/tasks');
 
 
 // ---------- The routes go below ----------
-app.use('/api/tasks', taskRoutes);
+app.use('/api/tasks', taskRoutes);  // so in taskRoutes.js default things get routed by /api/tasks
 
 
 
