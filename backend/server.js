@@ -1,20 +1,26 @@
 const express = require('express');
 const cors = require('cors');
-const admin = require('firebase-admin');
+const app = express();
 require('dotenv').config();
 
-admin.initializeApp({
-  credential: admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  }),
-});
+// check config.js
+require('./config/firebase');
 
-const db = admin.firestore();
-const app = express();
+
 app.use(cors());
 app.use(express.json());
+const PORT = process.env.PORT || 8080;  // can prob delete 8080 when everyone's .env is made
+
+// Route imports are right below
+const taskRoutes = require('./routes/tasks');
+
+
+
+// ---------- The routes go below ----------
+app.use('/api/tasks', taskRoutes);
+
+
+
 
 // GET: Return tasks where userid == Firebase UID
 app.get('/api/tasks', async (req, res) => {
@@ -199,7 +205,36 @@ app.delete('/api/events/:id', async (req, res) => {
   }
 });
 
-app.listen(5001, () => {
-  console.log('Backend LIVE on 5001');
-  console.log('Project ID:', process.env.FIREBASE_PROJECT_ID);
+
+
+app.get('/', (req, res) => {
+  res.json({
+    message: 'check for Glide API+ ruinning',
+    endpoints: {
+      tasks: '/api/tasks',
+      events: '/api/events',
+    }
+  });
 });
+
+// error message for 404
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.path}`
+  });
+});
+
+// server issue error messages
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: 'Something went wrong!'
+  });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on: http://localhost:${PORT}`);
+    console.log(`The environment: ${process.env.PORT || 'dev'}`);
+})
