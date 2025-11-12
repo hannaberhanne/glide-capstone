@@ -2,7 +2,6 @@
     "name": "glide-capstone",
     "private": true,
     "dependencies": {
-        "dotenv": "^17.2.3",
-        "firebase": "^12.5.0"
+        "dotenv": "^17.2.3"
     }
 }

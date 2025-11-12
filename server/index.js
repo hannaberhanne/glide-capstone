@@ -1,4 +1,5 @@
-const express = require('express');
+
+`const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 require('dotenv').config();
@@ -32,4 +33,4 @@ app.get('/api/tasks', async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log('Backend on port 5000'));
+app.listen(5000, () => console.log('Backend on port 5000'));`
