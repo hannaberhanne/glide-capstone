@@ -12,13 +12,14 @@ app.use(express.json());
 const PORT = process.env.PORT || 8080;  // can prob delete 8080 when everyone's .env is made
 
 // Route imports are right below
-const taskRoutes = require('./routes/tasks');
+const taskRoutes = require('./routes/taskRoutes');
+const authRoutes = require('./routes/authRoutes');  // signup stuff
 
 
 
 // ---------- The routes go below ----------
 app.use('/api/tasks', taskRoutes);  // so in taskRoutes.js default things get routed by /api/tasks
-
+app.use('/api/auth', authRoutes);  // signup thing again
 
 
 // GET: Return events
@@ -106,6 +107,7 @@ app.get('/', (req, res) => {
     endpoints: {
       tasks: '/api/tasks',
       events: '/api/events',
+      auth: '/api/auth',
     }
   });
 });
