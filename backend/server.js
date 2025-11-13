@@ -19,6 +19,8 @@ const taskRoutes = require('./routes/tasks');
 // ---------- The routes go below ----------
 app.use('/api/tasks', taskRoutes);  // so in taskRoutes.js default things get routed by /api/tasks
 
+
+
 // GET: Return events
 app.get('/api/events', async (req, res) => {
   const token = req.headers.authorization?.split('Bearer ')[1];
