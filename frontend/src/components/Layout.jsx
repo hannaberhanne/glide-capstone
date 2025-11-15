@@ -27,7 +27,7 @@ export default function Layout() {
     <>
       <header className="main-header">
         <div className="header-inner">
-          <Link to="/" className="logo">
+          <Link to="/home" className="logo">
             Glide<span className="plus">+</span>
           </Link>
           <nav className="nav-links">
