@@ -1,45 +1,91 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { auth } from "../config/firebase.js";
 import "./LoginPage.css"; // reuse same styling
 
 export default function SignupPage() {
   const nav = useNavigate();
+  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+  // FIELDS FOR USER COLLECTION IN DB
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  //const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{10,}$/;  PASSWORD REQUIREMENTS upper, lower, decimal, 10 chars
 
   const canSubmit =
-    email.trim() !== "" &&
-    name.trim() !== "" &&
-    password.trim() !== "" &&
-    password === confirm;
+      email.trim() !== "" &&
+      firstName.trim() !== "" &&
+      lastName.trim() !== "" &&
+      password !== "" &&
+      password.length >= 3 &&
+      password === confirmPassword;
+
+  // !passwordRegex.test(password.trim())
 
   async function handleSignup(e) {
     e.preventDefault();
-    if (!canSubmit) return;
+    setError("");
+
+    if (!canSubmit) { setError("Please fill in all fields correctly"); return; }
+
+    setLoading(true);
 
     try {
       // 1. Create user in Firebase Auth
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCred.user;
+      const idToken = await user.getIdToken();
+
+
+      const response = await fetch(`${API_URL}/api/auth/signup`, {  // route to signup a new user
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({  // body in alphabetical order
+          email: email.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        })
+      });
 
       // 2. Store user profile in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        name,
-        email,
-        createdAt: new Date().toISOString(),
-      });
+      //await setDoc(doc(db, "users", user.uid), {
+      //  name,
+      //  email,
+      //  createdAt: new Date().toISOString(),
+      //});
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create profile');
+      }
+
 
       alert("Account created successfully!");
       nav("/dashboard");
     } catch (err) {
       console.error("Signup error:", err.message);
-      setError(err.message);
+      let errorMessage = err.message;
+
+      // specific error messages from Claude
+      if (err.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (err.code === 'auth/weak-password') {
+        errorMessage = 'Password should be at least 6 characters';
+      }
+      setError(errorMessage);
+      setLoading(false);
     }
   }
 
