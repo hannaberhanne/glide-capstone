@@ -112,8 +112,8 @@ export default function SignupPage() {
             <input
               className="field-input"
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
             />
             <span className="underline" />
           </label>
@@ -145,8 +145,8 @@ export default function SignupPage() {
             <input
               className="field-input"
               type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <span className="underline" />
           </label>
