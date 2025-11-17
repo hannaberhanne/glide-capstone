@@ -165,13 +165,13 @@ body {
   font-weight: 700;
   font-size: 16px;
   line-height: 1;
-  color: var(--ink);                 /* make text visible */
+  color: var(--ink);
   background: var(--card);
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 12px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
   text-align: center;
-  text-decoration: none;             /* remove link underline */
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -183,4 +183,63 @@ body {
 
 .landing-footer {
   display: none !important;
+}
+
+/* mobil view */
+@media (max-width: 768px) {
+  .landing {
+    padding: 40px 10px;
+  }
+
+  .landing-topbar {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .landing-logo {
+    font-size: 22px;
+  }
+
+  .landing-date {
+    font-size: 14px;
+  }
+
+  .landing-hero h1 {
+    font-size: 26px;
+  }
+
+  .goals-grid {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .goal-card {
+    width: 80%;
+    max-width: 320px;
+    height: 140px;
+    margin: 0 auto;
+  }
+
+  .landing-todo {
+    max-width: 100%;
+    margin-bottom: 40px;
+  }
+
+  .todo-text {
+    font-size: 16px;
+  }
+
+  .footer-btn {
+    min-width: auto;
+    width: 48%;
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .landing-footer {
+    max-width: 100%;
+  }
 }

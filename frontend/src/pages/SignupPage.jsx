@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
-import "./LoginPage.css"; // reuse same styling
+import "./SignupPage.css";
 
 export default function SignupPage() {
   const nav = useNavigate();

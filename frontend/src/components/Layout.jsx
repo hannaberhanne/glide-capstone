@@ -35,11 +35,11 @@ export default function Layout() {
             <Link to="/planner">Planner</Link>
             <Link to="/dashboard">Dashboard</Link>
             {user ? (
-              <button onClick={handleLogout} className="login-btn">
+              <button onClick={handleLogout} className="header-btn">
                 Logout
               </button>
             ) : (
-              <Link to="/login" className="login-btn">
+              <Link to="/login" className="header-btn">
                 Log In
               </Link>
             )}
