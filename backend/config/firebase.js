@@ -1,5 +1,7 @@
-const admin = require('firebase-admin');
-require('dotenv').config();
+import admin from 'firebase-admin';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 try {
     admin.initializeApp({
@@ -10,10 +12,10 @@ try {
         }),
     });
 } catch (err) {
-    console.error("Firebase initialization error: ", err.message);
-    throw err
+    console.error("Firebase initialization error:", err.message);
+    throw err;
 }
 
 const db = admin.firestore();
 
-module.exports = { admin, db };
+export { admin, db };

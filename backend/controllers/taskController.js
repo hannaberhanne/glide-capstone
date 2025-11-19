@@ -1,4 +1,4 @@
-const { db } = require('../config/firebase');
+import { db } from '../config/firebase.js';
 
 // get requests to retrieve all tasks
 const getTasks = async (req, res) => {
@@ -189,5 +189,9 @@ const deleteTask = async (req, res) => {
     }
 };
 
-
-module.exports = { createTask, getTasks, updateTask, deleteTask };
+export default {
+    createTask,
+    getTasks,
+    updateTask,
+    deleteTask
+};

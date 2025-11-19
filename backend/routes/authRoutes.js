@@ -5,4 +5,4 @@ const { signUp } = require('../controllers/authController');
 
 router.post('/signup', verifyToken, signUp);  // this means post request for creating a new user at '/api/auth/signup
 
-module.exports = router;
+export default router;

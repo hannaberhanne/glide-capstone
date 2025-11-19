@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/authMiddleware');
+import { verifyToken } from '../middleware/authMiddleware.js';
 
-const {
+import {
     getTasks,  // starts on line 4
     createTask,  // line 29
     updateTask,  // line 84
     deleteTask  // line 161
-} = require('../controllers/taskController');
+} from '../controllers/taskController.js';
 
 router.use(verifyToken);
 
@@ -23,4 +23,4 @@ router.patch('/:id', updateTask);
 // DELETE /api/tasks/:id - Delete task
 router.delete('/:id', deleteTask);
 
-module.exports = router;
+export default router

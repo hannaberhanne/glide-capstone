@@ -1,4 +1,4 @@
-const { db } = require('../config/firebase');
+import { db } from '../config/firebase.js';
 
 const signUp = async (req, res) => {
     try {
@@ -6,13 +6,13 @@ const signUp = async (req, res) => {
         const { email, firstName, lastName } = req.body;
 
         // error messages if fields aren't full
-        if (!firstName && firstName.trim() === '') {
+        if (!firstName || firstName.trim() === '') {
             return res.status(400).json({ error: 'First name is required' });
         }
-        if (!lastName && lastName.trim() === '') {
+        if (!lastName || lastName.trim() === '') {
             return res.status(400).json({ error: 'Last name is required' });
         }
-        if (!email && email.trim() === '') {
+        if (!email || email.trim() === '') {
             return res.status(400).json({ error: 'Email is required' });
         }
 
@@ -56,4 +56,4 @@ const signUp = async (req, res) => {
     }
 };
 
-module.exports = { signUp };
+export default signUp;
