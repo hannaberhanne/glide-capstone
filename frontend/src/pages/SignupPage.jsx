@@ -108,12 +108,23 @@ export default function SignupPage() {
 
         <form className="login-form" onSubmit={handleSignup}>
           <label className="field">
-            <span className="field-label">NAME</span>
+            <span className="field-label">FIRST NAME</span>
             <input
               className="field-input"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+            />
+            <span className="underline" />
+          </label>
+
+          <label className="field">
+            <span className="field-label">LAST NAME</span>
+            <input
+                className="field-input"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
             />
             <span className="underline" />
           </label>
