@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const canSubmit = email.trim() !== "" && password.trim() !== "";
 
   async function handleSubmit(e) {
@@ -21,11 +21,26 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const idToken = await userCredential.user.getIdToken();
+
+      // localStorage.setItem('authToken', idToken); possible need this to store for API calls later
+
       nav("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      setError(error.message || "Login failed. Please try again.");
+      let errorMessage = "Login failed. Please try again.";
+      if (error.code === 'auth/invalid-credential') {
+        errorMessage = "Invalid email or password.";
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = "No account found with this email.";
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = "Incorrect password.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Try again later.";
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
