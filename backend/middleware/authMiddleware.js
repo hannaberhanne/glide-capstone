@@ -1,7 +1,7 @@
 // middleware to get rid of token verification for every single time we create a route
 // verifies that the user is authorized to access a protected route
 // add 'router.use(verifyToken);' to verify the route is authorized
-const { admin } = require('../config/firebase');
+import { admin } from '../config/firebase.js';
 
 const verifyToken = async (req, res, next) => {
     const token = req.headers.authorization?.split('Bearer ')[1];

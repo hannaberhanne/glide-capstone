@@ -62,7 +62,7 @@ const createTask = async (req, res) => {
             dueAt: dueAt || null,
             estimatedTime: estimatedTime || 0,
             isComplete: false,
-            priority: priority || "low",
+            priority: priority || "medium",
             taskId: docRef.id,
             title: title.trim(),
             userId: uid,
@@ -189,7 +189,7 @@ const deleteTask = async (req, res) => {
     }
 };
 
-export default {
+export {
     createTask,
     getTasks,
     updateTask,

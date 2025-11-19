@@ -143,12 +143,16 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// --- Serve Frontend (only in production mode) ---
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-  // Handle React routing - send all non-API requests to React app
-  app.get('*', (req, res) => {
+  // Handle React routing - serve index.html for all non-API routes
+  app.use((req, res, next) => {
+    // Skip if it's an API route
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    // Serve index.html for all other routes
     res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
   });
 } else {

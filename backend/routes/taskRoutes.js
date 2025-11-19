@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-import { verifyToken } from '../middleware/authMiddleware.js';
+import verifyToken from '../middleware/authMiddleware.js';
 
 import {
     getTasks,  // starts on line 4
