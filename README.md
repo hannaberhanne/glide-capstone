@@ -52,7 +52,7 @@ npm install
 5. Run backend:
 ```bash
 cd backend
-node server.js
+npm run start
 ```
 
 6. Run frontend (different terminal):
