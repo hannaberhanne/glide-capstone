@@ -49,6 +49,7 @@ const createTask = async (req, res) => {
             priority: priority || "medium",
             title: title.trim(),
             userId: uid,
+            updatedAt: new Date(),
             xpValue: xpValue || 0
         });
 
@@ -66,6 +67,7 @@ const createTask = async (req, res) => {
             taskId: docRef.id,
             title: title.trim(),
             userId: uid,
+            updatedAt: new Date(),
             xpValue: xpValue || 0
         });
 

@@ -22,6 +22,7 @@ const allowlist = new Set([
   // 'https://glide-plus.vercel.app',
 ]);
 
+/*
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Postman, or same-origin)
@@ -33,6 +34,7 @@ const corsOptions = {
   },
   credentials: true, // Allow cookies/auth headers
 };
+*/
 
 app.use(cors());
 app.use(express.json());
@@ -40,11 +42,15 @@ app.use(express.json());
 const PORT = process.env.PORT || 8080;  // can prob delete 8080 when everyone's .env is made
 
 // Route imports are right below
-import taskRoutes from './routes/taskRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+
+
 
 
 // ---------- The api routes go below ----------
+app.use('api/events', eventRoutes);
 app.use('/api/tasks', taskRoutes);  // so in taskRoutes.js default things get routed by /api/tasks
 app.use('/api/auth', authRoutes);  // signup thing again
 
@@ -142,6 +148,8 @@ app.get('/api/health', (req, res) => {
     }
   });
 });
+
+
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
