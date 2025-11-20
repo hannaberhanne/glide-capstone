@@ -125,7 +125,8 @@ export default function PlannerPage() {
           <h1 className="month">{monthLabel}</h1>
           <button className="ghost" onClick={() => setCursor(addMonths(cursor, +1))}>▶</button>
         </div>
-        <div className="nav-right">
+
+        <div className="today-row">
           <button className="pill" onClick={() => { setCursor(startOfMonth(today)); setSelected(today); }}>Today</button>
         </div>
       </header>

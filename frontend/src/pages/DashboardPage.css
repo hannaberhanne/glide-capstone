@@ -177,21 +177,26 @@ body {
 
 /* quick links & XP */
 .quick-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   margin-bottom: 4px;
 }
-.quick {
+
+.quick-btn {
   text-decoration: none;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: #f8fafc;
   color: var(--ink);
   font-weight: 700;
+  text-align: center;
 }
+
 .xp-card {
   margin-top: 6px;
   display: grid;
@@ -216,6 +221,45 @@ body {
 .xp-fill {
   height: 100%;
   background: linear-gradient(90deg, #60a5fa, #34d399);
+}
+
+/* XP FULL-WIDTH PANEL */
+.xp-wide-panel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.xp-panel {
+  width: 100%;
+  max-width: 1100px;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.xp-header {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.xp-value-large {
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+/* widen the XP bar a bit */
+.xp-bar-wide {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
 }
 
 /* mobil view */

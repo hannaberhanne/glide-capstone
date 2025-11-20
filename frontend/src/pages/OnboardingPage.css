@@ -1,0 +1,133 @@
+:root {
+    --ink: #0f172a;
+    --card: #ffffff;
+    --muted: #475569;
+    --brand: #1976d2;
+    --bg1: #e9f7f7;
+    --bg2: #f4eefe;
+  }
+  
+  /* Bigger container spacing */
+  .onboarding-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 70px;
+  }
+  
+  /* Bigger Logo */
+  .onboarding-logo {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 8px 18px;
+    border-radius: 14px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .onboarding-logo span {
+    color: var(--brand);
+  }
+  
+  /* Bigger step text */
+  .onboarding-step {
+    color: var(--muted);
+    font-size: 18px;
+    margin-bottom: 35px;
+  }
+  
+  /* BIGGER CARD */
+  .onboarding-card {
+    width: 90%;
+    max-width: 950px;   /* INCREASED */
+    background: var(--card);
+    border-radius: 22px; /* SLIGHTLY BIGGER RADIUS */
+    padding: 45px 50px 65px; /* MORE SPACE */
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.09);
+    text-align: left;
+  }
+  
+  /* Bigger question */
+  .onboarding-question {
+    font-size: 30px;  /* INCREASED */
+    text-align: center;
+    margin-bottom: 55px;
+    margin-top: 8px;
+  }
+  
+  /* Choices */
+  .onboarding-choices {
+    margin: 0 auto;
+    max-width: 560px;  /* WIDER CHOICE AREA */
+    margin-top: 15px;
+    text-align: left !important;
+  }
+  
+  /* Bigger option text */
+  .onboarding-option {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    margin: 18px 0;
+    font-size: 20px;
+    cursor: pointer;
+    text-align: left !important;   /* overrides question centering */
+    justify-content: flex-start;
+    width: 100%;
+  }
+  
+  .onboarding-option input {
+    flex-shrink: 0;                 /* prevents the dot from jumping up */
+    margin-top: 3px;                /* visually centers the radio vertically */
+  }  
+  
+  /* Bigger textarea */
+  .onboarding-textarea {
+    width: 100%;
+    height: 160px; /* Slightly bigger */
+    padding: 16px;
+    border-radius: 14px;
+    border: 2px solid #d4d4d8;
+    font-size: 18px; /* Bigger text */
+    resize: none;
+  }
+  
+  /* Bigger Back + Next row */
+  .onboarding-nav {
+    margin-top: 35px;
+    width: 90%;
+    max-width: 950px; /* matches bigger card */
+    gap: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Bigger back button */
+  .onboarding-back,
+  .onboarding-next {
+    background: var(--brand);
+    border: none;
+    padding: 16px 40px;  /* BIGGER BUTTON */
+    border-radius: 12px;
+    font-size: 20px;  /* BIGGER TEXT */
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .onboarding-back:hover,
+  .onboarding-next:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  
+  .onboarding-next:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  

@@ -41,7 +41,7 @@ export default function DashboardPage() {
 
   const handleAddTask = async () => {
     if (!newTask.trim() || !auth.currentUser || addingTask) return;
-    
+
     setAddingTask(true);
     try {
       const token = await auth.currentUser.getIdToken();
@@ -53,7 +53,7 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({ title: newTask.trim() }),
       });
-      
+
       const newTaskData = await res.json();
       setTasks((prev) => [...prev, newTaskData]);
       setNewTask("");
@@ -67,9 +67,9 @@ export default function DashboardPage() {
 
   const handleDeleteTask = async (taskId) => {
     if (!auth.currentUser) return;
-    
+
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    
+
     try {
       const token = await auth.currentUser.getIdToken();
       await fetch(`http://localhost:5001/api/tasks/${taskId}`, {
@@ -95,7 +95,9 @@ export default function DashboardPage() {
       {/* HERO / INTRO */}
       <section className="dash-hero">
         <p className="dash-date">{todayStr}</p>
-        <h1 className="dash-title">Welcome back, {auth.currentUser?.email?.split("@")[0] || "User"}</h1>
+        <h1 className="dash-title">
+          Welcome back, {auth.currentUser?.email?.split("@")[0] || "User"}
+        </h1>
         <p className="dash-sub">
           Here's a quick snapshot of your day across tasks, habits, and XP.
         </p>
@@ -141,7 +143,7 @@ export default function DashboardPage() {
               Open Calendar →
             </Link>
           </div>
-          
+
           <div style={{ marginBottom: "1rem" }}>
             <input
               type="text"
@@ -165,7 +167,9 @@ export default function DashboardPage() {
             {tasks.length === 0 ? (
               <li className="task-item">
                 <div className="task-body">
-                  <div className="task-text">No tasks yet — you're crushing it! ✨</div>
+                  <div className="task-text">
+                    No tasks yet — you're crushing it! ✨
+                  </div>
                 </div>
               </li>
             ) : (
@@ -175,10 +179,13 @@ export default function DashboardPage() {
                   <div className="task-body">
                     <div className="task-text">{t.title || t.text}</div>
                     <div className="task-meta">
-                      {t.dueDate ? new Date(t.dueDate.seconds * 1000).toLocaleString() : (t.due || "No due date")}
+                      {t.dueDate
+                        ? new Date(t.dueDate.seconds * 1000).toLocaleString()
+                        : t.due || "No due date"}
                     </div>
                   </div>
-                  <button 
+
+                  <button
                     className="delete-task-btn"
                     onClick={() => handleDeleteTask(t.id)}
                     aria-label="Delete task"
@@ -190,8 +197,18 @@ export default function DashboardPage() {
                       marginLeft: "auto",
                     }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M12 4L4 12M4 4L12 12"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </button>
                 </li>
@@ -200,35 +217,28 @@ export default function DashboardPage() {
           </ul>
         </div>
 
-        {/* Quick Links + XP */}
+        {/* Quick Links */}
         <div className="panel">
           <div className="panel-head">
             <h2>Quick Links</h2>
           </div>
 
           <div className="quick-grid">
-            <Link to="/planner" className="quick-btn">
-              Add Task
-            </Link>
-            <Link to="/home" className="quick-btn">
-              Goals
-            </Link>
-            <Link to="/dashboard" className="quick-btn">
-              XP &amp; Badges
-            </Link>
-            <Link to="/home" className="quick-btn">
-              Settings
-            </Link>
+            <Link to="/planner" className="quick-btn">Add Task</Link>
+            <Link to="/home" className="quick-btn">Goals</Link>
+            <Link to="/home" className="quick-btn">Settings</Link>
           </div>
+        </div>
+      </section>
 
-          <div className="xp-wrap">
-            <div className="xp-labels">
-              <span className="xp-title">XP</span>
-              <span className="xp-value">{xp}</span>
-            </div>
-            <div className="xp-bar">
-              <div className="xp-fill" style={{ width: "45%" }} />
-            </div>
+      {/* XP FULL-WIDTH PANEL */}
+      <section className="xp-wide-panel">
+        <div className="panel xp-panel">
+          <h2 className="xp-header">XP &amp; Badges</h2>
+          <div className="xp-value-large">XP {xp}</div>
+
+          <div className="xp-bar xp-bar-wide">
+            <div className="xp-fill" style={{ width: "45%" }} />
           </div>
         </div>
       </section>
