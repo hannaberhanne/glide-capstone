@@ -47,92 +47,10 @@ import eventRoutes from './routes/eventRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 
 
-
-
 // ---------- The api routes go below ----------
 app.use('api/events', eventRoutes);
 app.use('/api/tasks', taskRoutes);  // so in taskRoutes.js default things get routed by /api/tasks
 app.use('/api/auth', authRoutes);  // signup thing again
-
-
-// GET: Return events
-app.get('/api/events', async (req, res) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
-  if (!token) return res.status(401).json({ error: 'No token' });
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    const uid = decoded.uid;
-
-    const snapshot = await db.collection('events')
-      .where('userid', '==', uid)
-      .get();
-
-    const events = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    res.json(events);
-  } catch (err) {
-    console.error('Auth error:', err.message);
-    res.status(401).json({ error: 'Invalid token' });
-  }
-});
-
-// POST: Create new event
-app.post('/api/events', async (req, res) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
-  if (!token) return res.status(401).json({ error: 'No token' });
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    const { date, time, text } = req.body;
-
-    const docRef = await db.collection('events').add({
-      date,
-      time,
-      text,
-      userid: decoded.uid,
-      createdAt: new Date()
-    });
-
-    res.json({ id: docRef.id, date, time, text, userid: decoded.uid });
-  } catch (err) {
-    console.error('Create error:', err);
-    res.status(500).json({ error: 'Failed to create event' });
-  }
-});
-
-// DELETE: Remove an event
-app.delete('/api/events/:id', async (req, res) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
-  if (!token) return res.status(401).json({ error: 'No token' });
-
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    const { id } = req.params;
-
-    const docRef = db.collection('events').doc(id);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    if (doc.data().userid !== decoded.uid) {
-      return res.status(403).json({ error: 'Not authorized' });
-    }
-
-    await docRef.delete();
-    res.json({ id, deleted: true });
-  } catch (err) {
-    console.error('Delete error:', err);
-    res.status(500).json({ error: 'Failed to delete event' });
-  }
-});
-
-
 
 
 // Health check endpoint to make sure stuff is running

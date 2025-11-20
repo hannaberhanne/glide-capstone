@@ -23,4 +23,4 @@ router.patch('/:id', updateTask);
 // DELETE /api/tasks/:id - Delete task
 router.delete('/:id', deleteTask);
 
-export default router
+export default router;
