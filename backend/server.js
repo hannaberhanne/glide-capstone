@@ -43,15 +43,17 @@ const PORT = process.env.PORT || 8080;  // can prob delete 8080 when everyone's 
 
 // Route imports are right below
 import authRoutes from './routes/authRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
 
 
 // ---------- The api routes go below ----------
+app.use('api/courses', courseRoutes);
 app.use('api/events', eventRoutes);
 app.use('api/habits', habitRoutes);
-app.use('/api/tasks', taskRoutes);  // so in taskRoutes.js default things get routed by /api/tasks
+app.use('/api/tasks', taskRoutes);  // so example in taskRoutes.js default things get routed by /api/tasks
 app.use('/api/auth', authRoutes);  // signup thing again
 
 

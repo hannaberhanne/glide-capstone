@@ -1,4 +1,4 @@
-import { db } from '../config/firebase.js';
+import { admin, db } from '../config/firebase.js';
 
 // get requests to retrieve all tasks
 const getTasks = async (req, res) => {
@@ -41,7 +41,7 @@ const createTask = async (req, res) => {
             canvasAssignmentId: canvasAssignmentId || null,
             completedAt: null,
             courseId: courseId || null,
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             description: description || '',
             dueAt: dueAt || null,
             estimatedTime: estimatedTime || 0,
@@ -49,7 +49,7 @@ const createTask = async (req, res) => {
             priority: priority || "medium",
             title: title.trim(),
             userId: uid,
-            updatedAt: new Date(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             xpValue: xpValue || 0
         });
 
@@ -58,7 +58,7 @@ const createTask = async (req, res) => {
             canvasAssignmentId: canvasAssignmentId || null,
             completedAt: null,
             courseId: courseId || null,
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             description: description || '',
             dueAt: dueAt || null,
             estimatedTime: estimatedTime || 0,
@@ -67,7 +67,7 @@ const createTask = async (req, res) => {
             taskId: docRef.id,
             title: title.trim(),
             userId: uid,
-            updatedAt: new Date(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             xpValue: xpValue || 0
         });
 
@@ -136,6 +136,8 @@ const updateTask = async (req, res) => {
                 updateData.completedAt = null;
             }
         }
+
+        updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
         // Update the task in Firestore
         await docRef.update(updateData);

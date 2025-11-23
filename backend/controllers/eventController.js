@@ -1,4 +1,4 @@
-import { db } from '../config/firebase.js';
+import { admin, db } from '../config/firebase.js';
 
 // get requests to retrieve all Events
 const getEvent = async (req, res) => {
@@ -39,7 +39,7 @@ const createEvent = async (req, res) => {
 
         const docRef = await db.collection('events').add({
             allDay: allDay || false,
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             description: description || '',
             endTime: endTime || '',
             isRecurring: isRecurring || false,
@@ -48,13 +48,13 @@ const createEvent = async (req, res) => {
             startTime: startTime || '',
             title: title.trim(),
             userId: uid,
-            updatedAt: new Date(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
         // if successful send back the new event created so it updates in real time
         res.status(201).json({
             allDay: allDay || false,
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             description: description || '',
             endTime: endTime || '',
             eventId: docRef.id,
@@ -64,7 +64,7 @@ const createEvent = async (req, res) => {
             startTime: startTime || '',
             title: title.trim(),
             userId: uid,
-            updatedAt: new Date(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
 
@@ -141,6 +141,8 @@ const updateEvent = async (req, res) => {
             }
             updateData.title = title.trim();
         }
+
+        updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
         // Update the events in Firestore
         await docRef.update(updateData);

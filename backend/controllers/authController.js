@@ -1,4 +1,4 @@
-import { db } from '../config/firebase.js';
+import {admin, db} from '../config/firebase.js';
 
 const signUp = async (req, res) => {
     try {
@@ -27,14 +27,14 @@ const signUp = async (req, res) => {
         }
 
         const user = {
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             email: email.trim(),
             firstName: firstName.trim(),
             gradYear: '',
             lastName: lastName.trim(),
             major: '',
             photo: '',
-            updatedAt: new Date(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             university: ''
         };
 

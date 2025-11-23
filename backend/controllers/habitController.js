@@ -1,4 +1,4 @@
-import { db } from '../config/firebase.js';
+import { admin, db } from '../config/firebase.js';
 
 // get requests to retrieve all habits
 const getHabits = async (req, res) => {
@@ -41,7 +41,7 @@ const createHabit = async (req, res) => {
 
         const docRef = await db.collection('habits').add({
             completionHistory: completionHistory || [],
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             currentStreak: currentStreak || 0,
             description: description || '',
             estimatedTime: estimatedTime || 0,
@@ -53,14 +53,14 @@ const createHabit = async (req, res) => {
             title: title.trim(),
             totalCompletions: totalCompletions || 0,
             userId: uid,
-            updatedAt: new Date(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             xpValue: xpValue || 0
         });
 
         // if successful send back the new habit created so it updates in real time
         res.status(201).json({
             completionHistory: completionHistory || [],
-            createdAt: new Date(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
             currentStreak: currentStreak || 0,
             description: description || '',
             estimatedTime: estimatedTime || 0,
@@ -73,7 +73,7 @@ const createHabit = async (req, res) => {
             title: title.trim(),
             totalCompletions: totalCompletions || 0,
             userId: uid,
-            updatedAt: new Date(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             xpValue: xpValue || 0
         });
 
@@ -153,6 +153,8 @@ const updateHabit = async (req, res) => {
         if (targetDays !== undefined) {
             updateData.targetDays = targetDays;
         }
+
+        updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
         // Update the task in Firestore
         await docRef.update(updateData);
