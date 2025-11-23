@@ -3,10 +3,10 @@ const router = express.Router();
 import verifyToken from '../middleware/authMiddleware.js';
 
 import {
-    getTasks,  // starts on line 4
-    createTask,  // line 29
-    updateTask,  // line 84
-    deleteTask  // line 161
+    getTasks,
+    createTask,
+    updateTask,
+    deleteTask
 } from '../controllers/taskController.js';
 
 router.use(verifyToken);
