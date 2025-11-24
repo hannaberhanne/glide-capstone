@@ -45,7 +45,7 @@ export default function LandingPage() {
 
     <div className="nav-right">
       <Link to="/login" className="nav-login">LOG IN</Link>
-      <Link to="/login" className="nav-signup">SIGN UP</Link>
+      <Link to="/signup" className="nav-signup">SIGN UP</Link>
     </div>
   </div>
 </header>
