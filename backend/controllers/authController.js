@@ -28,14 +28,19 @@ const signUp = async (req, res) => {
 
         const user = {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            darkMode: false,
             email: email.trim(),
             firstName: firstName.trim(),
             gradYear: '',
             lastName: lastName.trim(),
+            longestStreak: 0,
             major: '',
+            notification: false,
             photo: '',
+            timezone: '',
+            totalXP: 0,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            university: ''
+            university: '',
         };
 
         await db.collection('users').doc(uid).set(user);
