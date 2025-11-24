@@ -8,6 +8,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState("");
   const [addingTask, setAddingTask] = useState(false);
+  const [showSettings, setShowSettings] = useState(false); // ⭐ settings toggle
   const [streak] = useState(4);
   const [xp] = useState(1250);
 
@@ -92,7 +93,7 @@ export default function DashboardPage() {
 
   return (
     <div className="dash">
-      {/* HERO / INTRO */}
+      {/* HERO */}
       <section className="dash-hero">
         <p className="dash-date">{todayStr}</p>
         <h1 className="dash-title">
@@ -133,9 +134,9 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN CONTENT GRID */}
       <section className="dash-main">
-        {/* Upcoming */}
+        {/* LEFT PANEL: UPCOMING */}
         <div className="panel">
           <div className="panel-head">
             <h2>Upcoming</h2>
@@ -197,12 +198,7 @@ export default function DashboardPage() {
                       marginLeft: "auto",
                     }}
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                    >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                       <path
                         d="M12 4L4 12M4 4L12 12"
                         stroke="currentColor"
@@ -217,16 +213,51 @@ export default function DashboardPage() {
           </ul>
         </div>
 
-        {/* Quick Links */}
+        {/* RIGHT PANEL: QUICK LINKS **OR** SETTINGS */}
         <div className="panel">
           <div className="panel-head">
-            <h2>Quick Links</h2>
+            <h2>{showSettings ? "Settings" : "Quick Links"}</h2>
           </div>
 
           <div className="quick-grid">
-            <Link to="/planner" className="quick-btn">Add Task</Link>
-            <Link to="/home" className="quick-btn">Goals</Link>
-            <Link to="/home" className="quick-btn">Settings</Link>
+
+            {/* SETTINGS MODE */}
+            {showSettings ? (
+              <>
+                <button
+                  className="quick-btn"
+                  onClick={() => (window.location.href = "/canvas-setup")}
+                >
+                  Sync Canvas →
+                </button>
+
+                <button
+                  className="quick-btn"
+                  onClick={() => setShowSettings(false)}
+                  style={{ background: "#f1f5f9" }}
+                >
+                  Close Settings
+                </button>
+              </>
+            ) : (
+              /* QUICK LINKS MODE */
+              <>
+                <Link to="/planner" className="quick-btn">
+                  Add Task
+                </Link>
+
+                <Link to="/home" className="quick-btn">
+                  Goals
+                </Link>
+
+                <button
+                  className="quick-btn"
+                  onClick={() => setShowSettings(true)}
+                >
+                  Settings
+                </button>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -242,6 +273,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+
     </div>
   );
 }

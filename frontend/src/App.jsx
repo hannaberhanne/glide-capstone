@@ -7,6 +7,7 @@ import PlannerPage from "./pages/PlannerPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage";
+import CanvasSetup from "./pages/CanvasSetup";
 import "./App.css";
 
 function NotFound() {
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/onboarding" element={<OnboardingPage />} />
+      <Route path="/canvas-setup" element={<CanvasSetup />} />
 
       {/* All other routes inside Layout (with navbar/footer) */}
       <Route element={<Layout />}>

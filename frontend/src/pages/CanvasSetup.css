@@ -1,0 +1,75 @@
+.canvas-setup-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+    padding: 20px;
+  }
+  
+  .canvas-setup-card {
+    background: white;
+    width: 90%;
+    max-width: 700px;
+    padding: 50px 60px;
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .canvas-setup-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  
+  .canvas-setup-sub {
+    font-size: 18px;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+  
+  .canvas-setup-steps {
+    text-align: left;
+    margin: 0 auto 38px;
+    max-width: 500px;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink);
+    padding-left: 20px;
+  }
+  
+  .canvas-setup-steps li {
+    margin-bottom: 10px;
+  }
+  
+  .canvas-setup-btn {
+    background: var(--brand);
+    color: white;
+    border: none;
+    padding: 16px 36px;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: 0.2s ease;
+  }
+  
+  .canvas-setup-btn:hover {
+    opacity: 0.9;
+  }
+  
+  .canvas-setup-skip {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 16px;
+  }
+  
+  .canvas-setup-skip:hover {
+    text-decoration: underline;
+    color: var(--brand);
+  }
+  

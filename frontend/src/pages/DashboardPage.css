@@ -262,6 +262,13 @@ body {
   overflow: hidden;
 }
 
+.settings-panel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 /* mobil view */
 
 @media (max-width: 768px) {

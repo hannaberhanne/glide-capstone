@@ -65,27 +65,47 @@ export default function OnboardingPage() {
 
   const current = questions[step - 1];
 
-  // ⭐ FINISHED SCREEN
+  // canvas sync question
   if (finished) {
     return (
       <div className="onboarding-container">
         <div className="onboarding-card" style={{ textAlign: "center" }}>
-          <h2 className="onboarding-question">🎉 You're all set!</h2>
+          
+          <h2 className="onboarding-question">Sync your Canvas account?</h2>
+  
           <p style={{ marginBottom: "30px", fontSize: "18px" }}>
-            You're ready to start using Glide+.
+            You can automatically import assignments and class data from Canvas.
           </p>
-
-          <a
-            href="/dashboard"
-            className="onboarding-next"
-            style={{ textDecoration: "none", display: "inline-block" }}
-          >
-            Continue →
-          </a>
+  
+          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+            
+            {/* YES BUTTON → Canvas setup page (placeholder for now) */}
+            <a
+              href="/canvas-setup"
+              className="onboarding-next"
+              style={{ textDecoration: "none", display: "inline-block" }}
+            >
+              Yes, sync Canvas →
+            </a>
+  
+            {/* NO BUTTON → Dashboard */}
+            <a
+              href="/dashboard"
+              className="onboarding-back"
+              style={{
+                textDecoration: "none",
+                display: "inline-block",
+                textAlign: "center",
+              }}
+            >
+              No thanks
+            </a>
+  
+          </div>
         </div>
       </div>
     );
-  }
+  }  
 
   return (
     <div className="onboarding-container">
