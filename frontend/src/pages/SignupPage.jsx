@@ -56,20 +56,11 @@ export default function SignupPage() {
           lastName: lastName.trim(),
         })
       })
-      console.log(`${API_URL}`);
-
-      // 2. Store user profile in Firestore
-      //await setDoc(doc(db, "users", user.uid), {
-      //  name,
-      //  email,
-      //  createdAt: new Date().toISOString(),
-      //});
 
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to create profile');
       }
-
 
       alert("Account created successfully!");
       nav("/dashboard");
