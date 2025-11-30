@@ -13,9 +13,32 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+<<<<<<< HEAD
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
       alert(err.message);
+=======
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+
+      nav("/dashboard");
+
+    } catch (error) {
+      console.error("Login error:", error);
+      let errorMessage = "Login failed. Please try again.";
+      if (error.code === 'auth/invalid-credential') {
+        errorMessage = "Invalid email or password.";
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = "No account found with this email.";
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = "Incorrect password.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Try again later.";
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+>>>>>>> c126e66fa4155bfb18613cdcdeda9c5075dba1ad
     }
   };
 

@@ -18,10 +18,48 @@ export default function SignUpPage() {
     if (password !== confirm) return alert("Passwords do not match.");
 
     try {
+<<<<<<< HEAD
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCred.user, {
         displayName: `${first} ${last}`,
       });
+=======
+      // 1. Create user in Firebase Auth
+      const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const user = userCred.user;
+      const idToken = await user.getIdToken();
+
+
+      const response = await fetch(`${API_URL}/api/auth/signup`, {  // route to sign up a new user
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({  // body in alphabetical order
+          email: email.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        })
+      })
+      console.log(`${API_URL}`);
+
+      // 2. Store user profile in Firestore
+      //await setDoc(doc(db, "users", user.uid), {
+      //  name,
+      //  email,
+      //  createdAt: new Date().toISOString(),
+      //});
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create profile');
+      }
+
+
+      alert("Account created successfully!");
+      nav("/dashboard");
+>>>>>>> c126e66fa4155bfb18613cdcdeda9c5075dba1ad
     } catch (err) {
       alert(err.message);
     }

@@ -9,66 +9,87 @@
   z-index: 50;
 }
 
+/* INNER WRAPPER */
 .header-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 18px 6vw;
+  padding: 10px 6vw;     
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* LOGO */
 .logo {
-  font-weight: 900;
-  font-size: 22px;
+  font-weight: 800;
+  font-size: 20px;
   color: #111827;
 }
-
 .plus {
   color: #f97316;
 }
 
+/* NAV LINKS */
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 18px;              
 }
 
 .nav-links a {
   text-decoration: none;
   color: #111827;
   font-weight: 600;
+  position: relative;     
   transition: color 0.2s ease;
 }
 
-.nav-links a:hover {
-  color: #f97316;
+/* Hover underline animation */
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0%;
+  height: 2px;
+  background-color: #f97316;
+  transition: width 0.2s ease;
 }
 
-/* === LOGIN BUTTON === */
-/* header-specific button (replaces .login-btn to avoid global overlap) */
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+/* ⭐ ACTIVE LINK STATE */
+.nav-links a.active {
+  color: #f97316;
+  font-weight: 700;
+}
+.nav-links a.active::after {
+  width: 100%;
+}
+
+/* LOGOUT BUTTON */
 .header-btn {
   border: 1.5px solid #111827;
-  border-radius: 999px;
-  padding: 6px 16px;
-  font-weight: 700;
+  border-radius: 8px;
+  padding: 5px 12px;      
+  font-weight: 600;
   background: transparent;
   color: #111827;
   cursor: pointer;
   font-size: 14px;
   font-family: inherit;
-  transition: all 0.3s ease;
-  text-decoration: none;
+  transition: all 0.25s ease;
 }
 
 .header-btn:hover {
-  background: #f97316;
+  background: #111827;
   color: #fff;
-  border-color: #f97316;
+  border-color: #111827;
 }
 
-
-/* === Push content down so it's not under navbar === */
+/* Push content below navbar */
 main {
-  margin-top: 80px;
+  margin-top: 75px;
 }
