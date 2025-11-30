@@ -35,82 +35,84 @@ const getAssignments = async (req, res) => {
 // post request to create a new assignment
 const createAssignment = async (req, res) => {
     try {
-        const { canvasUrl, courseCode, grade, instructor, isActive, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
+        const { canvasUrl, completed, courseCode, courseId, description, dueDate, title, totalPoints, xpValue } = req.body;
         const uid = req.user.uid;
 
-        if (!title || title.trim() === '') {  // at least needs a title for a course
+        if (!title || title.trim() === '') {  // at least needs a title for an assignment
             return res.status(400).json({
                 error: 'Title is required and cannot be empty'
             });
         }
 
+        const courseRef = db.collection('courses').doc(courseId);
+        const courseDoc = await courseRef.get();
+        if (!courseDoc.exists) {  // check if the course exists
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
         const docRef = await db.collection('assignments').add({
             canvasUrl: canvasUrl || '',
+            completed: completed || false,
             courseCode: courseCode,
+            courseId: courseDoc.id,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            grade: grade || 0,
-            instructor: instructor || '',
-            isActive: isActive || true,
-            lastCanvasSync: admin.firestore.FieldValue.serverTimestamp(),
-            meetingTimes: meetingTimes || '',
-            semester: semester || '',
-            syllabus: syllabus || '',
-            targetGrade: targetGrade || 100,
+            description: description || '',
+            dueDate: dueDate || '',
             title: title.trim(),
+            totalPoints: totalPoints || 0,
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            xpValue: xpValue || 0,
         });
 
-        // if successful send back the new course created so it updates in real time
+        // if successful send back the new assignment created so it updates in real time
         res.status(201).json({
+            assignmentId: docRef.id,
             canvasUrl: canvasUrl || '',
+            completed: completed || false,
             courseCode: courseCode,
-            courseId: docRef.id,  // course ID for the db (not the course code)
+            courseId: courseDoc.id,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            grade: grade || 0,
-            instructor: instructor || '',
-            isActive: isActive || true,
-            lastCanvasSync: admin.firestore.FieldValue.serverTimestamp(),
-            meetingTimes: meetingTimes || '',
-            semester: semester || '',
-            syllabus: syllabus || '',
-            targetGrade: targetGrade || 100,
+            description: description || '',
+            dueDate: dueDate || '',
             title: title.trim(),
+            totalPoints: totalPoints || 0,
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            xpValue: xpValue || 0,
         });
 
 
     } catch (err) {
-        console.error('Create course error:', err);
+        console.error('Create assignment error:', err);
         res.status(500).json({
-            error: 'Failed to create course',
+            error: 'Failed to create assignment',
             message: err.message
         });
     }
 };
 
 
-// patch to update an existing course
-const updateCourse = async (req, res) => {
+// patch to update an existing assignment
+const updateAssignment = async (req, res) => {
     try {
-        const { courseId } = req.params;
+        const { assignmentId } = req.params;
         const uid = req.user.uid;
-        const { canvasUrl, courseCode, grade, instructor, isActive, lastCanvasSync, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
+        const { canvasUrl, completed, courseCode, description, dueDate, title, totalPoints, xpValue } = req.body;
 
-        // Get the course document
-        const docRef = db.collection('courses').doc(courseId);
+        // Get the assignment document
+        const docRef = db.collection('assignments').doc(assignmentId);
         const doc = await docRef.get();
 
-        // Check if course exists
+        // Check if assignment exists
         if (!doc.exists) {
-            return res.status(404).json({ error: 'Course not found' });
+            return res.status(404).json({ error: 'Assignment not found' });
         }
 
-        // Check if user owns this course
+        // Check if user owns this assignment
         if (doc.data().userId !== uid) {
             return res.status(403).json({
-                error: 'Not authorized to update this course'
+                error: 'Not authorized to update this assignment'
             });
         }
 
@@ -130,101 +132,89 @@ const updateCourse = async (req, res) => {
             updateData.canvasUrl = canvasUrl || '';
         }
 
+        if (completed !== undefined) {
+            updateData.completed = completed;
+        }
+
         if (courseCode !== undefined) {
             updateData.courseCode = courseCode;
         }
 
-        if (grade !== undefined) {
-            updateData.grade = grade;
+        if (description !== undefined) {
+            updateData.description = description.trim();
         }
 
-        if (instructor !== undefined) {
-            updateData.instructor = instructor;
+        if (dueDate !== undefined) {
+            updateData.dueDate = dueDate;
         }
 
-        if (isActive !== undefined) {
-            updateData.isActive = isActive;
+        if (totalPoints !== undefined) {
+            updateData.totalPoints = totalPoints || 0;
         }
 
-        if (lastCanvasSync !== undefined) {
-            updateData.lastCanvasSync = lastCanvasSync;
-        }
-
-        if (meetingTimes !== undefined) {
-            updateData.meetingTimes = meetingTimes;
-        }
-
-        if (semester !== undefined) {
-            updateData.semester = semester;
-        }
-
-        if (syllabus !== undefined) {
-            updateData.syllabus = syllabus;
-        }
-
-        if (targetGrade !== undefined) {
-            updateData.targetGrade = targetGrade;
+        if (xpValue !== undefined) {
+            updateData.xpValue = xpValue || 0;
         }
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-        // Update the task in Firestore
+        // Update the assignment in Firestore
         await docRef.update(updateData);
 
-        // Get the updated task to return
+        // Get the updated assignment to return
         const updatedDoc = await docRef.get();
 
         res.json({
-            courseId: updatedDoc.id,
+            assignmentId: updatedDoc.id,
             ...updatedDoc.data(),
             message: 'Course updated successfully'
         });
 
     } catch (err) {
-        console.error('Update course error:', err);
+        console.error('Update assignment error:', err);
         res.status(500).json({
-            error: 'Failed to update course',
+            error: 'Failed to update assignment',
             message: err.message
         });
     }
 };
 
 
-// remove a course from db
-const deleteCourse = async (req, res) => {
+// remove an assignment from db
+const deleteAssignment = async (req, res) => {
     try {
-        const { courseId } = req.params;
+        const { assignmentId } = req.params;
         const uid = req.user.uid;
 
-        const docRef = db.collection('courses').doc(courseId);
+        const docRef = db.collection('assignment').doc(assignmentId);
         const doc = await docRef.get();
 
         if (!doc.exists) {
-            return res.status(404).json({ error: 'Course not found' });
+            return res.status(404).json({ error: 'Assignment not found' });
         }
 
-        // Check if user owns this  ourse
+        // Check if user owns this assignment
         if (doc.data().userId !== uid) {
-            return res.status(403).json({ error: 'Not authorized to delete this course' });
+            return res.status(403).json({ error: 'Not authorized to delete this assignment' });
         }
 
-        // Delete the course
+        // Delete the assignment
         await docRef.delete();
 
         res.json({
-            courseId: courseId,
+            assignmentId: assignmentId,
             deleted: true,
-            message: 'Course deleted successfully'
+            message: 'Assignment deleted successfully'
         });
     } catch (err) {
-        console.error('Delete course error:', err);
-        res.status(500).json({ error: 'Failed to delete course' });
+        console.error('Delete assignment error:', err);
+        res.status(500).json({ error: 'Failed to delete assignment' });
     }
 };
 
 export {
-    createCourse,
-    getCourses,
-    updateCourse,
-    deleteCourse
+    createAssignment,
+    getAssignments,
+    updateAssignment,
+    deleteAssignment
 };
