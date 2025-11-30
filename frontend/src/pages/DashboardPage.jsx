@@ -5,6 +5,7 @@ import "./DashboardPage.css";
 
 export default function DashboardPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState("");
@@ -18,6 +19,32 @@ export default function DashboardPage() {
     month: "long",
     day: "numeric",
   }).format(new Date());
+
+  // fetch the Users from the db
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!auth.currentUser) return;
+
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch(`${API_URL}/api/user`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const userData = await res.json();
+        setUser(userData);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    };
+
+    fetchUser();
+  }, [API_URL]);
+
 
   // ✅ Fetch tasks from backend API
   useEffect(() => {
@@ -45,11 +72,10 @@ export default function DashboardPage() {
       }
       setLoading(false);
     };
-
     fetchTasks();
   }, [API_URL]);
 
-  // ✅ Add new task
+
   const handleAddTask = async () => {
     if (!newTask.trim() || !auth.currentUser || addingTask) return;
 
@@ -84,14 +110,13 @@ export default function DashboardPage() {
     }
   };
 
-  // ✅ Toggle task completion
+
   const handleToggleComplete = async (taskId) => {
     if (!auth.currentUser) return;
 
     const taskToUpdate = tasks.find(t => t.taskId === taskId);
     if (!taskToUpdate) return;
 
-    // Optimistic update
     setTasks((prev) =>
         prev.map((t) =>
             t.taskId === taskId ? { ...t, completed: !t.completed } : t
@@ -114,7 +139,6 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error("Failed to update task:", err);
-      // Revert on error
       setTasks((prev) =>
           prev.map((t) =>
               t.taskId === taskId ? { ...t, completed: taskToUpdate.completed } : t
@@ -122,6 +146,7 @@ export default function DashboardPage() {
       );
     }
   };
+
 
   // ✅ Delete task
   const handleDeleteTask = async (taskId) => {
@@ -164,32 +189,6 @@ export default function DashboardPage() {
     const today = new Date();
     return dueDate.toDateString() === today.toDateString();
   }).length;
-
-
-  export const getCurrentUser = async (req, res) => {
-    try {
-      const uid = req.user.uid;
-
-      const userDoc = await db.collection('users').doc(uid).get();
-
-      if (!userDoc.exists) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const userData = {
-        userId: userDoc.id,
-        ...userDoc.data()
-      };
-
-      // Don't send sensitive data to frontend
-      delete userData.password;
-
-      res.json(userData);
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      res.status(500).json({ error: 'Failed to fetch user data' });
-    }
-  };
 
 
   return (
