@@ -28,7 +28,7 @@ const getCourses = async (req, res) => {
 // post request to create a new course
 const createCourse = async (req, res) => {
     try {
-        const { courseCode, grade, instructor, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
+        const { courseCode, grade, instructor, isActive, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a course
@@ -42,6 +42,7 @@ const createCourse = async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             grade: grade || 0,
             instructor: instructor || '',
+            isActive: isActive || true,
             meetingTimes: meetingTimes || '',
             semester: semester || '',
             syllabus: syllabus || '',
@@ -58,6 +59,7 @@ const createCourse = async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             grade: grade || 0,
             instructor: instructor || '',
+            isActive: isActive || true,
             meetingTimes: meetingTimes || '',
             semester: semester || '',
             syllabus: syllabus || '',
@@ -83,7 +85,7 @@ const updateCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
         const uid = req.user.uid;
-        const { courseCode, grade, instructor, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
+        const { courseCode, grade, instructor, isActive, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
 
         // Get the course document
         const docRef = db.collection('courses').doc(courseId);
@@ -123,6 +125,10 @@ const updateCourse = async (req, res) => {
 
         if (instructor !== undefined) {
             updateData.instructor = instructor;
+        }
+
+        if (isActive !== undefined) {
+            updateData.isActive = isActive;
         }
 
         if (meetingTimes !== undefined) {
