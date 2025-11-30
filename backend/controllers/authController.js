@@ -82,4 +82,4 @@ const login = async (req, res) => {
     }
 };
 
-export default { signUp, login };
+export { signUp, login };
