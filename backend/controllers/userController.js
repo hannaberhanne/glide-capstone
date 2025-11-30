@@ -150,7 +150,7 @@ const updateUser = async (req, res) => {
             message: err.message
         });
     }
-    
+
 
 // remove a user from db
 const deleteUser = async (req, res) => {

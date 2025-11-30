@@ -1,20 +1,26 @@
-// src/pages/LoginPage.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { auth } from "../config/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import AuthLogo from "../components/AuthLogo";
+import { Link, useNavigate } from "react-router-dom";
 import "./LoginPage.css";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../config/firebase.js";
 
 export default function LoginPage() {
+  const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const canSubmit = email.trim() !== "" && password.trim() !== "";
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    try {
-
+    if (!canSubmit || loading) return;
     
+    setError("");
+    setLoading(true);
+    
+    try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
 
       nav("/dashboard");
@@ -31,52 +37,67 @@ export default function LoginPage() {
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = "Too many failed attempts. Try again later.";
       }
-
       setError(errorMessage);
     } finally {
       setLoading(false);
-
     }
-  };
+  }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <AuthLogo />
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <h1>
+            Log in to <span>Glide+</span>
+          </h1>
+          <p>Welcome back! Let's pick up where you left off.</p>
+        </div>
 
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-sub">Log in to continue planning your goals, tasks, and habits.</p>
-
-        <form className="auth-form" onSubmit={handleLogin}>
-          <label className="field-label">Email</label>
-          <input
-            className="field-input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <label className="field-label">Password</label>
-          <input
-            className="field-input"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <button type="submit" className="auth-btn">
-            Log In
+        <form onSubmit={handleSubmit}>
+          <label>
+            <span>Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+            />
+          </label>
+          <label>
+            <span>Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+            />
+          </label>
+          
+          {error && <p style={{ color: "red", marginTop: "1rem", fontSize: "0.9rem" }}>{error}</p>}
+          
+          <button type="submit" disabled={!canSubmit || loading}>
+            {loading ? "Logging in..." : "Log In"}
           </button>
+          <p style={{ marginTop: "1rem" }}>
+            Don't have an account?{" "}
+            <Link to="/signup" style={{ color: "#f97316", fontWeight: 500 }}>
+              Sign up here
+            </Link>
+          </p>
         </form>
 
-        <p className="auth-alt">
-          Don’t have an account?{" "}
-          <Link to="/signup" className="auth-link">
-            Create one
+        <div className="login-footer">
+          <Link to="/signup" className="create-link">
+            Create Account
           </Link>
-        </p>
+          <button 
+            className="help-link"
+            type="button"
+            onClick={() => alert("Password reset coming soon!")}
+          >
+            Can't log in?
+          </button>
+        </div>
       </div>
     </div>
   );
