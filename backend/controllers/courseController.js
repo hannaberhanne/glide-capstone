@@ -28,7 +28,7 @@ const getCourses = async (req, res) => {
 // post request to create a new course
 const createCourse = async (req, res) => {
     try {
-        const { courseCode, grade, instructor, isActive, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
+        const { canvasUrl, courseCode, grade, instructor, isActive, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a course
@@ -38,11 +38,13 @@ const createCourse = async (req, res) => {
         }
 
         const docRef = await db.collection('courses').add({
+            canvasUrl: canvasUrl || '',
             courseCode: courseCode,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             grade: grade || 0,
             instructor: instructor || '',
             isActive: isActive || true,
+            lastCanvasSync: admin.firestore.FieldValue.serverTimestamp(),
             meetingTimes: meetingTimes || '',
             semester: semester || '',
             syllabus: syllabus || '',
@@ -54,12 +56,14 @@ const createCourse = async (req, res) => {
 
         // if successful send back the new course created so it updates in real time
         res.status(201).json({
+            canvasUrl: canvasUrl || '',
             courseCode: courseCode,
             courseId: docRef.id,  // course ID for the db (not the course code)
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             grade: grade || 0,
             instructor: instructor || '',
             isActive: isActive || true,
+            lastCanvasSync: admin.firestore.FieldValue.serverTimestamp(),
             meetingTimes: meetingTimes || '',
             semester: semester || '',
             syllabus: syllabus || '',
@@ -85,7 +89,7 @@ const updateCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
         const uid = req.user.uid;
-        const { courseCode, grade, instructor, isActive, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
+        const { canvasUrl, courseCode, grade, instructor, isActive, lastCanvasSync, meetingTimes, semester, syllabus, targetGrade, title } = req.body;
 
         // Get the course document
         const docRef = db.collection('courses').doc(courseId);
@@ -115,6 +119,10 @@ const updateCourse = async (req, res) => {
             updateData.title = title.trim();
         }
 
+        if (canvasUrl !== undefined) {
+            updateData.canvasUrl = canvasUrl || '';
+        }
+
         if (courseCode !== undefined) {
             updateData.courseCode = courseCode;
         }
@@ -129,6 +137,10 @@ const updateCourse = async (req, res) => {
 
         if (isActive !== undefined) {
             updateData.isActive = isActive;
+        }
+
+        if (lastCanvasSync !== undefined) {
+            updateData.lastCanvasSync = lastCanvasSync;
         }
 
         if (meetingTimes !== undefined) {
