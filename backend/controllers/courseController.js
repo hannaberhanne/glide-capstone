@@ -161,10 +161,10 @@ const updateCourse = async (req, res) => {
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-        // Update the task in Firestore
+        // Update the course in Firestore
         await docRef.update(updateData);
 
-        // Get the updated task to return
+        // Get the updated course to return
         const updatedDoc = await docRef.get();
 
         res.json({
