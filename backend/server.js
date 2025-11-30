@@ -42,6 +42,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 8080;  // can prob delete 8080 when everyone's .env is made
 
 // Route imports are right below
+import assignmentRoutes from './routes/assignmentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
@@ -50,6 +51,7 @@ import habitRoutes from './routes/habitRoutes.js';
 
 
 // ---------- The api routes go below ----------
+app.use('api/assignments', assignmentRoutes);
 app.use('api/courses', courseRoutes);
 app.use('api/events', eventRoutes);
 app.use('api/habits', habitRoutes);
@@ -64,8 +66,11 @@ app.get('/api/health', (req, res) => {
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
     endpoints: {
-      tasks: '/api/tasks',
+      assignments: 'api/assignments',
+      courses: 'api/courses',
       events: '/api/events',
+      habits: '/api/habits',
+      tasks: '/api/tasks',
       auth: '/api/auth',
     }
   });
@@ -92,8 +97,11 @@ if (process.env.NODE_ENV === 'production') {
       message: 'Glide API+ running in DEVELOPMENT mode',
       note: 'Frontend dev server should run separately on http://localhost:5173',
       endpoints: {
-        tasks: '/api/tasks',
+        assignments: 'api/assignments',
+        courses: 'api/courses',
         events: '/api/events',
+        habits: '/api/habits',
+        tasks: '/api/tasks',
         auth: '/api/auth',
         health: '/api/health',
       }
