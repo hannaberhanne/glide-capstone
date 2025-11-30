@@ -37,6 +37,7 @@ export default function LoginPage() {
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = "Too many failed attempts. Try again later.";
       }
+
       setError(errorMessage);
     } finally {
       setLoading(false);
