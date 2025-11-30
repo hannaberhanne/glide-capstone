@@ -44,7 +44,7 @@ export default function SignupPage() {
       const idToken = await user.getIdToken();
 
 
-      const response = await fetch(`${API_URL}/api/auth/signup`, {  // route to signup a new user
+      const response = await fetch(`${API_URL}/api/auth/signup`, {  // route to sign up a new user
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -55,7 +55,8 @@ export default function SignupPage() {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
         })
-      });
+      })
+      console.log(`${API_URL}`);
 
       // 2. Store user profile in Firestore
       //await setDoc(doc(db, "users", user.uid), {

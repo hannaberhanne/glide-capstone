@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { auth } from "../config/firebase.js";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
+  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState("");
   const [addingTask, setAddingTask] = useState(false);
-  const [showSettings, setShowSettings] = useState(false); // ⭐ settings toggle
+  const [showSettings, setShowSettings] = useState(false);
   const [streak] = useState(4);
   const [xp] = useState(1250);
 
@@ -18,6 +19,7 @@ export default function DashboardPage() {
     day: "numeric",
   }).format(new Date());
 
+  // ✅ Fetch tasks from backend API
   useEffect(() => {
     const fetchTasks = async () => {
       if (!auth.currentUser) {
@@ -27,33 +29,49 @@ export default function DashboardPage() {
 
       try {
         const token = await auth.currentUser.getIdToken();
-        const res = await fetch("http://localhost:5001/api/tasks", {
+        const res = await fetch(`${API_URL}/api/tasks`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
         const data = await res.json();
         setTasks(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch tasks:", err);
+        setTasks([]);
       }
       setLoading(false);
     };
-    fetchTasks();
-  }, []);
 
+    fetchTasks();
+  }, [API_URL]);
+
+  // ✅ Add new task
   const handleAddTask = async () => {
     if (!newTask.trim() || !auth.currentUser || addingTask) return;
 
     setAddingTask(true);
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch("http://localhost:5001/api/tasks", {
+      const res = await fetch(`${API_URL}/api/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title: newTask.trim() }),
+        body: JSON.stringify({
+          title: newTask.trim(),
+          completed: false,
+          dueDate: new Date().toISOString()
+        }),
       });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
 
       const newTaskData = await res.json();
       setTasks((prev) => [...prev, newTaskData]);
@@ -66,19 +84,66 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDeleteTask = async (taskId) => {
+  // ✅ Toggle task completion
+  const handleToggleComplete = async (taskId) => {
     if (!auth.currentUser) return;
 
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    const taskToUpdate = tasks.find(t => t.taskId === taskId);
+    if (!taskToUpdate) return;
+
+    // Optimistic update
+    setTasks((prev) =>
+        prev.map((t) =>
+            t.taskId === taskId ? { ...t, completed: !t.completed } : t
+        )
+    );
 
     try {
       const token = await auth.currentUser.getIdToken();
-      await fetch(`http://localhost:5001/api/tasks/${taskId}`, {
+      const res = await fetch(`${API_URL}/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ completed: !taskToUpdate.completed }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update task');
+      }
+    } catch (err) {
+      console.error("Failed to update task:", err);
+      // Revert on error
+      setTasks((prev) =>
+          prev.map((t) =>
+              t.taskId === taskId ? { ...t, completed: taskToUpdate.completed } : t
+          )
+      );
+    }
+  };
+
+  // ✅ Delete task
+  const handleDeleteTask = async (taskId) => {
+    if (!auth.currentUser) return;
+
+    const previousTasks = tasks;
+    setTasks((prev) => prev.filter((t) => t.taskId !== taskId));
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/tasks/${taskId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (!res.ok) {
+        throw new Error('Failed to delete task');
+      }
     } catch (err) {
       console.error("Failed to delete task:", err);
+      setTasks(previousTasks);
+      alert("Failed to delete task. Please try again.");
     }
   };
 
@@ -86,9 +151,18 @@ export default function DashboardPage() {
 
   const todayTasks = tasks.filter((t) => {
     if (!t.dueDate) return false;
-    const due = new Date(t.dueDate.seconds * 1000);
+
+    let dueDate;
+    if (typeof t.dueDate === 'object' && t.dueDate.seconds) {
+      dueDate = new Date(t.dueDate.seconds * 1000);
+    } else if (typeof t.dueDate === 'string') {
+      dueDate = new Date(t.dueDate);
+    } else {
+      return false;
+    }
+
     const today = new Date();
-    return due.toDateString() === today.toDateString();
+    return dueDate.toDateString() === today.toDateString();
   }).length;
 
   return (

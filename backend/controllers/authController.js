@@ -35,7 +35,7 @@ const signUp = async (req, res) => {
             lastName: lastName.trim(),
             longestStreak: 0,
             major: '',
-            notification: false,
+            notifications: false,
             photo: '',
             timezone: '',
             totalXP: 0,
