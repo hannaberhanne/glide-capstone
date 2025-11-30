@@ -17,6 +17,7 @@ const toKey = (d) =>
   ).padStart(2, "0")}`;
 
 export default function PlannerPage() {
+  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(startOfMonth(today));
   const [selected, setSelected] = useState(today);
@@ -69,7 +70,7 @@ export default function PlannerPage() {
 
       try {
         const token = await auth.currentUser.getIdToken();
-        const res = await fetch("http://localhost:5001/api/events", {
+        const res = await fetch(`${API_URL}/api/events`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
