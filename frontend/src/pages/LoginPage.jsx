@@ -13,11 +13,6 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-<<<<<<< HEAD
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      alert(err.message);
-=======
       await signInWithEmailAndPassword(auth, email.trim(), password);
 
       nav("/dashboard");
@@ -34,11 +29,9 @@ export default function LoginPage() {
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = "Too many failed attempts. Try again later.";
       }
-
       setError(errorMessage);
     } finally {
       setLoading(false);
->>>>>>> c126e66fa4155bfb18613cdcdeda9c5075dba1ad
     }
   };
 

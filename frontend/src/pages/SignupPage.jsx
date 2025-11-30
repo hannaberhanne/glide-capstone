@@ -18,12 +18,6 @@ export default function SignUpPage() {
     if (password !== confirm) return alert("Passwords do not match.");
 
     try {
-<<<<<<< HEAD
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCred.user, {
-        displayName: `${first} ${last}`,
-      });
-=======
       // 1. Create user in Firebase Auth
       const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCred.user;
@@ -59,7 +53,6 @@ export default function SignUpPage() {
 
       alert("Account created successfully!");
       nav("/dashboard");
->>>>>>> c126e66fa4155bfb18613cdcdeda9c5075dba1ad
     } catch (err) {
       alert(err.message);
     }
