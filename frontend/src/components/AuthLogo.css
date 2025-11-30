@@ -1,0 +1,19 @@
+.authlogo {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.authlogo-text {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a; /* dark navy */
+}
+
+.authlogo-plus {
+  font-size: 22px;
+  font-weight: 900;
+  color: #f97316; /* orange brand */
+}

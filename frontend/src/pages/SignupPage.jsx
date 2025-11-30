@@ -1,172 +1,95 @@
+// src/pages/SignUpPage.jsx
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase.js";
-import "./SignupPage.css";
+import { Link } from "react-router-dom";
+import { auth } from "../config/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import AuthLogo from "../components/AuthLogo";
+import "./LoginPage.css";
 
-export default function SignupPage() {
-  const nav = useNavigate();
-  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
-  // FIELDS FOR USER COLLECTION IN DB
+export default function SignUpPage() {
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
   const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  //const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{10,}$/;  PASSWORD REQUIREMENTS upper, lower, decimal, 10 chars
-
-  const canSubmit =
-      email.trim() !== "" &&
-      firstName.trim() !== "" &&
-      lastName.trim() !== "" &&
-      password !== "" &&
-      password.length >= 3 &&
-      password === confirmPassword;
-
-  // !passwordRegex.test(password.trim())
-
-  async function handleSignup(e) {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    setError("");
-
-    if (!canSubmit) { setError("Please fill in all fields correctly"); return; }
-
-    setLoading(true);
+    if (password !== confirm) return alert("Passwords do not match.");
 
     try {
-      // 1. Create user in Firebase Auth
-      const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      const user = userCred.user;
-      const idToken = await user.getIdToken();
-
-
-      const response = await fetch(`${API_URL}/api/auth/signup`, {  // route to signup a new user
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({  // body in alphabetical order
-          email: email.trim(),
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-        })
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCred.user, {
+        displayName: `${first} ${last}`,
       });
-
-      // 2. Store user profile in Firestore
-      //await setDoc(doc(db, "users", user.uid), {
-      //  name,
-      //  email,
-      //  createdAt: new Date().toISOString(),
-      //});
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to create profile');
-      }
-
-
-      alert("Account created successfully!");
-      nav("/dashboard");
     } catch (err) {
-      console.error("Signup error:", err.message);
-      let errorMessage = err.message;
-
-      // specific error messages from Claude
-      if (err.code === 'auth/email-already-in-use') {
-        errorMessage = 'An account with this email already exists';
-      } else if (err.code === 'auth/invalid-email') {
-        errorMessage = 'Invalid email address';
-      } else if (err.code === 'auth/weak-password') {
-        errorMessage = 'Password should be at least 6 characters';
-      }
-      setError(errorMessage);
-      setLoading(false);
+      alert(err.message);
     }
-  }
+  };
 
   return (
-    <div className="login-wrap">
-      <div className="login-top">
-        <div className="login-top-left">Sign Up</div>
-        <Link className="create-link" to="/login">
-          Back to Login
-        </Link>
-      </div>
+    <div className="auth-page">
+      <div className="auth-card">
+        <AuthLogo />
 
-      <div className="login-card">
-        <div className="logo-box" aria-hidden="true">
-          LOGO
-        </div>
-        <h1 className="login-title">
-          CREATE ACCOUNT ON <span>GLIDE+</span>
-        </h1>
+        <h1 className="auth-title">Create your account</h1>
+        <p className="auth-sub">Start organizing your goals, tasks, and habits today.</p>
 
-        <form className="login-form" onSubmit={handleSignup}>
-          <label className="field">
-            <span className="field-label">FIRST NAME</span>
-            <input
-              className="field-input"
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-            <span className="underline" />
-          </label>
+        <form className="auth-form" onSubmit={handleSignup}>
+          <label className="field-label">First Name</label>
+          <input
+            className="field-input"
+            value={first}
+            onChange={(e) => setFirst(e.target.value)}
+            required
+          />
 
-          <label className="field">
-            <span className="field-label">LAST NAME</span>
-            <input
-                className="field-input"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-            />
-            <span className="underline" />
-          </label>
+          <label className="field-label">Last Name</label>
+          <input
+            className="field-input"
+            value={last}
+            onChange={(e) => setLast(e.target.value)}
+            required
+          />
 
-          <label className="field">
-            <span className="field-label">EMAIL</span>
-            <input
-              className="field-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <span className="underline" />
-          </label>
+          <label className="field-label">Email</label>
+          <input
+            className="field-input"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          <label className="field">
-            <span className="field-label">PASSWORD</span>
-            <input
-              className="field-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <span className="underline" />
-          </label>
+          <label className="field-label">Password</label>
+          <input
+            className="field-input"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-          <label className="field">
-            <span className="field-label">CONFIRM PASSWORD</span>
-            <input
-              className="field-input"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <span className="underline" />
-          </label>
+          <label className="field-label">Confirm Password</label>
+          <input
+            className="field-input"
+            type="password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            required
+          />
 
-          <button className="login-btn" type="submit" disabled={!canSubmit}>
-            SIGN UP
+          <button type="submit" className="auth-btn">
+            Sign Up
           </button>
-          {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
         </form>
+
+        <p className="auth-alt">
+          Already have an account?{" "}
+          <Link to="/login" className="auth-link">
+            Log in
+          </Link>
+        </p>
       </div>
     </div>
   );

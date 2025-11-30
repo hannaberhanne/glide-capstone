@@ -1,3 +1,4 @@
+// src/pages/HomePage.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../config/firebase.js";
@@ -8,7 +9,7 @@ export default function HomePage() {
     const d = new Date();
     return new Intl.DateTimeFormat("en-US", {
       weekday: "long",
-      month: "short",
+      month: "long",
       day: "numeric",
     }).format(d);
   }, []);
@@ -16,12 +17,15 @@ export default function HomePage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const goals = []; // keep empty for now
+  const [currentGoalIndex, setCurrentGoalIndex] = useState(0);
+
+  const isLoggedIn = !!auth.currentUser;
+
   useEffect(() => {
     const fetchTasks = async () => {
       if (!auth.currentUser) {
-        setTasks([
-          { id: 1, title: "Sign in to see your tasks", isComplete: false },
-        ]);
+        setTasks([]);
         setLoading(false);
         return;
       }
@@ -36,11 +40,35 @@ export default function HomePage() {
       } catch (err) {
         console.error("Failed to fetch tasks:", err);
       }
+
       setLoading(false);
     };
 
     fetchTasks();
   }, []);
+
+  // autoplay goals later
+  useEffect(() => {
+    if (!goals || goals.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentGoalIndex((prev) => (prev + 1) % goals.length);
+    }, 4500);
+
+    return () => clearInterval(timer);
+  }, [goals]);
+
+  const handlePrevGoal = () => {
+    if (!goals || goals.length === 0) return;
+    setCurrentGoalIndex((prev) =>
+      prev === 0 ? goals.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextGoal = () => {
+    if (!goals || goals.length === 0) return;
+    setCurrentGoalIndex((prev) => (prev + 1) % goals.length);
+  };
 
   const toggleTask = async (id) => {
     if (!auth.currentUser) return;
@@ -48,9 +76,10 @@ export default function HomePage() {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
-    // Optimistic update
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, isComplete: !t.isComplete } : t))
+      prev.map((t) =>
+        t.id === id ? { ...t, isComplete: !t.isComplete } : t
+      )
     );
 
     try {
@@ -65,77 +94,131 @@ export default function HomePage() {
       });
     } catch (err) {
       console.error("Failed to toggle task:", err);
-      // Revert on error
+
       setTasks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, isComplete: task.isComplete } : t))
+        prev.map((t) =>
+          t.id === id ? { ...t, isComplete: task.isComplete } : t
+        )
       );
     }
   };
 
+  const name =
+    auth.currentUser?.displayName ||
+    auth.currentUser?.email?.split("@")[0] ||
+    "there";
+
   return (
-    <div className="landing">
-      <header className="landing-topbar">
-        <div className="landing-date">{todayStr}</div>
-        <div className="landing-actions">
-          <button className="icon-btn" aria-label="Notifications">
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-              <path d="M12 2a6 6 0 0 0-6 6v2.59l-.91 1.82A2 2 0 0 0 6.93 16h10.14a2 2 0 0 0 1.84-2.59L18 10.59V8a6 6 0 0 0-6-6Z" fill="currentColor" />
-              <path d="M9 18a3 3 0 0 0 6 0H9Z" fill="currentColor" />
-            </svg>
-          </button>
-          <div className="landing-logo">Glide<span>+</span></div>
+    <div className="home">
+      {/* HEADER */}
+      <header className="home-header">
+        <div>
+          <h1 className="home-title">Welcome back, {name}</h1>
+          <p className="home-date-line">{todayStr}</p>
         </div>
       </header>
 
-      <section className="landing-hero">
-        <h1>Hello {auth.currentUser?.displayName || "User"}, <span className="welcome-back">Welcome Back</span></h1>
-      </section>
+      <main className="home-main">
+        {/* GOALS */}
+        <section className="home-section">
+          <div className="home-section-head">
+            <h2 className="home-section-title">Your goals</h2>
+            <p className="home-section-sub">
+              Keep an eye on what matters most first.
+            </p>
+          </div>
 
-      <section className="landing-goals">
-        <div className="goals-header">
-          <h2>Your Goals</h2>
-          <button className="add-goal" type="button" aria-label="Add goal">+</button>
-        </div>
-        <div className="goals-grid">
-          <div className="goal-card">Goal 1</div>
-          <div className="goal-card">Goal 2</div>
-          <div className="goal-card">Goal 3</div>
-        </div>
-      </section>
+          <div className="goals-shell">
+            <button
+              type="button"
+              className="goal-arrow goal-arrow-left"
+              onClick={handlePrevGoal}
+              aria-label="Previous goal"
+            >
+              ‹
+            </button>
 
-      <section className="landing-todo">
-        <h2>To Do</h2>
-        {loading ? (
-          <p>Loading tasks...</p>
-        ) : (
-          <ul className="todo-list">
-            {tasks.length === 0 ? (
-              <li className="todo-item">
-                <span className="todo-text">No tasks yet — add one from the Dashboard!</span>
-              </li>
+            <div className="goals-viewport">
+              {(!goals || goals.length === 0) && (
+                <article className="goal-card goal-card-empty">
+                  <h3>No goals yet</h3>
+                  <p>
+                    Once you start creating goals, they’ll show up here as
+                    big focus cards. For now, think about 1–3 things you
+                    want this semester.
+                  </p>
+                </article>
+              )}
+
+              {goals && goals.length > 0 && (
+                <article className="goal-card">
+                  <h3>{goals[currentGoalIndex].title}</h3>
+                  {goals[currentGoalIndex].description && (
+                    <p>{goals[currentGoalIndex].description}</p>
+                  )}
+                </article>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="goal-arrow goal-arrow-right"
+              onClick={handleNextGoal}
+              aria-label="Next goal"
+            >
+              ›
+            </button>
+          </div>
+        </section>
+
+        {/* TODO LIST */}
+        <section className="home-section">
+          <div className="home-section-head">
+            <h2 className="home-section-title">Today’s to-do</h2>
+            <p className="home-section-sub">
+              Check things off as you go. Small wins count.
+            </p>
+          </div>
+
+          <div className="todo-shell">
+            {loading ? (
+              <p className="todo-empty">Loading your tasks…</p>
+            ) : !isLoggedIn ? (
+              <p className="todo-empty">
+                <Link to="/login" className="todo-link">
+                  Sign in from the top navigation to see and check off your
+                  tasks from the Dashboard.
+                </Link>
+              </p>
+            ) : tasks.length === 0 ? (
+              <p className="todo-empty">
+                No tasks yet — add one from the Dashboard or Planner.
+              </p>
             ) : (
-              tasks.map((t) => (
-                <li key={t.id} className="todo-item">
-                  <label className={`todo-label ${t.isComplete ? "done" : ""}`}>
-                    <input 
-                      type="checkbox" 
-                      checked={t.isComplete} 
-                      onChange={() => toggleTask(t.id)}
-                      disabled={!auth.currentUser}
-                    />
-                    <span className="todo-text">{t.title}</span>
-                  </label>
-                </li>
-              ))
+              <ul className="todo-list">
+                {tasks.map((t) => (
+                  <li key={t.id} className="todo-item">
+                    <label
+                      className={`todo-label ${
+                        t.isComplete ? "todo-done" : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!t.isComplete}
+                        onChange={() => toggleTask(t.id)}
+                      />
+                      <span className="todo-text">
+                        {t.title || t.text}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
             )}
-          </ul>
-        )}
-      </section>
-
-      <footer className="landing-footer">
-        <Link className="footer-btn" to="/planner">Calendar</Link>
-        <Link className="footer-btn" to="/dashboard">Dashboard</Link>
-      </footer>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
