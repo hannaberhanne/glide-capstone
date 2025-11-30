@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
-import { auth } from "../config/firebase.js";
+import {auth, db} from "../config/firebase.js";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
@@ -165,13 +165,40 @@ export default function DashboardPage() {
     return dueDate.toDateString() === today.toDateString();
   }).length;
 
+
+  export const getCurrentUser = async (req, res) => {
+    try {
+      const uid = req.user.uid;
+
+      const userDoc = await db.collection('users').doc(uid).get();
+
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userData = {
+        userId: userDoc.id,
+        ...userDoc.data()
+      };
+
+      // Don't send sensitive data to frontend
+      delete userData.password;
+
+      res.json(userData);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+  };
+
+
   return (
     <div className="dash">
       {/* HERO */}
       <section className="dash-hero">
         <p className="dash-date">{todayStr}</p>
         <h1 className="dash-title">
-          Welcome back, {auth.currentUser?.email?.split("@")[0] || "User"}
+          Welcome back, {"User"}       {/*  UPDATE THIS TO SHOW THE USERS NAME                ****************** */}
         </h1>
         <p className="dash-sub">
           Here's a quick snapshot of your day across tasks, habits, and XP.

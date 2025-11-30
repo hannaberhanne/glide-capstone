@@ -21,12 +21,10 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const idToken = await userCredential.user.getIdToken();
-
-      // localStorage.setItem('authToken', idToken); possible need this to store for API calls later
+      await signInWithEmailAndPassword(auth, email.trim(), password);
 
       nav("/dashboard");
+
     } catch (error) {
       console.error("Login error:", error);
       let errorMessage = "Login failed. Please try again.";

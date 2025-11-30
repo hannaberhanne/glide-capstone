@@ -61,4 +61,25 @@ const signUp = async (req, res) => {
     }
 };
 
-export default signUp;
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        const user = await admin.auth().getUserByEmail(email);
+
+        res.json({
+            message: 'Login successful',
+            userId: user.uid
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(401).json({ error: 'Invalid credentials' });
+    }
+};
+
+export default { signUp, login };
