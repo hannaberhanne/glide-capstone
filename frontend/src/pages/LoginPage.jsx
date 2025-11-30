@@ -13,11 +13,8 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-<<<<<<< HEAD
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      alert(err.message);
-=======
+
+    
       await signInWithEmailAndPassword(auth, email.trim(), password);
 
       nav("/dashboard");
@@ -38,7 +35,7 @@ export default function LoginPage() {
       setError(errorMessage);
     } finally {
       setLoading(false);
->>>>>>> c126e66fa4155bfb18613cdcdeda9c5075dba1ad
+
     }
   };
 

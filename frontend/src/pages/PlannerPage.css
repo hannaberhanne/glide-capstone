@@ -135,7 +135,7 @@ body {
   color: var(--ink);
 }
 
-/* ADD EVENT BUTTON — fixed default color */
+
 .add-event-btn {
   background: #e6e9ee;
   color: var(--ink);

@@ -32,9 +32,8 @@ export default function PlannerPage() {
     year: "numeric",
   }).format(cursor);
 
-  /* -------------------------
-     CORRECTED LABEL LOGIC
-     ------------------------- */
+  /* 
+     CORRECTED LABEL LOGIC */
   const selectedLabel = (() => {
     const s = new Date(selected);
     const t = new Date(today);
@@ -57,9 +56,8 @@ export default function PlannerPage() {
     }).format(selected);
   })();
 
-  /* -------------------------
-     FETCH EVENTS
-     ------------------------- */
+  /* 
+     FETCH EVENTS */
   useEffect(() => {
     const fetchEvents = async () => {
       if (!auth.currentUser) {
@@ -82,9 +80,8 @@ export default function PlannerPage() {
     fetchEvents();
   }, []);
 
-  /* -------------------------
-     CALENDAR GRID
-     ------------------------- */
+  /*
+     CALENDAR GRID*/
   const grid = useMemo(() => {
     const start = startOfMonth(cursor);
     const firstVisible = new Date(start);
@@ -105,9 +102,8 @@ export default function PlannerPage() {
     return events.filter((e) => e.date === key);
   };
 
-  /* -------------------------
-     ADD EVENT
-     ------------------------- */
+  /* 
+     ADD EVENT */
   const handleAddEvent = async () => {
     if (!newEventText.trim() || !newEventTime.trim()) return;
 
@@ -138,9 +134,8 @@ export default function PlannerPage() {
     }
   };
 
-  /* -------------------------
-     DELETE EVENT
-     ------------------------- */
+  /*
+     DELETE EVENT */
   const handleDeleteEvent = async (id) => {
     try {
       const token = await auth.currentUser.getIdToken();
