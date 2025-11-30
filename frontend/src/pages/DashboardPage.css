@@ -197,6 +197,10 @@ body {
   text-align: center;
 }
 
+.quick-btn:hover {
+  background: #e2e8f0;     /* slate-200 */
+}
+
 .xp-card {
   margin-top: 6px;
   display: grid;

@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase.js";
@@ -6,6 +6,7 @@ import "./Layout.css";
 
 export default function Layout() {
   const nav = useNavigate();
+  const location = useLocation();   // get current route
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -27,13 +28,36 @@ export default function Layout() {
     <>
       <header className="main-header">
         <div className="header-inner">
+
+          {/* LOGO */}
           <Link to="/home" className="logo">
             Glide<span className="plus">+</span>
           </Link>
+
+          {/* NAV LINKS */}
           <nav className="nav-links">
-            <Link to="/home">Home</Link>
-            <Link to="/planner">Planner</Link>
-            <Link to="/dashboard">Dashboard</Link>
+            <Link
+              to="/home"
+              className={location.pathname === "/home" || location.pathname === "/" ? "active" : ""}
+            >
+              Home
+            </Link>
+
+            <Link
+              to="/planner"
+              className={location.pathname === "/planner" ? "active" : ""}
+            >
+              Planner
+            </Link>
+
+            <Link
+              to="/dashboard"
+              className={location.pathname === "/dashboard" ? "active" : ""}
+            >
+              Dashboard
+            </Link>
+
+            {/* LOGIN/LOGOUT BUTTON */}
             {user ? (
               <button onClick={handleLogout} className="header-btn">
                 Logout
