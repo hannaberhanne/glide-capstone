@@ -186,7 +186,7 @@ const deleteAssignment = async (req, res) => {
         const { assignmentId } = req.params;
         const uid = req.user.uid;
 
-        const docRef = db.collection('assignment').doc(assignmentId);
+        const docRef = db.collection('assignments').doc(assignmentId);
         const doc = await docRef.get();
 
         if (!doc.exists) {

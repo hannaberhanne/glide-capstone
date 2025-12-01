@@ -12,6 +12,11 @@ export default function DashboardPage() {
   const [addingTask, setAddingTask] = useState(false);
   const [streak] = useState(4);
   const [xp] = useState(1250);
+  const [extractText, setExtractText] = useState("");
+  const [extracted, setExtracted] = useState([]);
+  const [extracting, setExtracting] = useState(false);
+  const [replanSuggestions, setReplanSuggestions] = useState([]);
+  const [replanLoading, setReplanLoading] = useState(false);
 
   const todayStr = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -26,7 +31,7 @@ export default function DashboardPage() {
 
       try {
         const token = await auth.currentUser.getIdToken();
-        const res = await fetch(`${API_URL}/api/user`, {
+        const res = await fetch(`${API_URL}/api/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -86,8 +91,8 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           title: newTask.trim(),
-          completed: false,
-          dueDate: new Date().toISOString(),
+          isComplete: false,
+          dueAt: new Date().toISOString()
         }),
       });
 
@@ -112,9 +117,9 @@ export default function DashboardPage() {
     if (!taskToUpdate) return;
 
     setTasks((prev) =>
-      prev.map((t) =>
-        t.taskId === taskId ? { ...t, completed: !t.completed } : t
-      )
+        prev.map((t) =>
+            t.taskId === taskId ? { ...t, isComplete: !t.isComplete } : t
+        )
     );
 
     try {
@@ -125,7 +130,7 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ completed: !taskToUpdate.completed }),
+        body: JSON.stringify({ isComplete: !taskToUpdate.isComplete }),
       });
 
       if (!res.ok) throw new Error("Failed to update task");
@@ -134,11 +139,9 @@ export default function DashboardPage() {
 
       // revert
       setTasks((prev) =>
-        prev.map((t) =>
-          t.taskId === taskId
-            ? { ...t, completed: taskToUpdate.completed }
-            : t
-        )
+          prev.map((t) =>
+              t.taskId === taskId ? { ...t, isComplete: taskToUpdate.isComplete } : t
+          )
       );
     }
   };
@@ -167,16 +170,100 @@ export default function DashboardPage() {
     }
   };
 
+  const handleExtract = async () => {
+    if (!extractText.trim() || !auth.currentUser) return;
+    setExtracting(true);
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/ai/extract`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: extractText }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setExtracted(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Extract failed:", err);
+      alert("AI extraction failed. Check your API key and try again.");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleSaveExtracted = async (item) => {
+    if (!auth.currentUser) return;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/tasks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: item.title || "Untitled",
+          description: item.description || "",
+          dueAt: item.dueDate || null,
+          priority: item.priority || "medium",
+          estimatedTime: item.estimatedTimeMinutes || 0,
+          canvasAssignmentId: null,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const newTaskData = await res.json();
+      setTasks((prev) => [...prev, newTaskData]);
+    } catch (err) {
+      console.error("Failed to save extracted task:", err);
+      alert("Could not save extracted task.");
+    }
+  };
+
+  const handleReplan = async () => {
+    if (!auth.currentUser) return;
+    setReplanLoading(true);
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/ai/replan`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ perDay: 3 }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setReplanSuggestions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Replan failed:", err);
+      alert("Auto-replan failed. Try again later.");
+    } finally {
+      setReplanLoading(false);
+    }
+  };
+
+  const formatDue = (t) => {
+    if (!t.dueAt) return "No due date";
+    if (typeof t.dueAt === 'object' && t.dueAt.seconds) {
+      return new Date(t.dueAt.seconds * 1000).toLocaleString();
+    }
+    return new Date(t.dueAt).toLocaleString();
+  };
+
   if (loading) return <div className="loading">Loading your day...</div>;
 
   const todayTasks = tasks.filter((t) => {
-    if (!t.dueDate) return false;
+    if (!t.dueAt) return false;
 
     let dueDate;
-    if (typeof t.dueDate === "object" && t.dueDate.seconds) {
-      dueDate = new Date(t.dueDate.seconds * 1000);
-    } else if (typeof t.dueDate === "string") {
-      dueDate = new Date(t.dueDate);
+    if (typeof t.dueAt === 'object' && t.dueAt.seconds) {
+      dueDate = new Date(t.dueAt.seconds * 1000);
+    } else if (typeof t.dueAt === 'string') {
+      dueDate = new Date(t.dueAt);
     } else {
       return false;
     }
@@ -269,20 +356,21 @@ export default function DashboardPage() {
               </li>
             ) : (
               tasks.map((t) => (
-                <li key={t.id} className="task-item">
-                  <span className="task-dot" />
+                <li key={t.taskId} className="task-item">
+                  <input
+                    type="checkbox"
+                    checked={!!t.isComplete}
+                    onChange={() => handleToggleComplete(t.taskId)}
+                    style={{ marginRight: 10 }}
+                  />
                   <div className="task-body">
                     <div className="task-text">{t.title || t.text}</div>
-                    <div className="task-meta">
-                      {t.dueDate
-                        ? new Date(t.dueDate.seconds * 1000).toLocaleString()
-                        : t.due || "No due date"}
-                    </div>
+                    <div className="task-meta">{formatDue(t)}</div>
                   </div>
 
                   <button
                     className="delete-task-btn"
-                    onClick={() => handleDeleteTask(t.id)}
+                    onClick={() => handleDeleteTask(t.taskId)}
                     aria-label="Delete task"
                     style={{
                       background: "none",
@@ -326,7 +414,68 @@ export default function DashboardPage() {
 
       </section>
 
-      {/* XP PANEL */}
+      {/* AI PANEL */}
+      <section className="dash-main">
+        <div className="panel" style={{ flex: 1 }}>
+          <div className="panel-head">
+            <h2>AI Extraction</h2>
+            <button className="quick-btn" onClick={handleExtract} disabled={extracting}>
+              {extracting ? "Running..." : "Extract"}
+            </button>
+          </div>
+          <textarea
+            value={extractText}
+            onChange={(e) => setExtractText(e.target.value)}
+            placeholder="Paste syllabus or assignment text..."
+            style={{ width: "100%", minHeight: 120, marginBottom: 12 }}
+          />
+          {extracted.length > 0 && (
+            <ul className="task-list">
+              {extracted.map((item, idx) => (
+                <li key={idx} className="task-item">
+                  <div className="task-body">
+                    <div className="task-text">{item.title || "Untitled"}</div>
+                    <div className="task-meta">
+                      {item.dueDate ? new Date(item.dueDate).toLocaleString() : "No due date"} • {item.priority || "medium"}
+                    </div>
+                    <div className="task-meta">{item.description || ""}</div>
+                  </div>
+                  <button className="quick-btn" onClick={() => handleSaveExtracted(item)}>
+                    Save to tasks
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="panel" style={{ flex: 1 }}>
+          <div className="panel-head">
+            <h2>Auto-Replan</h2>
+            <button className="quick-btn" onClick={handleReplan} disabled={replanLoading}>
+              {replanLoading ? "Replanning..." : "Replan"}
+            </button>
+          </div>
+          {replanSuggestions.length === 0 ? (
+            <p style={{ color: "#6b7280" }}>No suggestions yet. Run replan to see ordering.</p>
+          ) : (
+            <ul className="task-list">
+              {replanSuggestions.map((t, idx) => (
+                <li key={t.taskId || idx} className="task-item">
+                  <div className="task-body">
+                    <div className="task-text">{t.title}</div>
+                    <div className="task-meta">
+                      Score: {t._score ?? "n/a"} • Suggested: {t.suggestedDate ? new Date(t.suggestedDate).toLocaleDateString() : "n/a"}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      {/* XP FULL-WIDTH PANEL */}
       <section className="xp-wide-panel">
         <div className="panel xp-panel">
           <h2 className="xp-header">XP &amp; Badges</h2>

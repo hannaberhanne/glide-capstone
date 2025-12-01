@@ -1,67 +1,68 @@
 import { admin, db } from '../config/firebase.js';
 
-// get requests to retrieve all Events
-const getEvents = async (req, res) => {
+// get requests to retrieve all goals
+const getGoals = async (req, res) => {
     try {
         const uid = req.user.uid;
 
-        // this here it looks at the uix making that request and checks db makes sure they match (userId field in db for this event)
-        const snapshot = await db.collection('events')
+        // this here it looks at the uid making that request and checks db makes sure they match (userId field in db for this goal)
+        const snapshot = await db.collection('goals')
             .where('userId', '==', uid)
             .get();
 
-        // cleanup Events and put them in a map
-        const events = snapshot.docs.map(doc => ({
-            eventId: doc.id,
+        // cleanup goals and put them in a map
+        const goals = snapshot.docs.map(doc => ({
+            goalId: doc.id,
             ...doc.data()
         }));
 
-        res.json(events);
+        res.json(goals);
 
     } catch (err) {
-        console.error('Get events error:', err.message);
-        res.status(500).json({ error: 'Failed to fetch events' });
+        console.error('Get goals error:', err.message);
+        res.status(500).json({ error: 'Failed to fetch goals' });
     }
 };
 
 
-// post request to create a new event
-const createEvent = async (req, res) => {
+// post request to create a new goals
+const createGoal = async (req, res) => {
     try {
-        const { allDay, description, endTime, isRecurring, location, recurrenceRate, startTime, title } = req.body;
+        const { deadline, description, goalStreak, isActive, longestStreak, priority, timesPerWeek, title } = req.body;
         const uid = req.user.uid;
 
-        if (!title || title.trim() === '') {  // at least needs a title for an event
+        if (!title || title.trim() === '') {  // at least needs a title for a goal
             return res.status(400).json({
                 error: 'Title is required and cannot be empty'
             });
         }
 
-        const docRef = await db.collection('events').add({
-            allDay: allDay || false,
+        const docRef = await db.collection('goals').add({
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            deadline: deadline || '',
             description: description || '',
-            endTime: endTime || '',
-            isRecurring: isRecurring || false,
-            location: location || '',
-            recurrenceRate: recurrenceRate || '',
-            startTime: startTime || '',
+            goalStreak: goalStreak || '',
+            isActive: isActive || true,
+            longestStreak: longestStreak || '',
+            priority: priority || 'medium',
+            timesPerWeek: timesPerWeek || '',
             title: title.trim(),
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            xpValue: xpValue || 0
         });
 
-        // if successful send back the new event created so it updates in real time
+        // if successful send back the new goal created so it updates in real time
         res.status(201).json({
-            allDay: allDay || false,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            deadline: deadline || '',
             description: description || '',
-            endTime: endTime || '',
-            eventId: docRef.id,
-            isRecurring: isRecurring || false,
-            location: location || '',
-            recurrenceRate: recurrenceRate || '',
-            startTime: startTime || '',
+            goalId: docRef.id,
+            goalStreak: goalStreak || '',
+            isActive: isActive || true,
+            longestStreak: longestStreak || '',
+            priority: priority || 'medium',
+            timesPerWeek: timesPerWeek || '',
             title: title.trim(),
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -69,9 +70,9 @@ const createEvent = async (req, res) => {
 
 
     } catch (err) {
-        console.error('Create event error:', err);
+        console.error('Create goal error:', err);
         res.status(500).json({
-            error: 'Failed to create event',
+            error: 'Failed to create goal',
             message: err.message
         });
     }
@@ -79,8 +80,8 @@ const createEvent = async (req, res) => {
 
 
 
-// patch to update an existing event
-const updateEvent = async (req, res) => {
+// patch to update an existing goal
+const updateGoal = async (req, res) => {
     try {
         const { eventId } = req.params;
         const uid = req.user.uid;
