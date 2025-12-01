@@ -4,6 +4,8 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import dotenv from 'dotenv';
+import aiRoutes from './routes/aiRoutes.js';
+
 
 // Load .env variables
 dotenv.config();
@@ -52,29 +54,32 @@ import userRoutes from './routes/userRoutes.js';
 
 
 // ---------- The api routes go below ----------
-app.use('api/assignments', assignmentRoutes);
-app.use('api/courses', courseRoutes);
-app.use('api/events', eventRoutes);
-app.use('api/habits', habitRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/habits', habitRoutes);
 app.use('/api/tasks', taskRoutes);  // so example in taskRoutes.js default things get routed by /api/tasks
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);  // signup thing again
+app.use('/api/ai', aiRoutes);
 
 
 // Health check endpoint to make sure stuff is running
 app.get('/api/health', (req, res) => {
   res.json({
     message: 'Glide API+ running',
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    endpoints: {
-      assignments: 'api/assignments',
-      courses: 'api/courses',
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      endpoints: {
+      assignments: '/api/assignments',
+      courses: '/api/courses',
       events: '/api/events',
       habits: '/api/habits',
       tasks: '/api/tasks',
       users: '/api/users',
       auth: '/api/auth',
+      ai: '/api/ai',
+      health: '/api/health',
     }
   });
 });
@@ -100,15 +105,17 @@ if (process.env.NODE_ENV === 'production') {
       message: 'Glide API+ running in DEVELOPMENT mode',
       note: 'Frontend dev server should run separately on http://localhost:5173',
       endpoints: {
-        assignments: 'api/assignments',
-        courses: 'api/courses',
+        assignments: '/api/assignments',
+        courses: '/api/courses',
         events: '/api/events',
         habits: '/api/habits',
         tasks: '/api/tasks',
         users: '/api/users',
         auth: '/api/auth',
         health: '/api/health',
+        ai: '/api/ai',
       }
+      
     });
   });
 }

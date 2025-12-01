@@ -15,7 +15,8 @@
     "axios": "^1.13.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "firebase-admin": "^13.6.0"
+    "firebase-admin": "^13.6.0",
+    "openai": "^6.9.1"
   },
   "devDependencies": {
     "dotenv": "^17.2.3"

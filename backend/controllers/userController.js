@@ -27,6 +27,12 @@ const getUser = async (req, res) => {
 
 // patch to update an existing user
 const updateUser = async (req, res) => {
+    // Helper function to validate email format
+    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    // Helper function to validate graduation year
+    const isValidGradYear = (year) => Number.isInteger(year) && year > 1900 && year <= new Date().getFullYear() + 10;
+    
     try {
         const {userId} = req.params;
         const uid = req.user.uid;
@@ -55,12 +61,14 @@ const updateUser = async (req, res) => {
         const updateData = {};
         const authUpdateData = {};  // for Auth in Firebase
 
-
         if (darkMode !== undefined) {
             updateData.darkMode = darkMode;
         }
 
         if (email !== undefined) {
+            if (!isValidEmail(email)) {
+                return res.status(400).json({ error: 'Invalid email format' });
+            }
             updateData.email = email;
             authUpdateData.email = email;
         }
@@ -70,6 +78,9 @@ const updateUser = async (req, res) => {
         }
 
         if (gradYear !== undefined) {
+            if (!isValidGradYear(gradYear)) {
+                return res.status(400).json({ error: 'Invalid graduation year' });
+            }
             updateData.gradYear = gradYear;
         }
 
@@ -89,7 +100,7 @@ const updateUser = async (req, res) => {
             updateData.notifications = notifications;
         }
 
-        if (photo === undefined) {
+        if (photo !== undefined) {
             updateData.photo = photo;
         }
 
@@ -110,10 +121,9 @@ const updateUser = async (req, res) => {
             await admin.auth().updateUser(userId, authUpdateData);
         }
 
+        // Update the user in Firestore if there are changes
         if (Object.keys(updateData).length > 0) {
             updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
-
-            // Update the user in Firestore
             await docRef.update(updateData);
         }
 
@@ -165,63 +175,30 @@ const deleteUser = async (req, res) => {
         const doc = await docRef.get();
 
         if (!doc.exists) {
-            return res.status(404).json({
-                success: false,
-                error: 'User not found'
-            });
+            return res.status(404).json({ error: 'User not found' });
         }
 
-        // Check if this is the user itself
+        // Check if user owns this user
         if (doc.data().userId !== uid) {
-            return res.status(403).json({
-                success: false,
-                error: 'Not authorized to delete this user'
-            });
+            return res.status(403).json({ error: 'Not authorized to delete this user' });
         }
 
-        // Delete from Firebase Authentication first
-        await admin.auth().deleteUser(uid);
-
-        // Then delete from Firestore
+        // Delete the user from Firestore
         await docRef.delete();
 
+        // Delete the user from Firebase Auth
+        await admin.auth().deleteUser(userId);
+
         res.json({
-            success: true,
-            message: 'User account deleted successfully',
-            userId: userId
+            userId: userId,
+            deleted: true,
+            message: 'User deleted successfully'
         });
     } catch (err) {
         console.error('Delete user error:', err);
-
-        // Handle specific Firebase Auth errors
-        if (err.code === 'auth/user-not-found') {
-            // User doesn't exist in Auth, but might exist in Firestore
-            // Continue to delete from Firestore
-            try {
-                await docRef.delete();
-                return res.json({
-                    success: true,
-                    message: 'User deleted from database (already removed from authentication)',
-                    userId: userId
-                });
-            } catch (firestoreErr) {
-                return res.status(500).json({
-                    success: false,
-                    error: 'Failed to delete user from database'
-                });
-            }
-        }
-
-        res.status(500).json({
-            success: false,
-            error: 'Failed to delete user account',
-            message: err.message
-        });
+        res.status(500).json({ error: 'Failed to delete user' });
     }
 };
-
-
-
 
 export {
     getUser,
