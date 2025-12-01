@@ -17,7 +17,7 @@ export default function CanvasSetup() {
       if (!auth.currentUser) return;
 
       try {
-        const idToken = await auth.currentUser.getIdToken();
+        const idToken = auth.currentUser.getUser();
 
         const res = await fetch(`${API_URL}/api/users`, {
           headers: {
