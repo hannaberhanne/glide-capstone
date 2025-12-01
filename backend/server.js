@@ -53,11 +53,11 @@ import userRoutes from './routes/userRoutes.js';
 
 
 // ---------- The api routes go below ----------
-app.use('api/assignments', assignmentRoutes);
+app.use('/api/assignments', assignmentRoutes);
 app.use('/api/canvas', canvasRoutes);
-app.use('api/courses', courseRoutes);
-app.use('api/events', eventRoutes);
-app.use('api/habits', habitRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/habits', habitRoutes);
 app.use('/api/tasks', taskRoutes);  // so example in taskRoutes.js default things get routed by /api/tasks
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);  // signup thing again
@@ -70,9 +70,9 @@ app.get('/api/health', (req, res) => {
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
     endpoints: {
-      assignments: 'api/assignments',
-      canvas: 'api/canvas',
-      courses: 'api/courses',
+      assignments: '/api/assignments',
+      canvas: '/api/canvas',
+      courses: '/api/courses',
       events: '/api/events',
       habits: '/api/habits',
       tasks: '/api/tasks',
@@ -81,7 +81,6 @@ app.get('/api/health', (req, res) => {
     }
   });
 });
-
 
 
 if (process.env.NODE_ENV === 'production') {
@@ -103,9 +102,9 @@ if (process.env.NODE_ENV === 'production') {
       message: 'Glide API+ running in DEVELOPMENT mode',
       note: 'Frontend dev server should run separately on http://localhost:5173',
       endpoints: {
-        assignments: 'api/assignments',
-        canvas: 'api/canvas',
-        courses: 'api/courses',
+        assignments: '/api/assignments',
+        canvas: '/api/canvas',
+        courses: '/api/courses',
         events: '/api/events',
         habits: '/api/habits',
         tasks: '/api/tasks',
