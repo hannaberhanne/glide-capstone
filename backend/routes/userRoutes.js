@@ -3,7 +3,7 @@ const router = express.Router();
 import verifyToken from '../middleware/authMiddleware.js';
 
 import {
-    getUsers,
+    getUser,
     updateUser,
     deleteUser
 } from '../controllers/userController.js';
@@ -11,7 +11,7 @@ import {
 router.use(verifyToken);
 
 // GET /api/users - return list of all users
-router.get('/', getUsers);
+router.get('/', getUser);
 
 // PATCH /api/users/:id - Update user
 router.patch('/:id', updateUser);

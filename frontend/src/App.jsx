@@ -9,6 +9,7 @@ import SignupPage from "./pages/SignupPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage";
 import CanvasSetup from "./pages/CanvasSetup";
 import SettingsPage from "./pages/SettingsPage.jsx";   
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import "./App.css";
 
 function NotFound() {
@@ -29,6 +30,8 @@ export default function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/canvas-setup" element={<CanvasSetup />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      
 
       {/* All other routes inside Layout (with navbar/footer) */}
       <Route element={<Layout />}>
