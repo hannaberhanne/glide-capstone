@@ -86,123 +86,122 @@ const updateGoal = async (req, res) => {
     try {
         const { goalId } = req.params;
         const uid = req.user.uid;
-        const { allDay, description, endTime, isRecurring, location, recurrenceRate, startTime, title } = req.body;
+        const { deadline, description, goalStreak, isActive, longestStreak, priority, timesPerWeek, title, xpValue } = req.body;
 
         // Get the goal document
         const docRef = db.collection('goals').doc(goalId);
         const doc = await docRef.get();
 
-        // Check if event exists
+        // Check if goal exists
         if (!doc.exists) {
-            return res.status(404).json({ error: 'Event not found' });
+            return res.status(404).json({ error: 'Goal not found' });
         }
 
-        // Check if user owns this event
+        // Check if user owns this goal
         if (doc.data().userId !== uid) {
             return res.status(403).json({
-                error: 'Not authorized to update this event'
+                error: 'Not authorized to update this goal'
             });
         }
 
         // Build update object with only provided fields
         const updateData = {};
 
-        if (allDay !== undefined) {
-            updateData.allDay = allDay;
+        if (deadline !== undefined) {
+            updateData.deadline = deadline;
         }
 
         if (description !== undefined) {
             updateData.description = description;
         }
 
-        if (endTime !== undefined) {  // go back to this maybe we'll have to do some more updating if the end date passes
-            updateData.endTime = endTime;
+        if (goalStreak !== undefined) {
+            updateData.goalStreak = goalStreak;
         }
 
-        if (isRecurring !== undefined) {
-            updateData.isRecurring = isRecurring || false;
+        if (isActive !== undefined) {
+            updateData.isActive = isActive;
         }
 
-        if (location !== undefined) {
-            updateData.location = location;
+        if (longestStreak !== undefined) {
+            updateData.longestStreak = longestStreak;
         }
 
-        if (recurrenceRate !== undefined) {
-            updateData.recurrenceRate = recurrenceRate;
+        if (priority !== undefined) {
+            updateData.priority = priority;
         }
 
-        if (startTime !== undefined) {
-            updateData.startTime = startTime;
+        if (timesPerWeek !== undefined) {
+            updateData.timesPerWeek = timesPerWeek;
         }
 
         if (title !== undefined) {
-            if (title.trim() === '') {
-                return res.status(400).json({
-                    error: 'Title cannot be empty'
-                });
-            }
-            updateData.title = title.trim();
+            updateData.title = title;
+        }
+
+        if (xpValue !== undefined) {
+            updateData.xpValue = xpValue;
         }
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-        // Update the events in Firestore
+        // Update the goal in Firestore
         await docRef.update(updateData);
 
         // Get the updated events to return
         const updatedDoc = await docRef.get();
 
         res.json({
-            eventId: updatedDoc.id,
+            goalId: updatedDoc.id,
             ...updatedDoc.data(),
-            message: 'Event updated successfully'
+            message: 'Goal updated successfully'
         });
 
     } catch (err) {
-        console.error('Update event error:', err);
+        console.error('Update goal error:', err);
         res.status(500).json({
-            error: 'Failed to update event',
+            error: 'Failed to update goal',
             message: err.message
         });
     }
 };
 
 
-// remove a event from db
-const deleteEvent = async (req, res) => {
+// remove a goal from db
+const deleteGoal = async (req, res) => {
     try {
-        const { eventId } = req.params;
+        const { goalId } = req.params;
         const uid = req.user.uid;
 
-        const docRef = db.collection('events').doc(eventId);
+        const docRef = db.collection('goals').doc(goalId);
         const doc = await docRef.get();
 
         if (!doc.exists) {
-            return res.status(404).json({ error: 'Event not found' });
+            return res.status(404).json({ error: 'Goal not found' });
         }
 
-        // Check if user owns this event
+        // Check if user owns this goal
         if (doc.data().userId !== uid) {
-            return res.status(403).json({ error: 'Not authorized to delete this event' });
+            return res.status(403).json({ error: 'Not authorized to delete this goal' });
         }
 
         // Delete the event
         await docRef.delete();
 
         res.json({
-            eventId: eventId,
+            goalId: goalId,
             deleted: true,
-            message: 'Event deleted successfully'
+            message: 'Goal deleted successfully'
         });
     } catch (err) {
-        console.error('Delete event error:', err);
-        res.status(500).json({ error: 'Failed to delete event' });
+        console.error('Delete goal error:', err);
+        res.status(500).json({ error: 'Failed to delete goal' });
     }
 };
 
 export {
-    createEvent,
-    getEvents,
-    updateEvent,
-    deleteEvent
+    createGoal,
+    getGoals,
+    updateGoal,
+    deleteGoal
 };
