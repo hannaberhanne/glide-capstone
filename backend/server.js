@@ -69,11 +69,20 @@ app.use('/api/ai', aiRoutes);
 app.get('/api/health', (req, res) => {
   res.json({
     message: 'Glide API+ running',
+<<<<<<< HEAD
       port: PORT,
       environment: process.env.NODE_ENV || 'development',
       endpoints: {
       assignments: '/api/assignments',
       courses: '/api/courses',
+=======
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      assignments: 'api/assignments',
+      canvas: 'api/canvas',
+      courses: 'api/courses',
+>>>>>>> c3c128b4d611698a9b27a07387b4f367704be05b
       events: '/api/events',
       habits: '/api/habits',
       tasks: '/api/tasks',
@@ -106,8 +115,14 @@ if (process.env.NODE_ENV === 'production') {
       message: 'Glide API+ running in DEVELOPMENT mode',
       note: 'Frontend dev server should run separately on http://localhost:5173',
       endpoints: {
+<<<<<<< HEAD
         assignments: '/api/assignments',
         courses: '/api/courses',
+=======
+        assignments: 'api/assignments',
+        canvas: 'api/canvas',
+        courses: 'api/courses',
+>>>>>>> c3c128b4d611698a9b27a07387b4f367704be05b
         events: '/api/events',
         habits: '/api/habits',
         tasks: '/api/tasks',
