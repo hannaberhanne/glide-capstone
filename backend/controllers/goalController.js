@@ -28,7 +28,7 @@ const getGoals = async (req, res) => {
 // post request to create a new goals
 const createGoal = async (req, res) => {
     try {
-        const { deadline, description, goalStreak, isActive, longestStreak, priority, timesPerWeek, title } = req.body;
+        const { deadline, description, goalStreak, isActive, longestStreak, priority, timesPerWeek, title, xpValue } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a goal
@@ -66,6 +66,7 @@ const createGoal = async (req, res) => {
             title: title.trim(),
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            xpValue: xpValue || 0
         });
 
 
@@ -83,12 +84,12 @@ const createGoal = async (req, res) => {
 // patch to update an existing goal
 const updateGoal = async (req, res) => {
     try {
-        const { eventId } = req.params;
+        const { goalId } = req.params;
         const uid = req.user.uid;
         const { allDay, description, endTime, isRecurring, location, recurrenceRate, startTime, title } = req.body;
 
-        // Get the event document
-        const docRef = db.collection('events').doc(eventId);
+        // Get the goal document
+        const docRef = db.collection('goals').doc(goalId);
         const doc = await docRef.get();
 
         // Check if event exists

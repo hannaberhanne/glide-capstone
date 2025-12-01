@@ -19,7 +19,7 @@ export default function CanvasSetup() {
       try {
         const idToken = await auth.currentUser.getIdToken();
 
-        const res = await fetch(`${API_URL}/api/user`, {
+        const res = await fetch(`${API_URL}/api/users`, {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
