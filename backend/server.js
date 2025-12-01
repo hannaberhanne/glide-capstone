@@ -48,6 +48,7 @@ import courseRoutes from './routes/courseRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 
 // ---------- The api routes go below ----------
@@ -56,6 +57,7 @@ app.use('api/courses', courseRoutes);
 app.use('api/events', eventRoutes);
 app.use('api/habits', habitRoutes);
 app.use('/api/tasks', taskRoutes);  // so example in taskRoutes.js default things get routed by /api/tasks
+app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);  // signup thing again
 
 
@@ -71,6 +73,7 @@ app.get('/api/health', (req, res) => {
       events: '/api/events',
       habits: '/api/habits',
       tasks: '/api/tasks',
+      users: '/api/users',
       auth: '/api/auth',
     }
   });
@@ -102,6 +105,7 @@ if (process.env.NODE_ENV === 'production') {
         events: '/api/events',
         habits: '/api/habits',
         tasks: '/api/tasks',
+        users: '/api/users',
         auth: '/api/auth',
         health: '/api/health',
       }

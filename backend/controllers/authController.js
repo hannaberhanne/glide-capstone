@@ -7,13 +7,22 @@ const signUp = async (req, res) => {
 
         // error messages if fields aren't full
         if (!firstName || firstName.trim() === '') {
-            return res.status(400).json({ error: 'First name is required' });
+            return res.status(400).json({
+                success: false,
+                error: 'First name is required'
+            });
         }
         if (!lastName || lastName.trim() === '') {
-            return res.status(400).json({ error: 'Last name is required' });
+            return res.status(400).json({
+                success: false,
+                error: 'Last name is required'
+            });
         }
         if (!email || email.trim() === '') {
-            return res.status(400).json({ error: 'Email is required' });
+            return res.status(400).json({
+                success: false,
+                error: 'Email is required'
+            });
         }
 
         // check db for the uid if it alr exists
@@ -22,11 +31,13 @@ const signUp = async (req, res) => {
         // make sure user isn't alr in db
         if (userDoc.exists) {
             return res.status(400).json({
+                success: false,
                 error: 'User profile already exists'
             });
         }
 
         const user = {
+            canvasToken: '',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             darkMode: false,
             email: email.trim(),
@@ -40,6 +51,7 @@ const signUp = async (req, res) => {
             timezone: '',
             totalXP: 0,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            userId: uid,
             university: '',
         };
 
@@ -47,14 +59,30 @@ const signUp = async (req, res) => {
 
         // return new user created to the frontend
         res.status(201).json({
+            success: true,
             message: 'User profile created successfully',
             userId: uid,
-            user: user
+            data: {
+                darkMode: user.darkMode,
+                email: user.email,
+                firstName: user.firstName,
+                gradYear: user.gradYear,
+                lastName: user.lastName,
+                longestStreak: user.longestStreak,
+                major: user.major,
+                notifications: user.notifications,
+                photo: user.photo,
+                timezone: user.timezone,
+                totalXP: user.totalXP,
+                userId: uid,
+                university: user.university,
+            }
         });
 
     } catch (err) {
         console.error('Signup error:', err);
         res.status(500).json({
+            success: false,
             error: 'Failed to create user profile',
             message: err.message
         });
@@ -63,22 +91,55 @@ const signUp = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email } = req.body;
+        const uid = req.user.uid; // From verifyToken middleware
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email is required'
+            });
         }
 
-        const user = await admin.auth().getUserByEmail(email);
+        // Get user data from Firestore
+        const userDoc = await db.collection('users').doc(uid).get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
+        }
+
+        const userData = userDoc.data();
 
         res.json({
+            success: true,
             message: 'Login successful',
-            userId: user.uid
+            data: {
+                userId: uid,
+                email: userData.email,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                university: userData.university,
+                major: userData.major,
+                gradYear: userData.gradYear,
+                totalXP: userData.totalXP,
+                longestStreak: userData.longestStreak,
+                photo: userData.photo,
+                timezone: userData.timezone,
+                darkMode: userData.darkMode,
+                notifications: userData.notifications
+            }
         });
 
     } catch (error) {
         console.error('Login error:', error);
-        res.status(401).json({ error: 'Invalid credentials' });
+        res.status(500).json({
+            success: false,
+            error: 'Login failed',
+            message: error.message
+        });
     }
 };
 

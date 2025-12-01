@@ -28,10 +28,12 @@ const getUser = async (req, res) => {
 // patch to update an existing user
 const updateUser = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const {userId} = req.params;
         const uid = req.user.uid;
-        const { darkMode, email, firstName, gradYear, lastName, longestStreak, major, notifications, photo,
-        timezone, totalXP, university} = req.body;
+        const {
+            darkMode, email, firstName, gradYear, lastName, longestStreak, major, notifications, photo,
+            timezone, totalXP, university
+        } = req.body;
 
         // Get the user document
         const docRef = db.collection('users').doc(userId);
@@ -39,7 +41,7 @@ const updateUser = async (req, res) => {
 
         // Check if user exists
         if (!doc.exists) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({error: 'User not found'});
         }
 
         // Check if user owns this user
@@ -150,39 +152,76 @@ const updateUser = async (req, res) => {
             message: err.message
         });
     }
+};
 
 
 // remove a user from db
 const deleteUser = async (req, res) => {
     try {
-        const { taskId } = req.params;
+        const { userId } = req.params;
         const uid = req.user.uid;
 
-        const docRef = db.collection('tasks').doc(taskId);
+        const docRef = db.collection('users').doc(userId);
         const doc = await docRef.get();
 
         if (!doc.exists) {
-            return res.status(404).json({ error: 'Task not found' });
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
         }
 
-        // Check if user owns this task
+        // Check if this is the user itself
         if (doc.data().userId !== uid) {
-            return res.status(403).json({ error: 'Not authorized to delete this task' });
+            return res.status(403).json({
+                success: false,
+                error: 'Not authorized to delete this user'
+            });
         }
 
-        // Delete the task
+        // Delete from Firebase Authentication first
+        await admin.auth().deleteUser(uid);
+
+        // Then delete from Firestore
         await docRef.delete();
 
         res.json({
-            taskId: taskId,
-            deleted: true,
-            message: 'Task deleted successfully'
+            success: true,
+            message: 'User account deleted successfully',
+            userId: userId
         });
     } catch (err) {
-        console.error('Delete task error:', err);
-        res.status(500).json({ error: 'Failed to delete task' });
+        console.error('Delete user error:', err);
+
+        // Handle specific Firebase Auth errors
+        if (err.code === 'auth/user-not-found') {
+            // User doesn't exist in Auth, but might exist in Firestore
+            // Continue to delete from Firestore
+            try {
+                await docRef.delete();
+                return res.json({
+                    success: true,
+                    message: 'User deleted from database (already removed from authentication)',
+                    userId: userId
+                });
+            } catch (firestoreErr) {
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to delete user from database'
+                });
+            }
+        }
+
+        res.status(500).json({
+            success: false,
+            error: 'Failed to delete user account',
+            message: err.message
+        });
     }
 };
+
+
+
 
 export {
     getUser,
