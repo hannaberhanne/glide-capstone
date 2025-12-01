@@ -128,7 +128,158 @@ const syncCanvas = async (req, res) => {
             }
         }
 
+        res.json({
+            success: true,
+            message: 'Canvas data synced successfully',
+            data: {
+                coursesAdded,
+                coursesUpdated,
+                assignmentsAdded,
+                assignmentsUpdated,
+                totalCourses: coursesAdded + coursesUpdated,
+                totalAssignments: assignmentsAdded + assignmentsUpdated,
+                tokenSource: canvasToken ? 'provided' : (userData?.canvasToken ? 'stored' : 'env')
+            }
+        });
 
-    } catch (e) {
-    console.error(e);}
-}
+    } catch (error) {
+        console.error('Canvas sync error:', error);
+
+        if (error.message.includes('401') || error.message.includes('unauthorized')) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid Canvas token. Please check your token and try again.'
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            error: 'Failed to sync Canvas data',
+            message: error.message
+        });
+    }
+};
+
+const getCanvasSyncStatus = async (req, res) => {
+    try {
+        const uid = req.user.uid;
+
+        const userDoc = await db.collection('users').doc(uid).get();
+        const userData = userDoc.data();
+
+        const hasStoredToken = !!(userData?.canvasToken);
+        const hasEnvToken = !!process.env.CANVAS_TOKEN;
+        const hasToken = hasStoredToken || hasEnvToken;
+
+        if (!hasToken) {
+            return res.json({
+                success: true,
+                data: {
+                    hasToken: false,
+                    tokenSource: 'none',
+                    lastSync: null,
+                    coursesCount: 0,
+                    assignmentsCount: 0
+                }
+            });
+        }
+
+        // Count synced courses and assignments
+        const coursesSnapshot = await db.collection('courses')
+            .where('userId', '==', uid)
+            .get();
+
+        const assignmentsSnapshot = await db.collection('assignments')
+            .where('userId', '==', uid)
+            .get();
+
+        // Get last sync time from most recent course
+        let lastSync = null;
+        coursesSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.lastCanvasSync && (!lastSync || data.lastCanvasSync > lastSync)) {
+                lastSync = data.lastCanvasSync;
+            }
+        });
+
+        res.json({
+            success: true,
+            data: {
+                hasToken: true,
+                tokenSource: hasStoredToken ? 'user' : 'env',
+                lastSync: lastSync,
+                coursesCount: coursesSnapshot.size,
+                assignmentsCount: assignmentsSnapshot.size
+            }
+        });
+
+    } catch (error) {
+        console.error('Get sync status error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get sync status',
+            message: error.message
+        });
+    }
+};
+
+
+const disconnectCanvas = async (req, res) => {
+    try {
+        const uid = req.user.uid;
+        const { deleteData } = req.body;
+
+        // Remove Canvas token
+        await db.collection('users').doc(uid).update({
+            canvasToken: '',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        if (deleteData) {
+            // Delete only Canvas-synced courses (those with canvasId)
+            const coursesSnapshot = await db.collection('courses')
+                .where('userId', '==', uid)
+                .get();
+
+            const batch = db.batch();
+
+            // Filter for courses with canvasId
+            coursesSnapshot.forEach(doc => {
+                if (doc.data().canvasId) {
+                    batch.delete(doc.ref);
+                }
+            });
+
+            // Delete only Canvas-synced assignments (those with canvasId)
+            const assignmentsSnapshot = await db.collection('assignments')
+                .where('userId', '==', uid)
+                .get();
+
+            assignmentsSnapshot.forEach(doc => {
+                if (doc.data().canvasId) {
+                    batch.delete(doc.ref);
+                }
+            });
+
+            await batch.commit();
+        }
+
+        res.json({
+            success: true,
+            message: deleteData
+                ? 'Canvas disconnected and synced data deleted'
+                : 'Canvas disconnected. Your Canvas data remains in the database.'
+        });
+
+    } catch (error) {
+        console.error('Disconnect Canvas error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to disconnect Canvas',
+            message: error.message
+        });
+    }
+};
+
+
+export { syncCanvas, getCanvasSyncStatus, disconnectCanvas };
