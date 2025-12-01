@@ -65,7 +65,7 @@ export default function LandingPage() {
 
     <div className="hero-actions">
       <Link to="/login" className="btn-primary">Get Started</Link>
-      <Link to="/dashboard" className="btn-secondary">View Demo</Link>
+      <Link to="/demo" className="btn-secondary">View Demo</Link>
     </div>
   </div>
 </section>
