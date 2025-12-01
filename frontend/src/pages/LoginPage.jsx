@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
+import AuthLogo from "../components/AuthLogo";
 
 export default function LoginPage() {
   const nav = useNavigate();
@@ -49,7 +50,7 @@ export default function LoginPage() {
       <div className="login-card">
         <div className="login-header">
           <h1>
-            Log in to <span>Glide+</span>
+            Log in to <AuthLogo />
           </h1>
           <p>Welcome back! Let's pick up where you left off.</p>
         </div>
@@ -91,13 +92,7 @@ export default function LoginPage() {
           <Link to="/signup" className="create-link">
             Create Account
           </Link>
-          <button 
-            className="help-link"
-            type="button"
-            onClick={() => alert("Password reset coming soon!")}
-          >
-            Can't log in?
-          </button>
+          <Link to="/forgot-password" className="help-link">Can't log in?</Link>
         </div>
       </div>
     </div>
