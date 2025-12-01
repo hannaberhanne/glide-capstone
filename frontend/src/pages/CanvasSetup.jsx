@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { auth } from "../config/firebase";
 import "./CanvasSetup.css";
 
@@ -10,7 +11,7 @@ export default function CanvasSetup() {
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState(null);
 
-  // Get the Firestore user document ID
+  // Fetch the logged-in user's Firestore document ID
   useEffect(() => {
     const fetchUser = async () => {
       if (!auth.currentUser) return;
@@ -26,7 +27,6 @@ export default function CanvasSetup() {
 
         const data = await res.json();
 
-        // Your backend returns an array of 1 user
         if (Array.isArray(data) && data.length > 0) {
           setUserId(data[0].userId);
         }
@@ -69,7 +69,7 @@ export default function CanvasSetup() {
         body: JSON.stringify({ canvasToken: token.trim() }),
       });
 
-      if (!res.ok) throw new Error(`HTTP error! ${res.status}`);
+      if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
 
       setMessage("Canvas token saved successfully!");
       setToken("");
@@ -84,7 +84,6 @@ export default function CanvasSetup() {
   return (
     <div className="canvas-setup-container">
       <div className="canvas-setup-card">
-
         <h2 className="canvas-setup-title">Canvas Sync Setup</h2>
 
         <p className="canvas-setup-sub">
@@ -117,10 +116,10 @@ export default function CanvasSetup() {
 
         {message && <p className="canvas-message">{message}</p>}
 
-        <a href="/dashboard" className="canvas-setup-skip">
-          Skip for now
-        </a>
-
+        {/* Return to Dashboard Link */}
+        <Link to="/dashboard" className="canvas-return-btn">
+          Return to Dashboard
+        </Link>
       </div>
     </div>
   );
