@@ -10,8 +10,8 @@ import {
 
 router.use(verifyToken);
 
-// GET /api/users - return list of all users
-router.get('/', getUser);
+// GET /api/users/:userId - return list of all users
+router.get('/:userId', getUser);
 
 // PATCH /api/users/:userId - Update user
 router.patch('/:userId', updateUser);

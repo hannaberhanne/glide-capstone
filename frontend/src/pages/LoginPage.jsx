@@ -24,6 +24,7 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
 
+
       nav("/dashboard");
 
     } catch (error) {

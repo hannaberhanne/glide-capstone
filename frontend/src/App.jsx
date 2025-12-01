@@ -12,8 +12,10 @@ import SettingsPage from "./pages/SettingsPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import DemoPage from "./pages/DemoPage.jsx";
 import "./App.css";
+import {useState} from "react";
 
 function NotFound() {
+
   return (
     <div style={{ padding: 24 }}>
       <h1>404 — Page Not Found</h1>
@@ -23,6 +25,8 @@ function NotFound() {
 }
 
 export default function App() {
+    const [userId, setUserId] = useState(null);
+
   return (
     <Routes>
       {/* Public pages — no navbar, no layout */}
