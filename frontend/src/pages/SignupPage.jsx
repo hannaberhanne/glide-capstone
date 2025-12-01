@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
 import "./SignupPage.css";
+import AuthLogo from "../components/AuthLogo";
 
 export default function SignupPage() {
   const nav = useNavigate();
@@ -100,11 +101,8 @@ export default function SignupPage() {
       </div>
 
       <div className="login-card">
-        <div className="logo-box" aria-hidden="true">
-          LOGO
-        </div>
         <h1 className="login-title">
-          CREATE ACCOUNT ON <span>GLIDE+</span>
+          CREATE ACCOUNT ON <AuthLogo />
         </h1>
 
         <form className="login-form" onSubmit={handleSignup}>
