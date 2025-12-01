@@ -71,6 +71,7 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     endpoints: {
       assignments: 'api/assignments',
+      canvas: 'api/canvas',
       courses: 'api/courses',
       events: '/api/events',
       habits: '/api/habits',
@@ -103,6 +104,7 @@ if (process.env.NODE_ENV === 'production') {
       note: 'Frontend dev server should run separately on http://localhost:5173',
       endpoints: {
         assignments: 'api/assignments',
+        canvas: 'api/canvas',
         courses: 'api/courses',
         events: '/api/events',
         habits: '/api/habits',
