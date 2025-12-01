@@ -260,17 +260,10 @@ export default function DashboardPage() {
     if (!t.dueAt) return false;
 
     let dueDate;
-<<<<<<< HEAD
     if (typeof t.dueAt === 'object' && t.dueAt.seconds) {
       dueDate = new Date(t.dueAt.seconds * 1000);
     } else if (typeof t.dueAt === 'string') {
       dueDate = new Date(t.dueAt);
-=======
-    if (typeof t.dueDate === "object" && t.dueDate.seconds) {
-      dueDate = new Date(t.dueDate.seconds * 1000);
-    } else if (typeof t.dueDate === "string") {
-      dueDate = new Date(t.dueDate);
->>>>>>> 9c648800a1bb881d7583eff63c96387e0c6c7855
     } else {
       return false;
     }
