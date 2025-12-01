@@ -33,7 +33,7 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 18px;              
+  gap: 18px;
 }
 
 .nav-links a {
@@ -69,24 +69,23 @@
   width: 100%;
 }
 
-/* LOGOUT BUTTON */
-.header-btn {
-  border: 1.5px solid #111827;
-  border-radius: 8px;
-  padding: 5px 12px;      
-  font-weight: 600;
-  background: transparent;
-  color: #111827;
-  cursor: pointer;
-  font-size: 14px;
-  font-family: inherit;
-  transition: all 0.25s ease;
+.header-auth {
+  display: flex;
+  align-items: center;
 }
 
-.header-btn:hover {
-  background: #111827;
-  color: #fff;
-  border-color: #111827;
+.header-logout {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+}
+
+.header-logout:hover {
+  color: #111827;
 }
 
 /* Push content below navbar */

@@ -1,0 +1,176 @@
+.today-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.today-header {
+  margin-bottom: 32px;
+}
+
+.today-header h1 {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 8px 0;
+}
+
+.today-header p {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.current-block,
+.upcoming-blocks,
+.today-stats {
+  margin-bottom: 32px;
+}
+
+.current-block h2,
+.upcoming-blocks h2,
+.today-stats h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.block-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.block-card.highlighted {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  color: white;
+  border: none;
+}
+
+.block-card.free-time {
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+}
+
+.block-time {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.block-card.highlighted .block-time {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.block-card h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+}
+
+.block-reasoning {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 8px 0;
+}
+
+.block-card.highlighted .block-reasoning {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.block-xp {
+  display: inline-block;
+  background: #111827;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.block-card.highlighted .block-xp {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 16px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #fb923c);
+  transition: width 0.3s ease;
+}
+
+.today-stats p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.today-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.generate-btn,
+.replan-btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.generate-btn {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  color: white;
+}
+
+.generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.replan-btn {
+  background: #111827;
+  color: white;
+  transition: 0.2s;
+}
+
+.replan-btn:hover {
+  background: #1f2937;
+}
+
+.today-empty {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.today-empty h1 {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.today-empty p {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.today-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: #6b7280;
+}

@@ -6,7 +6,8 @@ import {
     getTasks,
     createTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    completeTask
 } from '../controllers/taskController.js';
 
 router.use(verifyToken);
@@ -17,8 +18,11 @@ router.get('/', getTasks);
 // POST /api/tasks - Create new task
 router.post('/', createTask);
 
-// PATCH /api/tasks/:taskId - Update task (toggle completion)
+// PATCH /api/tasks/:taskId - Update task
 router.patch('/:taskId', updateTask);
+
+// PATCH /api/tasks/:taskId/complete - mark complete + award XP
+router.patch('/:taskId/complete', completeTask);
 
 // DELETE /api/tasks/:taskId - Delete task
 router.delete('/:taskId', deleteTask);

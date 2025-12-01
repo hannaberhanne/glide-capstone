@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
-import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import PlannerPage from "./pages/PlannerPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -11,6 +10,8 @@ import CanvasSetup from "./pages/CanvasSetup";
 import SettingsPage from "./pages/SettingsPage.jsx";   
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import DemoPage from "./pages/DemoPage.jsx";
+import GoalsPage from "./pages/GoalsPage.jsx";
+import TodayPage from "./pages/TodayPage.jsx";
 import "./App.css";
 import {useState} from "react";
 
@@ -41,12 +42,14 @@ export default function App() {
 
       {/* All other routes inside Layout (with navbar/footer) */}
       <Route element={<Layout />}>
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/home" element={<DashboardPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/today" element={<TodayPage />} />
         <Route path="/planner" element={<PlannerPage />} />
+        <Route path="/goals" element={<GoalsPage />} />
 
-        {/* Settings Route */}
-        <Route path="/settings" element={<SettingsPage />} />
+        {/* Profile (formerly Settings) */}
+        <Route path="/profile" element={<SettingsPage />} />
       </Route>
 
       {/* 404 fallback */}

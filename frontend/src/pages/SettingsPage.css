@@ -1,7 +1,7 @@
 .settings-container {
     max-width: 900px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 40px 20px 48px;
   }
   
   .settings-title {
@@ -23,13 +23,13 @@
     gap: 28px;
   }
   
-  /* Settings card */
-  .settings-card {
-    background: white;
-    padding: 26px 30px;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  }
+/* Settings card */
+.settings-card {
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
   
   .settings-card-title {
     font-size: 22px;
@@ -45,25 +45,39 @@
   }
   
   /* Button */
-  .settings-btn {
-    display: inline-block;
-    padding: 12px 20px;
-    background: var(--brand);
-    color: white;
-    font-weight: 600;
-    border-radius: 10px;
-    text-decoration: none;
-    transition: 0.15s ease;
+.settings-btn {
+  display: inline-block;
+  padding: 12px 20px;
+  background: #f97316;
+  color: white;
+  font-weight: 600;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: 0.15s ease;
   }
   
   .settings-btn:hover {
     opacity: 0.9;
   }
   
-  /* Disabled placeholder buttons */
-  .settings-btn.disabled {
-    background: #94a3b8;
-    cursor: default;
-    pointer-events: none;
-  }
+/* Disabled placeholder buttons */
+.settings-btn.disabled {
+  background: #94a3b8;
+  cursor: default;
+  pointer-events: none;
+}
+
+.settings-card.subtle {
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+}
+
+.settings-link {
+  background: none;
+  border: none;
+  color: #f97316;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
   

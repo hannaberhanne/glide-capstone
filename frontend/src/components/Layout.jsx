@@ -33,7 +33,7 @@ export default function Layout() {
         <div className="header-inner">
 
           {/* LEFT SIDE LOGO */}
-          <Link className="logo" to="/home">
+          <Link className="logo" to="/dashboard">
             Glide<span className="plus">+</span>
           </Link>
 
@@ -41,12 +41,17 @@ export default function Layout() {
           <nav className="nav-links">
 
             <Link
-              to="/home"
-              className={
-                location.pathname === "/home" || location.pathname === "/" ? "active" : ""
-              }
+              to="/dashboard"
+              className={(location.pathname === "/dashboard" || location.pathname === "/home") ? "active" : ""}
             >
-              Home
+              Dashboard
+            </Link>
+
+            <Link
+              to="/today"
+              className={location.pathname === "/today" ? "active" : ""}
+            >
+              Today
             </Link>
 
             <Link
@@ -57,32 +62,32 @@ export default function Layout() {
             </Link>
 
             <Link
-              to="/dashboard"
-              className={location.pathname === "/dashboard" ? "active" : ""}
+              to="/goals"
+              className={location.pathname === "/goals" ? "active" : ""}
             >
-              Dashboard
+              Goals
             </Link>
 
-            {/* ⭐ NEW SETTINGS LINK */}
             <Link
-              to="/settings"
-              className={location.pathname === "/settings" ? "active" : ""}
+              to="/profile"
+              className={location.pathname === "/profile" ? "active" : ""}
             >
-              Settings
+              Profile
             </Link>
+          </nav>
 
-            {/* LOGIN / LOGOUT BUTTON */}
+          {/* LOGIN / LOGOUT SMALL LINK */}
+          <div className="header-auth">
             {user ? (
-              <button onClick={handleLogout} className="header-btn">
+              <button onClick={handleLogout} className="header-logout">
                 Logout
               </button>
             ) : (
-              <Link to="/login" className="header-btn">
+              <Link to="/login" className="header-logout">
                 Log In
               </Link>
             )}
-
-          </nav>
+          </div>
         </div>
       </header>
 

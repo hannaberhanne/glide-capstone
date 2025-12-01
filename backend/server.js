@@ -47,6 +47,7 @@ import authRoutes from './routes/authRoutes.js';
 import canvasRoutes from './routes/canvasRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
+import scheduleRoutes from './routes/scheduleRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -56,6 +57,7 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/canvas', canvasRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/schedule', scheduleRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
@@ -73,6 +75,7 @@ app.get('/api/health', (req, res) => {
       canvas: '/api/canvas',
       courses: '/api/courses',
       events: '/api/events',
+      schedule: '/api/schedule',
       habits: '/api/habits',
       tasks: '/api/tasks',
       users: '/api/users',
@@ -99,6 +102,7 @@ if (process.env.NODE_ENV === 'production') {
         canvas: '/api/canvas',
         courses: '/api/courses',
         events: '/api/events',
+        schedule: '/api/schedule',
         habits: '/api/habits',
         tasks: '/api/tasks',
         users: '/api/users',

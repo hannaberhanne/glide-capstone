@@ -1,508 +1,164 @@
-import { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { auth } from "../config/firebase.js";
 import "./DashboardPage.css";
+import DashboardHero from "./dashboard/DashboardHero.jsx";
+import KpiStrip from "./dashboard/KpiStrip.jsx";
+import UpcomingPanel from "./dashboard/UpcomingPanel.jsx";
+import TaskModal from "../components/TaskModal.jsx";
+import useTasks from "../hooks/useTasks";
+import useUser from "../hooks/useUser";
+import useCanvasStatus from "../hooks/useCanvasStatus";
 
 export default function DashboardPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const [user, setUser] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [newTask, setNewTask] = useState("");
-  const [newTaskCategory, setNewTaskCategory] = useState("academic");
-  const [addingTask, setAddingTask] = useState(false);
+  const { user, xp, setXp, refreshUser } = useUser(API_URL);
+  const { tasks, fetchTasks, addTask, updateTask, deleteTask, completeTask } = useTasks(API_URL);
+  const { canvasStatus, statusLoading } = useCanvasStatus(API_URL);
+
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [streak] = useState(4);
-  const [xp] = useState(1250);
-  const [extractText, setExtractText] = useState("");
-  const [extracted, setExtracted] = useState([]);
-  const [extracting, setExtracting] = useState(false);
-  const [replanSuggestions, setReplanSuggestions] = useState([]);
-  const [replanLoading, setReplanLoading] = useState(false);
 
-  const todayStr = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
+  const displayName =
+    (Array.isArray(user) && user[0]?.firstName) ||
+    auth.currentUser?.email?.split("@")[0] ||
+    "User";
 
-  const fetchTasks = async () => {
-    if (!auth.currentUser) {
-      setLoading(false);
-      return;
+  const todayStr = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      }).format(new Date()),
+    []
+  );
+
+  const parseDueDate = (t) => {
+    if (!t.dueAt) return null;
+    if (typeof t.dueAt === "object" && t.dueAt.seconds) {
+      return new Date(t.dueAt.seconds * 1000);
     }
-
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/tasks`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-      const data = await res.json();
-      setTasks(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err);
-      setTasks([]);
-    }
-
-    setLoading(false);
+    const d = new Date(t.dueAt);
+    return isNaN(d.getTime()) ? null : d;
   };
 
-  // Fetch logged-in user
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!auth.currentUser) return;
+  const formatDue = (t) => {
+    const d = parseDueDate(t);
+    if (!d) return "No due date";
+    return d.toLocaleString();
+  };
 
-      try {
-        const token = await auth.currentUser.getIdToken();
-        const res = await fetch(`${API_URL}/api/users`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  const canvasConnected = !!canvasStatus?.hasToken;
+  const canvasLabel = (() => {
+    if (statusLoading) return "Checking Canvas...";
+    if (!canvasConnected || !canvasStatus?.lastSync) return "Canvas not connected";
+    const raw = canvasStatus.lastSync;
+    const d = raw?.seconds ? new Date(raw.seconds * 1000) : new Date(raw);
+    return isNaN(d.getTime()) ? "Canvas synced" : `Canvas synced ${d.toLocaleDateString()}`;
+  })();
 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+  const todayTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      const d = parseDueDate(t);
+      if (!d) return false;
+      const today = new Date();
+      return d.toDateString() === today.toDateString();
+    }).length;
+  }, [tasks]);
 
-        const userData = await res.json();
-        setUser(userData);
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
+  const openCreateModal = () => {
+    setEditingTask(null);
+    setShowTaskModal(true);
+  };
 
-    fetchUser();
-  }, [API_URL]);
+  const openEditModal = (task) => {
+    setEditingTask(task);
+    setShowTaskModal(true);
+  };
 
-  // Fetch tasks
-  useEffect(() => {
-    fetchTasks();
-  }, [API_URL]);
-
-  const handleAddTask = async () => {
-    if (!newTask.trim() || !auth.currentUser || addingTask) return;
-
-    setAddingTask(true);
+  const handleSubmitTask = async (payload) => {
     try {
-      const token = await auth.currentUser.getIdToken();
-
-      const res = await fetch(`${API_URL}/api/tasks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: newTask.trim(),
+      if (editingTask?.taskId) {
+        await updateTask(editingTask.taskId, {
+          ...payload,
+          estimatedMinutes:
+            payload.estimatedMinutes !== undefined
+              ? payload.estimatedMinutes
+              : payload.estimatedTime !== undefined
+                ? ((Number(payload.estimatedTime) <= 12 ? Number(payload.estimatedTime) * 60 : Number(payload.estimatedTime)) || 0)
+                : 0,
+        });
+      } else {
+        await addTask({
+          ...payload,
           isComplete: false,
-          dueAt: new Date().toISOString(),
-          category: newTaskCategory,
-        }),
-      });
+          estimatedMinutes:
+            payload.estimatedMinutes !== undefined
+              ? payload.estimatedMinutes
+              : payload.estimatedTime !== undefined
+                ? ((Number(payload.estimatedTime) <= 12 ? Number(payload.estimatedTime) * 60 : Number(payload.estimatedTime)) || 0)
+                : 0,
+        });
+      }
+      setShowTaskModal(false);
+      setEditingTask(null);
+    } catch (err) {
+      console.error("Failed to save task:", err);
+      alert("Failed to save task. Please try again.");
+    }
+  };
 
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-      const newTaskData = await res.json();
-      setTasks((prev) => [...prev, newTaskData]);
-      setNewTask("");
+  const handleQuickAdd = async (payload) => {
+    try {
+      await addTask(payload);
     } catch (err) {
       console.error("Failed to add task:", err);
       alert("Failed to add task. Please try again.");
-    } finally {
-      setAddingTask(false);
     }
   };
 
-  // Toggle complete
-  const handleToggleComplete = async (taskId) => {
-    if (!auth.currentUser) return;
-
-    const taskToUpdate = tasks.find((t) => t.taskId === taskId);
-    if (!taskToUpdate) return;
-
-    setTasks((prev) =>
-        prev.map((t) =>
-            t.taskId === taskId ? { ...t, isComplete: !t.isComplete } : t
-        )
-    );
-
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ isComplete: !taskToUpdate.isComplete }),
-      });
-
-      if (!res.ok) throw new Error("Failed to update task");
-    } catch (err) {
-      console.error("Failed to update task:", err);
-
-      // revert
-      setTasks((prev) =>
-          prev.map((t) =>
-              t.taskId === taskId ? { ...t, isComplete: taskToUpdate.isComplete } : t
-          )
-      );
-    }
-  };
-
-  // Delete task
   const handleDeleteTask = async (taskId) => {
-    if (!auth.currentUser) return;
-
-    const previousTasks = tasks;
-    setTasks((prev) => prev.filter((t) => t.taskId !== taskId));
-
     try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/tasks/${taskId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error("Failed to delete task");
+      await deleteTask(taskId);
     } catch (err) {
       console.error("Failed to delete task:", err);
-
-      // revert
-      setTasks(previousTasks);
       alert("Failed to delete task. Please try again.");
     }
   };
 
-  const handleExtract = async () => {
-    if (!extractText.trim() || !auth.currentUser) return;
-    setExtracting(true);
+  const handleCompleteTask = async (taskId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/ai/extract`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ text: extractText }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setExtracted(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Extract failed:", err);
-      alert("AI extraction failed. Check your API key and try again.");
-    } finally {
-      setExtracting(false);
-    }
-  };
-
-  const handleSaveExtracted = async (item) => {
-    if (!auth.currentUser) return;
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/tasks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: item.title || "Untitled",
-          description: item.description || "",
-          dueAt: item.dueDate || null,
-          priority: item.priority || "medium",
-          estimatedTime: item.estimatedTimeMinutes || 0,
-          category: item.category || "academic",
-          canvasAssignmentId: null,
-        }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const newTaskData = await res.json();
-      setTasks((prev) => [...prev, newTaskData]);
-    } catch (err) {
-      console.error("Failed to save extracted task:", err);
-      alert("Could not save extracted task.");
-    }
-  };
-
-  const handleReplan = async (apply = false) => {
-    if (!auth.currentUser) return;
-    setReplanLoading(true);
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/ai/replan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ perDay: 3, apply }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setReplanSuggestions(Array.isArray(data) ? data : []);
-      if (apply) {
-        await fetchTasks();
+      const data = await completeTask(taskId);
+      if (data?.success) {
+        if (typeof data.newTotalXP === "number") {
+          setXp(data.newTotalXP);
+        }
+        fetchTasks();
+        refreshUser();
       }
     } catch (err) {
-      console.error("Replan failed:", err);
-      alert("Auto-replan failed. Try again later.");
-    } finally {
-      setReplanLoading(false);
+      console.error("Failed to complete task:", err);
     }
   };
-
-  const formatDue = (t) => {
-    if (!t.dueAt) return "No due date";
-    if (typeof t.dueAt === 'object' && t.dueAt.seconds) {
-      return new Date(t.dueAt.seconds * 1000).toLocaleString();
-    }
-    return new Date(t.dueAt).toLocaleString();
-  };
-
-  if (loading) return <div className="loading">Loading your day...</div>;
-
-  const todayTasks = tasks.filter((t) => {
-    if (!t.dueAt) return false;
-
-    let dueDate;
-    if (typeof t.dueAt === 'object' && t.dueAt.seconds) {
-      dueDate = new Date(t.dueAt.seconds * 1000);
-    } else if (typeof t.dueAt === 'string') {
-      dueDate = new Date(t.dueAt);
-    } else {
-      return false;
-    }
-
-    const today = new Date();
-    return dueDate.toDateString() === today.toDateString();
-  }).length;
 
   return (
     <div className="dash">
+      <DashboardHero
+        todayStr={todayStr}
+        displayName={displayName}
+        canvasLabel={canvasLabel}
+        canvasConnected={canvasConnected}
+        statusLoading={statusLoading}
+      />
 
-      {/* HERO */}
-      <section className="dash-hero">
-        <p className="dash-date">{todayStr}</p>
-        <h1 className="dash-title">Welcome back, User</h1>
-        <p className="dash-sub">
-          Here's a quick snapshot of your day across tasks, habits, and XP.
-        </p>
-      </section>
-
-      {/* KPI STRIP */}
-      <section className="dash-kpis">
-        <div className="kpi">
-          <div className="kpi-label">Today</div>
-          <div className="kpi-value">{todayTasks}</div>
-          <div className="kpi-note">tasks due</div>
-        </div>
-
-        <div className="kpi">
-          <div className="kpi-label">Streak</div>
-          <div className="kpi-value">
-            {streak}
-            <span className="kpi-emoji">🔥</span>
-          </div>
-          <div className="kpi-note">days in a row</div>
-        </div>
-
-        <div className="kpi kpi-dark">
-          <div className="kpi-label kpi-label-light">Reset Week</div>
-          <button
-            className="break-btn"
-            type="button"
-            onClick={() => alert("Break mode coming soon!")}
-          >
-            I need a break
-          </button>
-          <div className="kpi-note kpi-note-light">pauses XP loss</div>
-        </div>
-      </section>
-
-      {/* MAIN CONTENT GRID */}
-      <section className="dash-main">
-
-        {/* LEFT PANEL: UPCOMING */}
-        <div className="panel">
-          <div className="panel-head">
-            <h2>Upcoming</h2>
-            <Link to="/planner" className="panel-link">
-              Open Calendar →
-            </Link>
-          </div>
-
-          <div style={{ marginBottom: "1rem", display: "flex", gap: "8px" }}>
-            <input
-              type="text"
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-              placeholder="Add a new task..."
-              disabled={addingTask}
-              style={{
-                flex: 1,
-                padding: "10px 12px",
-                border: "2px solid #e5e7eb",
-                borderRadius: "10px",
-                fontSize: "15px",
-                outline: "none",
-              }}
-            />
-            <select
-              value={newTaskCategory}
-              onChange={(e) => setNewTaskCategory(e.target.value)}
-              style={{ padding: "10px", borderRadius: "10px", border: "2px solid #e5e7eb" }}
-            >
-              <option value="academic">Academic</option>
-              <option value="work">Work</option>
-              <option value="personal">Personal</option>
-            </select>
-          </div>
-
-          <ul className="task-list">
-            {tasks.length === 0 ? (
-              <li className="task-item">
-                <div className="task-body">
-                  <div className="task-text">
-                    No tasks yet — you're crushing it! ✨
-                  </div>
-                </div>
-              </li>
-            ) : (
-              tasks.map((t) => (
-                <li key={t.taskId} className="task-item">
-                  <input
-                    type="checkbox"
-                    checked={!!t.isComplete}
-                    onChange={() => handleToggleComplete(t.taskId)}
-                    style={{ marginRight: 10 }}
-                  />
-                  <div className="task-body">
-                    <div className="task-text">{t.title || t.text}</div>
-                    <div className="task-meta">{formatDue(t)}</div>
-                  </div>
-
-                  <button
-                    className="delete-task-btn"
-                    onClick={() => handleDeleteTask(t.taskId)}
-                    aria-label="Delete task"
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px",
-                      marginLeft: "auto",
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path
-                        d="M12 4L4 12M4 4L12 12"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
-
-        {/* RIGHT PANEL: QUICK LINKS */}
-        <div className="panel">
-          <div className="panel-head">
-            <h2>Quick Links</h2>
-          </div>
-
-          <div className="quick-grid">
-            <Link to="/planner" className="quick-btn">
-              Add Task
-            </Link>
-
-            <Link to="/home" className="quick-btn">
-              Goals
-            </Link>
-          </div>
-        </div>
-
-      </section>
-
-      {/* AI PANEL */}
-      <section className="dash-main">
-        <div className="panel" style={{ flex: 1 }}>
-          <div className="panel-head">
-            <h2>AI Extraction</h2>
-            <button className="quick-btn" onClick={handleExtract} disabled={extracting}>
-              {extracting ? "Running..." : "Extract"}
-            </button>
-          </div>
-          <textarea
-            value={extractText}
-            onChange={(e) => setExtractText(e.target.value)}
-            placeholder="Paste syllabus or assignment text..."
-            style={{ width: "100%", minHeight: 120, marginBottom: 12 }}
-          />
-          {extracted.length > 0 && (
-            <ul className="task-list">
-              {extracted.map((item, idx) => (
-                <li key={idx} className="task-item">
-                  <div className="task-body">
-                    <div className="task-text">{item.title || "Untitled"}</div>
-                    <div className="task-meta">
-                      {item.dueDate ? new Date(item.dueDate).toLocaleString() : "No due date"} • {item.priority || "medium"}
-                    </div>
-                    <div className="task-meta">{item.description || ""}</div>
-                  </div>
-                  <button className="quick-btn" onClick={() => handleSaveExtracted(item)}>
-                    Save to tasks
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="panel" style={{ flex: 1 }}>
-          <div className="panel-head">
-            <h2>Auto-Replan</h2>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button className="quick-btn" onClick={() => handleReplan(false)} disabled={replanLoading}>
-                {replanLoading ? "Replanning..." : "Replan"}
-              </button>
-              <button className="quick-btn" onClick={() => handleReplan(true)} disabled={replanLoading}>
-                {replanLoading ? "Applying..." : "Apply replan"}
-              </button>
-            </div>
-          </div>
-          {replanSuggestions.length === 0 ? (
-            <p style={{ color: "#6b7280" }}>No suggestions yet. Run replan to see ordering.</p>
-          ) : (
-            <ul className="task-list">
-              {replanSuggestions.map((t, idx) => (
-                <li key={t.taskId || idx} className="task-item">
-                  <div className="task-body">
-                    <div className="task-text">{t.title}</div>
-                    <div className="task-meta">
-                      Score: {t._score ?? "n/a"} • {t._explanation || ""}
-                    </div>
-                    <div className="task-meta">
-                      Suggested: {t.suggestedDate ? new Date(t.suggestedDate).toLocaleDateString() : "n/a"}
-                      {t._missed ? " • Missed task" : ""}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
-      {/* XP FULL-WIDTH PANEL */}
       <section className="xp-wide-panel">
         <div className="panel xp-panel">
-          <h2 className="xp-header">XP &amp; Badges</h2>
+          <div className="xp-header-row">
+            <h2 className="xp-header">XP &amp; Progress</h2>
+            <span className="xp-tag">Gamified</span>
+          </div>
           <div className="xp-value-large">XP {xp}</div>
 
           <div className="xp-bar xp-bar-wide">
@@ -511,6 +167,29 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      <KpiStrip todayTasks={todayTasks} streak={streak} />
+
+      <UpcomingPanel
+        tasks={tasks}
+        activeFilter={activeFilter}
+        setActiveFilter={setActiveFilter}
+        onQuickAdd={handleQuickAdd}
+        onComplete={handleCompleteTask}
+        onEdit={openEditModal}
+        onDelete={handleDeleteTask}
+        formatDue={formatDue}
+        openCreateModal={openCreateModal}
+      />
+
+      <TaskModal
+        open={showTaskModal}
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
+        onSubmit={handleSubmitTask}
+        initialTask={editingTask}
+      />
     </div>
   );
 }

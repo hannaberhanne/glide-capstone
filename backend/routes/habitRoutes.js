@@ -1,26 +1,17 @@
 import express from 'express';
 const router = express.Router();
 import verifyToken from '../middleware/authMiddleware.js';
-
-import {
-    getHabits,
-    createHabit,
-    updateHabit,
-    deleteHabit
-} from '../controllers/habitController.js';
+import { createHabit, getHabits, completeHabit } from '../controllers/habitController.js';
 
 router.use(verifyToken);
 
-// GET /api/Habits - return list of all Habit
-router.get('/', getHabits);
-
-// POST /api/Habits - Create new Habit
+// POST /api/habits - create habit
 router.post('/', createHabit);
 
-// PATCH /api/Habits/:habitId - Update Habit (toggle completion)
-router.patch('/:habitId', updateHabit);
+// GET /api/habits - list habits
+router.get('/', getHabits);
 
-// DELETE /api/Habits/:habitId - Delete Habit
-router.delete('/:habitId', deleteHabit);
+// PATCH /api/habits/:habitId/complete - complete habit today
+router.patch('/:habitId/complete', completeHabit);
 
 export default router;

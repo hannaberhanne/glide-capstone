@@ -8,34 +8,15 @@ export default function CanvasSetup() {
 
   const [token, setToken] = useState("");
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState(null);
 
   // Fetch the logged-in user's Firestore document ID
   useEffect(() => {
-    const fetchUser = async () => {
-      if (!auth.currentUser) return;
-
-      try {
-        const idToken = auth.currentUser.getUser();
-
-        const res = await fetch(`${API_URL}/api/users`, {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
-
-        const data = await res.json();
-
-        if (Array.isArray(data) && data.length > 0) {
-          setUserId(data[0].userId);
-        }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
-
-    fetchUser();
+    if (auth.currentUser) {
+      setUserId(auth.currentUser.uid); // use the Firebase UID directly
+    }
   }, [API_URL]);
 
   const handleSaveToken = async () => {
@@ -49,18 +30,14 @@ export default function CanvasSetup() {
       return;
     }
 
-    if (!userId) {
-      setMessage("Could not load your user account. Try again.");
-      return;
-    }
-
     setSaving(true);
     setMessage("");
 
     try {
       const idToken = await auth.currentUser.getIdToken();
+      const uid = auth.currentUser.uid;
 
-      const res = await fetch(`${API_URL}/api/users/${userId}`, {
+      const res = await fetch(`${API_URL}/api/users/${uid}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -72,12 +49,41 @@ export default function CanvasSetup() {
       if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
 
       setMessage("Canvas token saved successfully!");
-      setToken("");
     } catch (err) {
       console.error("Failed to save token:", err);
       setMessage("Failed to save token. Try again.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSync = async () => {
+    if (!auth.currentUser) {
+      setMessage("You must be logged in to sync.");
+      return;
+    }
+    setSyncing(true);
+    setMessage("");
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/canvas/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ canvasToken: token.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      setMessage(data.message || "Canvas synced successfully!");
+    } catch (err) {
+      console.error("Sync failed:", err);
+      setMessage(err?.message || "Sync failed. Check your token and try again.");
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -106,13 +112,22 @@ export default function CanvasSetup() {
           onChange={(e) => setToken(e.target.value)}
         />
 
-        <button
-          className="canvas-setup-btn"
-          onClick={handleSaveToken}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save Token →"}
-        </button>
+        <div className="canvas-actions">
+          <button
+            className="canvas-setup-btn"
+            onClick={handleSaveToken}
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Save Token →"}
+          </button>
+          <button
+            className="canvas-setup-btn"
+            onClick={handleSync}
+            disabled={syncing}
+          >
+            {syncing ? "Syncing..." : "Sync Now"}
+          </button>
+        </div>
 
         {message && <p className="canvas-message">{message}</p>}
 

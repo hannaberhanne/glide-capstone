@@ -28,7 +28,7 @@ const getTasks = async (req, res) => {
 // post request to create a new task
 const createTask = async (req, res) => {
     try {
-        const { canvasAssignmentId, courseId, description, dueAt, estimatedTime, priority, title, xpValue } = req.body;
+        const { canvasAssignmentId, courseId, description, dueAt, estimatedTime, estimatedMinutes, priority, title, xpValue, category } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a task
@@ -44,9 +44,14 @@ const createTask = async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             description: description || '',
             dueAt: dueAt || null,
-            estimatedTime: estimatedTime || 0,
+            estimatedMinutes: estimatedMinutes !== undefined
+              ? estimatedMinutes
+              : (estimatedTime !== undefined
+                ? ((Number(estimatedTime) <= 12 ? Number(estimatedTime) * 60 : Number(estimatedTime)) || 0)
+                : 0),
             isComplete: false,
             priority: priority || "medium",
+            category: category || "academic",
             title: title.trim(),
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -61,9 +66,14 @@ const createTask = async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             description: description || '',
             dueAt: dueAt || null,
-            estimatedTime: estimatedTime || 0,
+            estimatedMinutes: estimatedMinutes !== undefined
+              ? estimatedMinutes
+              : (estimatedTime !== undefined
+                ? ((Number(estimatedTime) <= 12 ? Number(estimatedTime) * 60 : Number(estimatedTime)) || 0)
+                : 0),
             isComplete: false,
             priority: priority || "medium",
+            category: category || "academic",
             taskId: docRef.id,
             title: title.trim(),
             userId: uid,
@@ -82,7 +92,7 @@ const createTask = async (req, res) => {
 };
 
 
-// patch to update an existing task
+// patch to update an existing task (non-completion fields)
 const updateTask = async (req, res) => {
     try {
         const { taskId } = req.params;
@@ -160,6 +170,84 @@ const updateTask = async (req, res) => {
     }
 };
 
+// Mark task complete and award XP (idempotent)
+const completeTask = async (req, res) => {
+    const { taskId } = req.params;
+    const uid = req.user.uid;
+
+    try {
+        const result = await db.runTransaction(async (t) => {
+            const taskRef = db.collection('tasks').doc(taskId);
+            const userRef = db.collection('users').doc(uid);
+
+            // READS FIRST
+            const taskSnap = await t.get(taskRef);
+            const userSnap = await t.get(userRef);
+
+            if (!taskSnap.exists || taskSnap.data().userId !== uid) {
+                throw new Error('NOT_FOUND');
+            }
+            if (!userSnap.exists) {
+                throw new Error('USER_NOT_FOUND');
+            }
+
+            const task = taskSnap.data();
+            const userData = userSnap.data();
+
+            if (task.isComplete) {
+                return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
+            }
+
+            let xpGained = 10; // base
+            if (task.priority === 'high') xpGained += 15;
+            else if (task.priority === 'medium') xpGained += 10;
+            // estimatedTime currently treated as hours (modal uses hours)
+            if (task.estimatedTime > 1) xpGained += 10;
+
+            const newTotalXP = (userData.totalXP || 0) + xpGained;
+
+            // WRITES AFTER READS
+            t.update(taskRef, {
+                isComplete: true,
+                completedAt: admin.firestore.FieldValue.serverTimestamp(),
+                xpValue: xpGained,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            t.update(userRef, {
+                totalXP: newTotalXP,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            return { already: false, xpGained, newTotalXP };
+        });
+
+        if (result.already) {
+            return res.json({
+                success: true,
+                xpGained: 0,
+                newTotalXP: result.newTotalXP,
+                message: 'Already complete'
+            });
+        }
+
+        return res.json({
+            success: true,
+            xpGained: result.xpGained,
+            newTotalXP: result.newTotalXP
+        });
+    } catch (err) {
+        if (err.message === 'NOT_FOUND') {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+        if (err.message === 'USER_NOT_FOUND') {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        console.error('Complete task error:', err);
+        return res.status(500).json({ error: 'Failed to complete task' });
+    }
+};
+
 
 // remove a task from db
 const deleteTask = async (req, res) => {
@@ -197,5 +285,6 @@ export {
     createTask,
     getTasks,
     updateTask,
-    deleteTask
+    deleteTask,
+    completeTask
 };

@@ -5,12 +5,26 @@ const getUser = async (req, res) => {
     try {
         const uid = req.user.uid;
 
-        // this here it looks at the uid making that request and checks db makes sure they match (userId field in db for this user)
+        // First try direct doc lookup by UID
+        const docRef = db.collection('users').doc(uid);
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+            return res.json([{
+                userId: docSnap.id,
+                ...docSnap.data()
+            }]);
+        }
+
+        // Fallback: legacy documents that might have userId field
         const snapshot = await db.collection('users')
             .where('userId', '==', uid)
             .get();
 
-        // cleanup user and put it in a map
+        if (snapshot.empty) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
         const user = snapshot.docs.map(doc => ({
             userId: doc.id,
             ...doc.data()
@@ -37,7 +51,7 @@ const updateUser = async (req, res) => {
         const {userId} = req.params;
         const uid = req.user.uid;
         const {
-            darkMode, email, firstName, gradYear, lastName, longestStreak, major, notifications, photo,
+            canvasToken, darkMode, email, firstName, gradYear, lastName, longestStreak, major, notifications, photo,
             timezone, totalXP, university
         } = req.body;
 
@@ -45,13 +59,9 @@ const updateUser = async (req, res) => {
         const docRef = db.collection('users').doc(userId);
         const doc = await docRef.get();
 
-        // Check if user exists
-        if (!doc.exists) {
-            return res.status(404).json({error: 'User not found'});
-        }
-
-        // Check if user owns this user
-        if (doc.data().userId !== uid) {
+        // Ensure the caller is updating their own user document
+        const docOwnerId = doc.exists ? (doc.data()?.userId || doc.id) : userId;
+        if (docOwnerId !== uid) {
             return res.status(403).json({
                 error: 'Not authorized to update this user'
             });
@@ -60,6 +70,10 @@ const updateUser = async (req, res) => {
         // Build update object with only provided fields
         const updateData = {};
         const authUpdateData = {};  // for Auth in Firebase
+
+        if (canvasToken !== undefined) {
+            updateData.canvasToken = canvasToken || '';
+        }
 
         if (darkMode !== undefined) {
             updateData.darkMode = darkMode;
@@ -121,12 +135,20 @@ const updateUser = async (req, res) => {
             await admin.auth().updateUser(userId, authUpdateData);
         }
 
-        // Update the user in Firestore if there are changes
-        if (Object.keys(updateData).length > 0) {
-            updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
-            await docRef.update(updateData);
+        // Persist the data (create doc if it does not exist)
+        const timestamp = admin.firestore.FieldValue.serverTimestamp();
+        updateData.updatedAt = timestamp;
+        if (!doc.exists) {
+            updateData.createdAt = timestamp;
+            updateData.userId = userId;
         }
 
+        if (Object.keys(updateData).length === 1 && updateData.updatedAt) {
+            // No useful fields provided
+            return res.status(400).json({ error: 'No valid fields provided to update' });
+        }
+
+        await docRef.set(updateData, { merge: true });
         const updatedDoc = await docRef.get();
 
         res.json({

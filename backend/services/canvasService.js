@@ -21,8 +21,15 @@ class CanvasService {
             const response = await this.axiosInstance.get(endpoint);  // axios sends HTTP req
             return response.data;
         } catch (error) {
+            const status = error.response?.status;
+            const message = error.response?.data?.message || error.message || 'Canvas API request failed';
             console.error('Canvas API fetch error:', error.response?.data || error.message);
-            throw new Error(error.response?.data?.message || 'Canvas API request failed');
+            // Preserve status and message so upstream handlers can return accurate errors
+            error.message = message;
+            if (status) {
+                error.status = status;
+            }
+            throw error;
         }
     }
 
