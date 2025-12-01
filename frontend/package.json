@@ -7,6 +7,7 @@
     "dev": "vite",
     "server": "node server.js",
     "build": "vite build",
+    "build-for-devtools": "vite build --mode development --outDir dev-dist && vite preview --host --port 4173 --outDir dev-dist",
     "lint": "eslint .",
     "preview": "vite preview"
   },

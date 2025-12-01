@@ -32,7 +32,7 @@ export default function HomePage() {
 
       try {
         const token = await auth.currentUser.getIdToken();
-        const res = await fetch("http://localhost:5001/api/tasks", {
+        const res = await fetch("http://localhost:8080/api/tasks", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
