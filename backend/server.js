@@ -44,6 +44,7 @@ const PORT = process.env.PORT || 8080;  // can prob delete 8080 when everyone's 
 // Route imports are right below
 import assignmentRoutes from './routes/assignmentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import canvasRoutes from './routes/canvasRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
@@ -53,6 +54,7 @@ import userRoutes from './routes/userRoutes.js';
 
 // ---------- The api routes go below ----------
 app.use('api/assignments', assignmentRoutes);
+app.use('/api/canvas', canvasRoutes);
 app.use('api/courses', courseRoutes);
 app.use('api/events', eventRoutes);
 app.use('api/habits', habitRoutes);

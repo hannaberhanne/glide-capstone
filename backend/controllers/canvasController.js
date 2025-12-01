@@ -91,26 +91,31 @@ const syncCanvas = async (req, res) => {
                     .where('canvasId', '==', assignmentData.canvasId)
                     .get();
 
+                const xpValue = Math.floor(assignmentData.totalPoints)  // calculation for the xp value of an assigment for gamification
+
                 // update assignment
                 if (!existingAssignmentQuery.empty) {
                     const assignmentRef = existingAssignmentQuery.docs[0].ref;
                     await assignmentRef.update({
                         canvasUrl: assignmentData.canvasUrl,
-                        completed: false,
                         description: assignmentData.description,
                         dueDate: assignmentData.dueDate,
                         title: assignmentData.title,
                         totalPoints: assignmentData.totalPoints,
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                        xpValue: Math.floor(assignmentData.totalPoints) || 0,  // change this to find xp points per assignment
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                        xpValue: xpValue || 0  // change this to find xp points per assignment
                     });
                     assignmentsUpdated++;
                 }
                 else {
                     // Create new assignment
+
+                    const newAssignmentRef = db.collection('assignments').doc();
+
                     await db.collection('assignments').add({
-                        canvasUrl: assignmentData.canvasUrl || '',
+                        assignmentId: newAssignmentRef.id,
                         canvasId: assignmentData.canvasId || '',
+                        canvasUrl: assignmentData.canvasUrl || '',
                         completed: assignmentData.completed || false,
                         courseCode: courseData.courseCode || '',
                         courseId: courseRef.id || '',
@@ -118,10 +123,10 @@ const syncCanvas = async (req, res) => {
                         description: assignmentData.description || '',
                         dueDate: assignmentData.dueDate || '',
                         title: assignmentData.title || '',
-                        totalPoints: assignmentData.totalPoints || '',
+                        totalPoints: assignmentData.totalPoints || 0,
                         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                         userId: uid,
-                        xpValue: Math.floor(assignmentData.totalPoints) || 0
+                        xpValue: xpValue || 0
                     });
                     assignmentsAdded++;
                 }
