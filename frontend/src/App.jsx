@@ -8,6 +8,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage";
 import CanvasSetup from "./pages/CanvasSetup";
+import SettingsPage from "./pages/SettingsPage.jsx";   
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import "./App.css";
 
@@ -37,6 +38,9 @@ export default function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/planner" element={<PlannerPage />} />
+
+        {/* Settings Route */}
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
       {/* 404 fallback */}

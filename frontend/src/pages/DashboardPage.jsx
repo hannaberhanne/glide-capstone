@@ -4,13 +4,12 @@ import { auth } from "../config/firebase.js";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
-  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState("");
   const [addingTask, setAddingTask] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [streak] = useState(4);
   const [xp] = useState(1250);
   const [extractText, setExtractText] = useState("");
@@ -25,7 +24,7 @@ export default function DashboardPage() {
     day: "numeric",
   }).format(new Date());
 
-  // fetch the Users from the db
+  // Fetch logged-in user
   useEffect(() => {
     const fetchUser = async () => {
       if (!auth.currentUser) return;
@@ -36,9 +35,7 @@ export default function DashboardPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const userData = await res.json();
         setUser(userData);
@@ -50,8 +47,7 @@ export default function DashboardPage() {
     fetchUser();
   }, [API_URL]);
 
-
-  // ✅ Fetch tasks from backend API
+  // Fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
       if (!auth.currentUser) {
@@ -65,9 +61,7 @@ export default function DashboardPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const data = await res.json();
         setTasks(Array.isArray(data) ? data : []);
@@ -75,11 +69,12 @@ export default function DashboardPage() {
         console.error("Failed to fetch tasks:", err);
         setTasks([]);
       }
+
       setLoading(false);
     };
+
     fetchTasks();
   }, [API_URL]);
-
 
   const handleAddTask = async () => {
     if (!newTask.trim() || !auth.currentUser || addingTask) return;
@@ -87,6 +82,7 @@ export default function DashboardPage() {
     setAddingTask(true);
     try {
       const token = await auth.currentUser.getIdToken();
+
       const res = await fetch(`${API_URL}/api/tasks`, {
         method: "POST",
         headers: {
@@ -100,9 +96,7 @@ export default function DashboardPage() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
       const newTaskData = await res.json();
       setTasks((prev) => [...prev, newTaskData]);
@@ -115,11 +109,11 @@ export default function DashboardPage() {
     }
   };
 
-
+  // Toggle complete
   const handleToggleComplete = async (taskId) => {
     if (!auth.currentUser) return;
 
-    const taskToUpdate = tasks.find(t => t.taskId === taskId);
+    const taskToUpdate = tasks.find((t) => t.taskId === taskId);
     if (!taskToUpdate) return;
 
     setTasks((prev) =>
@@ -139,11 +133,11 @@ export default function DashboardPage() {
         body: JSON.stringify({ isComplete: !taskToUpdate.isComplete }),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to update task');
-      }
+      if (!res.ok) throw new Error("Failed to update task");
     } catch (err) {
       console.error("Failed to update task:", err);
+
+      // revert
       setTasks((prev) =>
           prev.map((t) =>
               t.taskId === taskId ? { ...t, isComplete: taskToUpdate.isComplete } : t
@@ -152,8 +146,7 @@ export default function DashboardPage() {
     }
   };
 
-
-  // ✅ Delete task
+  // Delete task
   const handleDeleteTask = async (taskId) => {
     if (!auth.currentUser) return;
 
@@ -167,11 +160,11 @@ export default function DashboardPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to delete task');
-      }
+      if (!res.ok) throw new Error("Failed to delete task");
     } catch (err) {
       console.error("Failed to delete task:", err);
+
+      // revert
       setTasks(previousTasks);
       alert("Failed to delete task. Please try again.");
     }
@@ -267,10 +260,17 @@ export default function DashboardPage() {
     if (!t.dueAt) return false;
 
     let dueDate;
+<<<<<<< HEAD
     if (typeof t.dueAt === 'object' && t.dueAt.seconds) {
       dueDate = new Date(t.dueAt.seconds * 1000);
     } else if (typeof t.dueAt === 'string') {
       dueDate = new Date(t.dueAt);
+=======
+    if (typeof t.dueDate === "object" && t.dueDate.seconds) {
+      dueDate = new Date(t.dueDate.seconds * 1000);
+    } else if (typeof t.dueDate === "string") {
+      dueDate = new Date(t.dueDate);
+>>>>>>> 9c648800a1bb881d7583eff63c96387e0c6c7855
     } else {
       return false;
     }
@@ -279,15 +279,13 @@ export default function DashboardPage() {
     return dueDate.toDateString() === today.toDateString();
   }).length;
 
-
   return (
     <div className="dash">
+
       {/* HERO */}
       <section className="dash-hero">
         <p className="dash-date">{todayStr}</p>
-        <h1 className="dash-title">
-          Welcome back, {"User"}       {/*  UPDATE THIS TO SHOW THE USERS NAME                ****************** */}
-        </h1>
+        <h1 className="dash-title">Welcome back, User</h1>
         <p className="dash-sub">
           Here's a quick snapshot of your day across tasks, habits, and XP.
         </p>
@@ -325,6 +323,7 @@ export default function DashboardPage() {
 
       {/* MAIN CONTENT GRID */}
       <section className="dash-main">
+
         {/* LEFT PANEL: UPCOMING */}
         <div className="panel">
           <div className="panel-head">
@@ -403,53 +402,23 @@ export default function DashboardPage() {
           </ul>
         </div>
 
-        {/* RIGHT PANEL: QUICK LINKS **OR** SETTINGS */}
+        {/* RIGHT PANEL: QUICK LINKS */}
         <div className="panel">
           <div className="panel-head">
-            <h2>{showSettings ? "Settings" : "Quick Links"}</h2>
+            <h2>Quick Links</h2>
           </div>
 
           <div className="quick-grid">
+            <Link to="/planner" className="quick-btn">
+              Add Task
+            </Link>
 
-            {/* SETTINGS MODE */}
-            {showSettings ? (
-              <>
-                <button
-                  className="quick-btn"
-                  onClick={() => (window.location.href = "/canvas-setup")}
-                >
-                  Sync Canvas →
-                </button>
-
-                <button
-                  className="quick-btn"
-                  onClick={() => setShowSettings(false)}
-                  style={{ background: "#f1f5f9" }}
-                >
-                  Close Settings
-                </button>
-              </>
-            ) : (
-              /* QUICK LINKS MODE */
-              <>
-                <Link to="/planner" className="quick-btn">
-                  Add Task
-                </Link>
-
-                <Link to="/home" className="quick-btn">
-                  Goals
-                </Link>
-
-                <button
-                  className="quick-btn"
-                  onClick={() => setShowSettings(true)}
-                >
-                  Settings
-                </button>
-              </>
-            )}
+            <Link to="/home" className="quick-btn">
+              Goals
+            </Link>
           </div>
         </div>
+
       </section>
 
       {/* AI PANEL */}
