@@ -9,6 +9,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState("");
+  const [newTaskCategory, setNewTaskCategory] = useState("academic");
   const [addingTask, setAddingTask] = useState(false);
   const [streak] = useState(4);
   const [xp] = useState(1250);
@@ -23,6 +24,30 @@ export default function DashboardPage() {
     month: "long",
     day: "numeric",
   }).format(new Date());
+
+  const fetchTasks = async () => {
+    if (!auth.currentUser) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/tasks`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+      const data = await res.json();
+      setTasks(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+      setTasks([]);
+    }
+
+    setLoading(false);
+  };
 
   // Fetch logged-in user
   useEffect(() => {
@@ -49,30 +74,6 @@ export default function DashboardPage() {
 
   // Fetch tasks
   useEffect(() => {
-    const fetchTasks = async () => {
-      if (!auth.currentUser) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const token = await auth.currentUser.getIdToken();
-        const res = await fetch(`${API_URL}/api/tasks`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-        const data = await res.json();
-        setTasks(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch tasks:", err);
-        setTasks([]);
-      }
-
-      setLoading(false);
-    };
-
     fetchTasks();
   }, [API_URL]);
 
@@ -92,7 +93,8 @@ export default function DashboardPage() {
         body: JSON.stringify({
           title: newTask.trim(),
           isComplete: false,
-          dueAt: new Date().toISOString()
+          dueAt: new Date().toISOString(),
+          category: newTaskCategory,
         }),
       });
 
@@ -210,6 +212,7 @@ export default function DashboardPage() {
           dueAt: item.dueDate || null,
           priority: item.priority || "medium",
           estimatedTime: item.estimatedTimeMinutes || 0,
+          category: item.category || "academic",
           canvasAssignmentId: null,
         }),
       });
@@ -222,7 +225,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleReplan = async () => {
+  const handleReplan = async (apply = false) => {
     if (!auth.currentUser) return;
     setReplanLoading(true);
     try {
@@ -233,11 +236,14 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ perDay: 3 }),
+        body: JSON.stringify({ perDay: 3, apply }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setReplanSuggestions(Array.isArray(data) ? data : []);
+      if (apply) {
+        await fetchTasks();
+      }
     } catch (err) {
       console.error("Replan failed:", err);
       alert("Auto-replan failed. Try again later.");
@@ -326,7 +332,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div style={{ marginBottom: "1rem" }}>
+          <div style={{ marginBottom: "1rem", display: "flex", gap: "8px" }}>
             <input
               type="text"
               value={newTask}
@@ -335,7 +341,7 @@ export default function DashboardPage() {
               placeholder="Add a new task..."
               disabled={addingTask}
               style={{
-                width: "100%",
+                flex: 1,
                 padding: "10px 12px",
                 border: "2px solid #e5e7eb",
                 borderRadius: "10px",
@@ -343,6 +349,15 @@ export default function DashboardPage() {
                 outline: "none",
               }}
             />
+            <select
+              value={newTaskCategory}
+              onChange={(e) => setNewTaskCategory(e.target.value)}
+              style={{ padding: "10px", borderRadius: "10px", border: "2px solid #e5e7eb" }}
+            >
+              <option value="academic">Academic</option>
+              <option value="work">Work</option>
+              <option value="personal">Personal</option>
+            </select>
           </div>
 
           <ul className="task-list">
@@ -452,9 +467,14 @@ export default function DashboardPage() {
         <div className="panel" style={{ flex: 1 }}>
           <div className="panel-head">
             <h2>Auto-Replan</h2>
-            <button className="quick-btn" onClick={handleReplan} disabled={replanLoading}>
-              {replanLoading ? "Replanning..." : "Replan"}
-            </button>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button className="quick-btn" onClick={() => handleReplan(false)} disabled={replanLoading}>
+                {replanLoading ? "Replanning..." : "Replan"}
+              </button>
+              <button className="quick-btn" onClick={() => handleReplan(true)} disabled={replanLoading}>
+                {replanLoading ? "Applying..." : "Apply replan"}
+              </button>
+            </div>
           </div>
           {replanSuggestions.length === 0 ? (
             <p style={{ color: "#6b7280" }}>No suggestions yet. Run replan to see ordering.</p>
@@ -465,7 +485,11 @@ export default function DashboardPage() {
                   <div className="task-body">
                     <div className="task-text">{t.title}</div>
                     <div className="task-meta">
-                      Score: {t._score ?? "n/a"} • Suggested: {t.suggestedDate ? new Date(t.suggestedDate).toLocaleDateString() : "n/a"}
+                      Score: {t._score ?? "n/a"} • {t._explanation || ""}
+                    </div>
+                    <div className="task-meta">
+                      Suggested: {t.suggestedDate ? new Date(t.suggestedDate).toLocaleDateString() : "n/a"}
+                      {t._missed ? " • Missed task" : ""}
                     </div>
                   </div>
                 </li>

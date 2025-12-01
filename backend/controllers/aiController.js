@@ -1,5 +1,5 @@
 import { extractAssignmentsFromText, replanTasks } from '../services/aiService.js';
-import { db } from '../config/firebase.js';
+import { admin, db } from '../config/firebase.js';
 
 export async function extractAssignments(req, res) {
   try {
@@ -18,6 +18,20 @@ export async function replan(req, res) {
     const snap = await db.collection('tasks').where('userId', '==', uid).get();
     const tasks = snap.docs.map(d => ({ taskId: d.id, ...d.data() }));
     const planned = replanTasks(tasks, req.body || {});
+
+    if (req.body?.apply) {
+      const batch = db.batch();
+      planned.forEach(t => {
+        const ref = db.collection('tasks').doc(t.taskId);
+        batch.update(ref, {
+          dueAt: t.suggestedDate || null,
+          priority: t.priority || 'medium',
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+      await batch.commit();
+    }
+
     res.json(planned);
   } catch (err) {
     console.error('AI replan error:', err);
