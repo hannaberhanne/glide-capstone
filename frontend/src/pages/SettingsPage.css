@@ -1,0 +1,69 @@
+.settings-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  
+  .settings-title {
+    font-size: 34px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: #1e293b;
+  }
+  
+  .settings-sub {
+    font-size: 18px;
+    color: #64748b;
+    margin-bottom: 32px;
+  }
+  
+  .settings-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  
+  /* Settings card */
+  .settings-card {
+    background: white;
+    padding: 26px 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  
+  .settings-card-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1e293b;
+  }
+  
+  .settings-card-desc {
+    font-size: 16px;
+    color: #475569;
+    margin-bottom: 22px;
+  }
+  
+  /* Button */
+  .settings-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: var(--brand);
+    color: white;
+    font-weight: 600;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: 0.15s ease;
+  }
+  
+  .settings-btn:hover {
+    opacity: 0.9;
+  }
+  
+  /* Disabled placeholder buttons */
+  .settings-btn.disabled {
+    background: #94a3b8;
+    cursor: default;
+    pointer-events: none;
+  }
+  
