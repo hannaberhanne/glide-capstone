@@ -17,10 +17,10 @@ router.get('/', getAssignments);
 // POST /api/Assignments - Create new Assignment
 router.post('/', createAssignment);
 
-// PATCH /api/Assignments/:id - Update Assignment
-router.patch('/:id', updateAssignment);
+// PATCH /api/Assignments/:assignmentId - Update Assignment
+router.patch('/:assignmentId', updateAssignment);
 
-// DELETE /api/Assignments/:id - Delete Assignment
-router.delete('/:id', deleteAssignment);
+// DELETE /api/Assignments/:assignmentId - Delete Assignment
+router.delete('/:assignmentId', deleteAssignment);
 
 export default router;

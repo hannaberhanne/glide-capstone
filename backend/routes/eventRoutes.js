@@ -17,11 +17,11 @@ router.get('/', getEvents);
 // POST /api/events - Create new event
 router.post('/', createEvent);
 
-// PATCH /api/events/:id - Update event
-router.patch('/:id', updateEvent);
+// PATCH /api/events/:eventId - Update event
+router.patch('/:eventId', updateEvent);
 
-// DELETE /api/events/:id - Delete event
-router.delete('/:id', deleteEvent);
+// DELETE /api/events/:eventId - Delete event
+router.delete('/:eventId', deleteEvent);
 
 
 export default router;

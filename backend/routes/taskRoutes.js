@@ -17,10 +17,10 @@ router.get('/', getTasks);
 // POST /api/tasks - Create new task
 router.post('/', createTask);
 
-// PATCH /api/tasks/:id - Update task (toggle completion)
-router.patch('/:id', updateTask);
+// PATCH /api/tasks/:taskId - Update task (toggle completion)
+router.patch('/:taskId', updateTask);
 
-// DELETE /api/tasks/:id - Delete task
-router.delete('/:id', deleteTask);
+// DELETE /api/tasks/:taskId - Delete task
+router.delete('/:taskId', deleteTask);
 
 export default router;
