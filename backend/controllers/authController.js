@@ -31,6 +31,7 @@ const signUp = async (req, res) => {
         // make sure user isn't alr in db
         if (userDoc.exists) {
             return res.status(400).json({
+                success: false,
                 error: 'User profile already exists'
             });
         }
@@ -58,10 +59,10 @@ const signUp = async (req, res) => {
 
         // return new user created to the frontend
         res.status(201).json({
+            success: true,
             message: 'User profile created successfully',
             userId: uid,
             data: {
-                canvasToken: user.canvasToken,
                 darkMode: user.darkMode,
                 email: user.email,
                 firstName: user.firstName,
@@ -81,6 +82,7 @@ const signUp = async (req, res) => {
     } catch (err) {
         console.error('Signup error:', err);
         res.status(500).json({
+            success: false,
             error: 'Failed to create user profile',
             message: err.message
         });
@@ -114,7 +116,21 @@ const login = async (req, res) => {
         res.json({
             success: true,
             message: 'Login successful',
-            data: userData
+            data: {
+                userId: uid,
+                email: userData.email,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                university: userData.university,
+                major: userData.major,
+                gradYear: userData.gradYear,
+                totalXP: userData.totalXP,
+                longestStreak: userData.longestStreak,
+                photo: userData.photo,
+                timezone: userData.timezone,
+                darkMode: userData.darkMode,
+                notifications: userData.notifications
+            }
         });
 
     } catch (error) {
