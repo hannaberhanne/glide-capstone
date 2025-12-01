@@ -3,7 +3,7 @@ const router = express.Router();
 import verifyToken from '../middleware/authMiddleware.js';
 
 import {
-    getEvent,  
+    getEvents,
     createEvent, 
     updateEvent,
     deleteEvent  
@@ -12,7 +12,7 @@ import {
 router.use(verifyToken);
 
 // GET /api/events - return list of all events
-router.get('/', getEvent);
+router.get('/', getEvents);
 
 // POST /api/events - Create new event
 router.post('/', createEvent);

@@ -1,7 +1,7 @@
 import { admin, db } from '../config/firebase.js';
 
 // get requests to retrieve all Events
-const getEvent = async (req, res) => {
+const getEvents = async (req, res) => {
     try {
         const uid = req.user.uid;
 
@@ -200,7 +200,7 @@ const deleteEvent = async (req, res) => {
 
 export {
     createEvent,
-    getEvent,
+    getEvents,
     updateEvent,
     deleteEvent
 };
