@@ -17,10 +17,10 @@ router.get('/', getHabits);
 // POST /api/Habits - Create new Habit
 router.post('/', createHabit);
 
-// PATCH /api/Habits/:id - Update Habit (toggle completion)
-router.patch('/:id', updateHabit);
+// PATCH /api/Habits/:habitId - Update Habit (toggle completion)
+router.patch('/:habitId', updateHabit);
 
-// DELETE /api/Habits/:id - Delete Habit
-router.delete('/:id', deleteHabit);
+// DELETE /api/Habits/:habitId - Delete Habit
+router.delete('/:habitId', deleteHabit);
 
 export default router;

@@ -17,11 +17,11 @@ router.get('/', getGoals);
 // POST /api/Goals - Create new Goal
 router.post('/', createGoal);
 
-// PATCH /api/Goals/:id - Update Goal
-router.patch('/:id', updateGoal);
+// PATCH /api/Goals/:goalId - Update Goal
+router.patch('/:goalId', updateGoal);
 
-// DELETE /api/Goals/:id - Delete Goal
-router.delete('/:id', deleteGoal);
+// DELETE /api/Goals/:goalId - Delete Goal
+router.delete('/:goalId', deleteGoal);
 
 
 export default router;

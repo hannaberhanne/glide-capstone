@@ -17,10 +17,10 @@ router.get('/', getCourses);
 // POST /api/courses - Create new Course
 router.post('/', createCourse);
 
-// PATCH /api/courses/:id - Update course
-router.patch('/:id', updateCourse);
+// PATCH /api/courses/:courseId - Update course
+router.patch('/:courseId', updateCourse);
 
-// DELETE /api/courses/:id - Delete course
-router.delete('/:id', deleteCourse);
+// DELETE /api/courses/:courseId  - Delete course
+router.delete('/:courseId', deleteCourse);
 
 export default router;

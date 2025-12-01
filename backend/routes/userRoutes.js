@@ -13,10 +13,10 @@ router.use(verifyToken);
 // GET /api/users - return list of all users
 router.get('/', getUser);
 
-// PATCH /api/users/:id - Update user
-router.patch('/:id', updateUser);
+// PATCH /api/users/:userId - Update user
+router.patch('/:userId', updateUser);
 
-// DELETE /api/users/:id - Delete users
-router.delete('/:id', deleteUser);
+// DELETE /api/users/:userId - Delete users
+router.delete('/:userId', deleteUser);
 
 export default router;
