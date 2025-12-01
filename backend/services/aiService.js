@@ -26,11 +26,23 @@ export async function extractAssignmentsFromText(text) {
 export function replanTasks(tasks, opts = {}) {
   const perDay = opts.perDay || 3;
   const today = new Date();
+  const categoryWeight = { academic: 2, work: 1, personal: 0.5 };
+
   const scored = (tasks || []).map(t => {
     const pri = { high: 3, medium: 2, low: 1 }[t.priority || 'medium'];
-    const due = t.dueAt ? Math.max(0, 7 - Math.ceil((new Date(t.dueAt) - today) / 86400000)) : 0;
+    const dueDays = t.dueAt ? Math.ceil((new Date(t.dueAt) - today) / 86400000) : null;
+    const dueSoon = dueDays !== null ? Math.max(0, 7 - dueDays) : 0;
     const effort = t.estimatedTime ? Math.min(2, Math.ceil(t.estimatedTime / 60)) : 1;
-    return { ...t, _score: pri + due + effort };
+    const cat = categoryWeight[(t.category || '').toLowerCase()] || 0;
+    const score = pri + dueSoon + effort + cat;
+    const missed = dueDays !== null && dueDays < 0 && !t.isComplete;
+    const explanation = [
+      `priority ${pri}`,
+      `dueSoon ${dueSoon}`,
+      `effort ${effort}`,
+      `category ${cat}`
+    ].join(' + ');
+    return { ...t, _score: score, _explanation: explanation, _missed: missed };
   }).sort((a, b) => b._score - a._score);
 
   const scheduled = [];
