@@ -17,24 +17,26 @@ const toKey = (d) =>
   ).padStart(2, "0")}`;
 
 export default function PlannerPage() {
-  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(startOfMonth(today));
   const [selected, setSelected] = useState(today);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // event modal state
   const [showAddModal, setShowAddModal] = useState(false);
   const [newEventTime, setNewEventTime] = useState("");
   const [newEventText, setNewEventText] = useState("");
+
+  // ⭐ new popover state
+  const [showMenu, setShowMenu] = useState(false);
 
   const monthLabel = new Intl.DateTimeFormat("en-US", {
     month: "long",
     year: "numeric",
   }).format(cursor);
 
-  /* 
-     CORRECTED LABEL LOGIC */
   const selectedLabel = (() => {
     const s = new Date(selected);
     const t = new Date(today);
@@ -57,8 +59,6 @@ export default function PlannerPage() {
     }).format(selected);
   })();
 
-  /* 
-     FETCH EVENTS */
   useEffect(() => {
     const fetchEvents = async () => {
       if (!auth.currentUser) {
@@ -81,8 +81,6 @@ export default function PlannerPage() {
     fetchEvents();
   }, []);
 
-  /*
-     CALENDAR GRID*/
   const grid = useMemo(() => {
     const start = startOfMonth(cursor);
     const firstVisible = new Date(start);
@@ -103,8 +101,6 @@ export default function PlannerPage() {
     return events.filter((e) => e.date === key);
   };
 
-  /* 
-     ADD EVENT */
   const handleAddEvent = async () => {
     if (!newEventText.trim() || !newEventTime.trim()) return;
 
@@ -135,8 +131,6 @@ export default function PlannerPage() {
     }
   };
 
-  /*
-     DELETE EVENT */
   const handleDeleteEvent = async (id) => {
     try {
       const token = await auth.currentUser.getIdToken();
@@ -155,7 +149,6 @@ export default function PlannerPage() {
 
   return (
     <div className="planner">
-
       {/* Month Header */}
       <header className="planner-header">
         <button className="month-arrow" onClick={() => setCursor(addMonths(cursor, -1))}>
@@ -169,11 +162,13 @@ export default function PlannerPage() {
         </button>
       </header>
 
-      {/* CALENDAR */}
+      {/* Calendar */}
       <section className="calendar">
         <div className="weekdays">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div className="weekday" key={d}>{d}</div>
+            <div className="weekday" key={d}>
+              {d}
+            </div>
           ))}
         </div>
 
@@ -185,11 +180,9 @@ export default function PlannerPage() {
             return (
               <button
                 key={d.toISOString()}
-                className={[
-                  "day",
-                  isToday ? "today" : "",
-                  isSelected ? "selected" : "",
-                ].join(" ")}
+                className={["day", isToday ? "today" : "", isSelected ? "selected" : ""].join(
+                  " "
+                )}
                 onClick={() => setSelected(d)}
               >
                 <div className="date-num">{d.getDate()}</div>
@@ -199,13 +192,42 @@ export default function PlannerPage() {
         </div>
       </section>
 
-      {/* RIGHT PANEL */}
+      {/* Right Panel */}
       <aside className="day-details">
         <div className="day-header">
           <h2 className="day-title">{selectedLabel}</h2>
-          <button className="add-event-btn" onClick={() => setShowAddModal(true)}>
-            + Add Event
+
+          {/* ⭐ NEW PLUS BUTTON */}
+          <button className="plus-btn" onClick={() => setShowMenu((prev) => !prev)}>
+            +
           </button>
+
+          
+          {showMenu && (
+            <div className="popover-menu">
+              <button
+                className="menu-row"
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowAddModal(true);
+                }}
+              >
+                📅 New Event
+              </button>
+
+              <button className="menu-row" onClick={() => alert("Reminder coming soon!")}>
+                ⏰ New Reminder
+              </button>
+
+              <button className="menu-row" onClick={() => alert("Goal creation coming soon!")}>
+                🎯 New Goal
+              </button>
+
+              <button className="menu-row" onClick={() => alert("Task creation coming soon!")}>
+                📝 New Task
+              </button>
+            </div>
+          )}
         </div>
 
         {dayEvents(selected).length === 0 ? (
@@ -225,7 +247,7 @@ export default function PlannerPage() {
         )}
       </aside>
 
-      {/* MODAL */}
+      {/* Add Event Modal */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -253,7 +275,6 @@ export default function PlannerPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
