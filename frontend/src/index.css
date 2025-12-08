@@ -24,3 +24,9 @@ a {
 html {
   scroll-behavior: smooth;
 }
+
+/* === ACCESSIBILITY FONT SCALING === */
+html {
+  --font-scale: 100%;
+  font-size: var(--font-scale);
+}

@@ -36,19 +36,19 @@ export default function SettingsPage() {
           </Link>
         </div>
 
-        {/* ⭐ ACCESSIBILITY SECTION (empty for now) */}
+        {/* ⭐ ACCESSIBILITY SECTION — UPDATED */}
         <div className="settings-card">
           <h2 className="settings-card-title">Accessibility</h2>
           <p className="settings-card-desc">
             Customize accessibility preferences and display options.
           </p>
 
-          <button className="settings-btn disabled">
-            Coming Soon
-          </button>
+          <Link to="/settings/accessibility" className="settings-btn">
+            Open Accessibility Settings →
+          </Link>
         </div>
 
-        {/* ⭐ EDIT PROFILE SECTION (empty for now) */}
+        {/* ⭐ EDIT PROFILE SECTION */}
         <div className="settings-card">
           <h2 className="settings-card-title">Edit Profile</h2>
           <p className="settings-card-desc">
@@ -60,9 +60,13 @@ export default function SettingsPage() {
           </button>
         </div>
 
+        {/* ⭐ SESSION SECTION */}
         <div className="settings-card subtle">
           <h2 className="settings-card-title">Session</h2>
-          <p className="settings-card-desc">Signed in as {auth.currentUser?.email || "user"}.</p>
+          <p className="settings-card-desc">
+            Signed in as {auth.currentUser?.email || "user"}.
+          </p>
+
           <button className="settings-link" onClick={handleLogout}>
             Log out
           </button>

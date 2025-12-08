@@ -12,11 +12,11 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import DemoPage from "./pages/DemoPage.jsx";
 import GoalsPage from "./pages/GoalsPage.jsx";
 import TodayPage from "./pages/TodayPage.jsx";
+import AccessibilityPage from "./pages/AccessibilityPage.jsx"; // ← ADD THIS
 import "./App.css";
-import {useState} from "react";
+import { useState } from "react";
 
 function NotFound() {
-
   return (
     <div style={{ padding: 24 }}>
       <h1>404 — Page Not Found</h1>
@@ -26,10 +26,11 @@ function NotFound() {
 }
 
 export default function App() {
-    const [userId, setUserId] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   return (
     <Routes>
+
       {/* Public pages — no navbar, no layout */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
@@ -38,9 +39,8 @@ export default function App() {
       <Route path="/canvas-setup" element={<CanvasSetup />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/demo" element={<DemoPage />} />
-      
 
-      {/* All other routes inside Layout (with navbar/footer) */}
+      {/* Authenticated pages — wrapped in Layout */}
       <Route element={<Layout />}>
         <Route path="/home" element={<DashboardPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -48,8 +48,11 @@ export default function App() {
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/goals" element={<GoalsPage />} />
 
-        {/* Profile (formerly Settings) */}
+        {/* Settings/Profile */}
         <Route path="/profile" element={<SettingsPage />} />
+
+        {/* NEW ACCESSIBILITY ROUTE */}
+        <Route path="/settings/accessibility" element={<AccessibilityPage />} />
       </Route>
 
       {/* 404 fallback */}
