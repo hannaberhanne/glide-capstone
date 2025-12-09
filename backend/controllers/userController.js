@@ -51,7 +51,7 @@ const updateUser = async (req, res) => {
         const {userId} = req.params;
         const uid = req.user.uid;
         const {
-            canvasToken, darkMode, email, firstName, gradYear, lastName, longestStreak, major, notifications, photo,
+            canvasToken, darkMode, email, firstName, fontScale, gradYear, lastName, longestStreak, major, notifications, photo,
             timezone, totalXP, university
         } = req.body;
 
@@ -89,6 +89,10 @@ const updateUser = async (req, res) => {
 
         if (firstName !== undefined) {
             updateData.firstName = firstName;
+        }
+
+        if (fontScale !== undefined) {
+            updateData.fontScale = fontScale;
         }
 
         if (gradYear !== undefined) {
