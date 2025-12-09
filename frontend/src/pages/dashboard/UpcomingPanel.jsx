@@ -106,19 +106,12 @@ export default function UpcomingPanel({
             onChange={(e) => setNewTask(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
             placeholder="Add a new task..."
-            style={{
-              flex: 1,
-              padding: "10px 12px",
-              border: "2px solid #e5e7eb",
-              borderRadius: "10px",
-              fontSize: "15px",
-              outline: "none",
-            }}
+            className="taskquick-input"
           />
           <select
             value={newTaskCategory}
             onChange={(e) => setNewTaskCategory(e.target.value)}
-            style={{ padding: "10px", borderRadius: "10px", border: "2px solid #e5e7eb" }}
+            className="taskquick-select"
           >
             <option value="academic">Academic</option>
             <option value="work">Work</option>

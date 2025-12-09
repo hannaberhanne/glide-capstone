@@ -1,11 +1,43 @@
-/* === NAVBAR === */
+/* theme variables */
+
+/* LIGHT MODE */
+:root {
+  --header-bg: #ffffff;
+  --header-text: #111827;
+  --header-subtle: #6b7280;
+  --header-shadow: rgba(0, 0, 0, 0.06);
+  --accent: #f97316; /* orange + sign color */
+}
+
+/* DARK MODE */
+html.dark-mode {
+  --header-bg: #1e293b;
+  --header-text: #f1f5f9;
+  --header-subtle: #cbd5e1;
+  --header-shadow: rgba(0, 0, 0, 0.45);
+  --accent: #f59e0b; /* warm yellow-orange for visibility */
+}
+
+/* HIGH CONTRAST MODE */
+html.high-contrast {
+  --header-bg: black;
+  --header-text: yellow;
+  --header-subtle: yellow;
+  --header-shadow: none;
+  --accent: yellow;
+}
+
+/* =========================
+   NAVBAR BASE STYLES
+   ========================= */
+
 .main-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background: #fff;
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+  background: var(--header-bg);
+  box-shadow: 0 2px 14px var(--header-shadow);
   z-index: 50;
 }
 
@@ -23,10 +55,10 @@
 .logo {
   font-weight: 800;
   font-size: 20px;
-  color: #111827;
+  color: var(--header-text);
 }
 .plus {
-  color: #f97316;
+  color: var(--accent);
 }
 
 /* NAV LINKS */
@@ -38,7 +70,7 @@
 
 .nav-links a {
   text-decoration: none;
-  color: #111827;
+  color: var(--header-text);
   font-weight: 600;
   position: relative;     
   transition: color 0.2s ease;
@@ -52,23 +84,27 @@
   bottom: -3px;
   width: 0%;
   height: 2px;
-  background-color: #f97316;
+  background-color: var(--accent);
   transition: width 0.2s ease;
 }
 
+.nav-links a:hover {
+  color: var(--accent);
+}
 .nav-links a:hover::after {
   width: 100%;
 }
 
-/* ⭐ ACTIVE LINK STATE */
+/* Active link state */
 .nav-links a.active {
-  color: #f97316;
+  color: var(--accent);
   font-weight: 700;
 }
 .nav-links a.active::after {
   width: 100%;
 }
 
+/* AUTH / LOGOUT */
 .header-auth {
   display: flex;
   align-items: center;
@@ -77,7 +113,7 @@
 .header-logout {
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--header-subtle);
   font-weight: 600;
   cursor: pointer;
   font-size: 13px;
@@ -85,7 +121,7 @@
 }
 
 .header-logout:hover {
-  color: #111827;
+  color: var(--header-text);
 }
 
 /* Push content below navbar */

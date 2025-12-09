@@ -107,3 +107,101 @@
   font-weight: 700;
   cursor: pointer;
 }
+  
+  /* ============================================================
+     DARK MODE OVERRIDES
+     ============================================================ */
+  
+  html.dark-mode .taskmodal-overlay {
+    background: rgba(0,0,0,0.45);
+  }
+  
+  html.dark-mode .taskmodal {
+    background: var(--card);
+    border-color: var(--dash-border);
+    color: var(--dash-ink);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  }
+  
+  html.dark-mode .taskmodal-title {
+    color: var(--dash-ink);
+  }
+  
+  html.dark-mode .taskmodal-label {
+    color: var(--dash-muted);
+  }
+  
+  html.dark-mode .taskmodal-input,
+  html.dark-mode .taskmodal-textarea,
+  html.dark-mode .taskmodal select {
+    background: var(--card);
+    border-color: var(--dash-border);
+    color: var(--dash-ink);
+  }
+  
+  html.dark-mode .taskmodal-secondary {
+    background: var(--quick-bg);
+    border-color: var(--dash-border);
+    color: var(--dash-ink);
+  }
+  
+  html.dark-mode .taskmodal-primary {
+    color: black; /* readable on orange gradient */
+  }
+  
+  html.dark-mode .taskmodal-close {
+    color: var(--dash-muted);
+  }
+  
+  html.dark-mode .taskmodal h3 {
+    color: var(--dash-ink) !important;
+  }
+  
+  /* ============================================================
+     HIGH CONTRAST OVERRIDES
+     ============================================================ */
+  
+  html.high-contrast .taskmodal-overlay {
+    background: rgba(0,0,0,0.8);
+  }
+  
+  html.high-contrast .taskmodal {
+    background: black;
+    border: 2px solid yellow;
+    color: yellow;
+    box-shadow: none;
+  }
+  
+  html.high-contrast .taskmodal-title,
+  html.high-contrast .taskmodal-label {
+    color: yellow;
+  }
+  
+  html.high-contrast .taskmodal-input,
+  html.high-contrast .taskmodal-textarea,
+  html.high-contrast .taskmodal select {
+    background: black;
+    color: yellow;
+    border: 1px solid yellow;
+  }
+  
+  html.high-contrast .taskmodal-secondary {
+    background: black;
+    color: yellow;
+    border: 1px solid yellow;
+  }
+  
+  html.high-contrast .taskmodal-primary {
+    background: yellow;
+    color: black;
+    box-shadow: none;
+  }
+  
+  html.high-contrast .taskmodal-close {
+    color: yellow;
+  }
+  
+  html.high-contrast .taskmodal h3 {
+    color: yellow !important;
+  }
+  

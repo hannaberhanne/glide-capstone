@@ -1,132 +1,144 @@
+/* === GLOBAL VARIABLES (LIGHT MODE) === */
+:root {
+  --bg: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --text-muted: #334155;
+  --border: #e5e7eb;
+  --button-bg: #f97316;
+  --button-text: #ffffff;
+  --reset-bg: #e2e8f0;
+  --reset-text: #475569;
+}
+
+/* === DARK MODE === */
+html.dark-mode {
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --text: #f1f5f9;
+  --text-muted: #cbd5e1;
+  --border: #334155;
+  --button-bg: #f59e0b;
+  --button-text: #1e1e1e;
+  --reset-bg: #334155;
+  --reset-text: #f1f5f9;
+}
+
+/* === HIGH CONTRAST === */
+html.high-contrast {
+  --bg: black;
+  --card-bg: black;
+  --text: yellow;
+  --border: yellow;
+  --button-bg: yellow;
+  --button-text: black;
+  --reset-bg: yellow;
+  --reset-text: black;
+}
+
+/* === REDUCE MOTION === */
+html.reduce-motion * {
+  transition: none !important;
+  animation: none !important;
+}
+
 /* === PAGE CONTAINER === */
 .accessibility-container {
-    max-width: 700px;
-    margin: 40px auto;
-    padding: 20px;
-    padding-top: 40px; /* extra breathing room at the top */
-  }
-  
-  /* === PAGE TITLE === */
-  .accessibility-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 24px;
-    color: #1e293b;
-  }
-  
-  /* === CARDS === */
-  .accessibility-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 32px; /* improved spacing */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
-  
-  .card-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
-  
-  /* === SETTING ROWS === */
-  .setting-row,
-  .font-size-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 14px 0;
-  }
-  
-  /* === FONT SIZE CONTROLS === */
-  .font-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .font-controls button {
-    width: 34px;
-    height: 34px;
-    font-size: 20px;
-    font-weight: 600;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  
-  .font-controls button:hover {
-    background: #e2e8f0;
-  }
-  
-  .font-controls span {
-    font-size: 16px;
-    min-width: 48px;
-    text-align: center;
-  }
-  
-  /* === FOOTER (BACK + ACTIONS) === */
-  .accessibility-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 32px;
-    padding-top: 20px;
-  
-    border-top: 1px solid #e5e7eb; /* subtle divider */
-  }
-  
-  /* === BACK BUTTON === */
-  .back-btn {
-    background: none;
-    border: none;
-    font-size: 16px;
-    color: #334155; /* slightly darker slate */
-    cursor: pointer;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: background 0.2s;
-  }
-  
-  .back-btn:hover {
-    background: #f1f5f9;
-  }
-  
-  /* === ACTION BUTTON GROUP === */
-  .footer-actions {
-    display: flex;
-    gap: 16px;
-  }
-  
-  /* === SAVE BUTTON === */
-  .save-btn {
-    background: #ff8800;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  
-  .save-btn:hover {
-    background: #ff7a00;
-  }
-  
-  /* === RESET BUTTON === */
-  .reset-btn {
-    background: #e2e8f0;
-    color: #475569;
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  
-  .reset-btn:hover {
-    background: #dce3eb;
-  }
-  
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+  padding-top: 40px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.accessibility-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+
+/* === CARDS === */
+.accessibility-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border: 1px solid var(--border);
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+/* === ROWS === */
+.setting-row,
+.font-size-row,
+.radio-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 14px 0;
+  color: var(--text);
+}
+
+/* === FONT CONTROLS === */
+.font-controls button {
+  width: 34px;
+  height: 34px;
+  font-size: 20px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* === FOOTER BUTTONS === */
+.accessibility-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.save-btn {
+  background: var(--button-bg);
+  color: var(--button-text);
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.reset-btn {
+  background: var(--reset-bg);
+  color: var(--reset-text);
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}

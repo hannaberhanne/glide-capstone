@@ -15,7 +15,42 @@ export default function AccessibilityPage() {
   const [highContrast, setHighContrast] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
 
-  // Apply font scale globally
+  // -----------------------------------------------------
+  // LOAD SAVED SETTINGS ON PAGE LOAD
+  // -----------------------------------------------------
+  useEffect(() => {
+    const savedDark = localStorage.getItem("darkMode") === "true";
+    const savedHigh = localStorage.getItem("highContrast") === "true";
+    const savedMotion = localStorage.getItem("reduceMotion") === "true";
+    const savedFont = parseInt(localStorage.getItem("fontScale"), 10);
+
+    if (savedDark) {
+      setDarkMode(true);
+      document.documentElement.classList.add("dark-mode");
+    }
+
+    if (savedHigh) {
+      setHighContrast(true);
+      document.documentElement.classList.add("high-contrast");
+    }
+
+    if (savedMotion) {
+      setReduceMotion(true);
+      document.documentElement.classList.add("reduce-motion");
+    }
+
+    if (!isNaN(savedFont)) {
+      setFontScale(savedFont);
+      document.documentElement.style.setProperty(
+        "--font-scale",
+        `${savedFont}%`
+      );
+    }
+  }, []);
+
+  // ----------------------------
+  // FONT SIZE LOGIC
+  // ----------------------------
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--font-scale",
@@ -23,29 +58,69 @@ export default function AccessibilityPage() {
     );
   }, [fontScale]);
 
-  // Button handlers
-  const increaseFont = () => setFontScale(prev => Math.min(prev + 10, MAX_SCALE));
-  const decreaseFont = () => setFontScale(prev => Math.max(prev - 10, MIN_SCALE));
+  const increaseFont = () =>
+    setFontScale((prev) => Math.min(prev + 10, MAX_SCALE));
 
+  const decreaseFont = () =>
+    setFontScale((prev) => Math.max(prev - 10, MIN_SCALE));
+
+  // ----------------------------
+  // DARK MODE LOGIC
+  // ----------------------------
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark-mode", darkMode);
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
+  // ----------------------------
+  // HIGH CONTRAST LOGIC
+  // ----------------------------
+  useEffect(() => {
+    document.documentElement.classList.toggle("high-contrast", highContrast);
+    localStorage.setItem("highContrast", highContrast);
+  }, [highContrast]);
+
+  // ----------------------------
+  // REDUCE MOTION LOGIC
+  // ----------------------------
+  useEffect(() => {
+    document.documentElement.classList.toggle("reduce-motion", reduceMotion);
+    localStorage.setItem("reduceMotion", reduceMotion);
+  }, [reduceMotion]);
+
+  // ----------------------------
+  // RESET + SAVE
+  // ----------------------------
   const resetDefaults = () => {
     setFontScale(DEFAULT_SCALE);
     setDarkMode(false);
     setHighContrast(false);
     setReduceMotion(false);
+
+    // Remove from localStorage
+    localStorage.removeItem("darkMode");
+    localStorage.removeItem("highContrast");
+    localStorage.removeItem("reduceMotion");
+    localStorage.removeItem("fontScale");
+
+    // Remove classes
+    document.documentElement.classList.remove("dark-mode");
+    document.documentElement.classList.remove("high-contrast");
+    document.documentElement.classList.remove("reduce-motion");
+    document.documentElement.style.setProperty("--font-scale", "100%");
   };
 
   const saveChanges = () => {
-    // BACKEND SAVE LATER
-    alert("Settings saved (UI only right now)");
+    // You already save automatically on toggle — so this is optional.
+    localStorage.setItem("fontScale", fontScale);
+    alert("Settings saved!");
   };
 
   return (
     <div className="accessibility-container">
-      
-      {/* Page Title */}
       <h1 className="accessibility-title">Accessibility Settings</h1>
 
-      {/* Appearance Card */}
+      {/* -------------------- APPEARANCE CARD -------------------- */}
       <div className="accessibility-card">
         <h2 className="card-title">Appearance</h2>
 
@@ -77,7 +152,7 @@ export default function AccessibilityPage() {
         </div>
       </div>
 
-      {/* Motion Card */}
+      {/* -------------------- MOTION CARD -------------------- */}
       <div className="accessibility-card">
         <h2 className="card-title">Motion</h2>
 
@@ -91,12 +166,9 @@ export default function AccessibilityPage() {
         </div>
       </div>
 
-      {/* Footer Buttons */}
+      {/* -------------------- FOOTER BUTTONS -------------------- */}
       <div className="accessibility-footer">
-        <button
-          className="back-btn"
-          onClick={() => navigate("/profile")}
-        >
+        <button className="back-btn" onClick={() => navigate("/profile")}>
           ← Back
         </button>
 
@@ -109,7 +181,6 @@ export default function AccessibilityPage() {
           </button>
         </div>
       </div>
-
     </div>
   );
 }

@@ -1,19 +1,72 @@
-.settings-container {
+/* =========================
+   LIGHT MODE VARIABLES
+   ========================= */
+   :root {
+    --bg: #ffffff;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-sub: #64748b;
+    --text-muted: #475569;
+    --border: #e2e8f0;
+    --button-bg: #f97316;
+    --button-text: #ffffff;
+    --button-disabled-bg: #94a3b8;
+    --accent: #f97316;
+  }
+  
+  /* =========================
+     DARK MODE VARIABLES
+     ========================= */
+  html.dark-mode {
+    --bg: #0f172a;
+    --card-bg: #1e293b;
+    --text: #f1f5f9;
+    --text-sub: #cbd5e1;
+    --text-muted: #cbd5e1;
+    --border: #334155;
+    --button-bg: #f59e0b;
+    --button-text: #1e1e1e;
+    --button-disabled-bg: #475569;
+    --accent: #f59e0b;
+  }
+  
+  /* =========================
+     HIGH CONTRAST MODE
+     ========================= */
+  html.high-contrast {
+    --bg: black;
+    --card-bg: black;
+    --text: yellow;
+    --text-sub: yellow;
+    --text-muted: yellow;
+    --border: yellow;
+    --button-bg: yellow;
+    --button-text: black;
+    --button-disabled-bg: yellow;
+    --accent: yellow;
+  }
+  
+  /* =========================
+     PAGE LAYOUT
+     ========================= */
+  .settings-container {
     max-width: 900px;
     margin: 0 auto;
     padding: 40px 20px 48px;
+    background: var(--bg);
+    color: var(--text);
   }
   
   .settings-title {
     font-size: 34px;
     font-weight: 800;
     margin-bottom: 10px;
-    color: #1e293b;
+    color: var(--text);
   }
   
   .settings-sub {
     font-size: 18px;
-    color: #64748b;
+    color: var(--text-sub);
     margin-bottom: 32px;
   }
   
@@ -23,61 +76,66 @@
     gap: 28px;
   }
   
-/* Settings card */
-.settings-card {
-  background: white;
-  padding: 16px;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-}
+  /* =========================
+     CARD STYLE
+     ========================= */
+  .settings-card {
+    background: var(--card-bg);
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+  
+  .settings-card.subtle {
+    box-shadow: none;
+  }
   
   .settings-card-title {
     font-size: 22px;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #1e293b;
+    color: var(--text);
   }
   
   .settings-card-desc {
     font-size: 16px;
-    color: #475569;
+    color: var(--text-muted);
     margin-bottom: 22px;
   }
   
-  /* Button */
-.settings-btn {
-  display: inline-block;
-  padding: 12px 20px;
-  background: #f97316;
-  color: white;
-  font-weight: 600;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: 0.15s ease;
+  /* =========================
+     BUTTONS
+     ========================= */
+  .settings-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-weight: 600;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: 0.15s ease;
   }
   
   .settings-btn:hover {
     opacity: 0.9;
   }
   
-/* Disabled placeholder buttons */
-.settings-btn.disabled {
-  background: #94a3b8;
-  cursor: default;
-  pointer-events: none;
-}
-
-.settings-card.subtle {
-  box-shadow: none;
-  border: 1px solid #e2e8f0;
-}
-
-.settings-link {
-  background: none;
-  border: none;
-  color: #f97316;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-}
+  .settings-btn.disabled {
+    background: var(--button-disabled-bg);
+    color: var(--button-text);
+    cursor: default;
+    pointer-events: none;
+  }
+  
+  /* Accent link button */
+  .settings-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+  }
   
