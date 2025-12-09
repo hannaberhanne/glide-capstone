@@ -88,6 +88,7 @@ export default function AccessibilityPage() {
     localStorage.setItem("reduceMotion", reduceMotion);
   }, [reduceMotion]);
 
+
   // ----------------------------
   // RESET + SAVE
   // ----------------------------
