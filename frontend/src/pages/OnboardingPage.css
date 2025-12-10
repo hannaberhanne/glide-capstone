@@ -86,7 +86,8 @@ body {
 }
 
 .onboarding-option {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
