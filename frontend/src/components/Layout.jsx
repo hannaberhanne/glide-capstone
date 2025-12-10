@@ -1,30 +1,9 @@
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { auth } from "../config/firebase.js";
+import { Outlet, Link, useLocation } from "react-router-dom";
+import AccessibilityMenu from "./AccessibilityMenu.jsx";
 import "./Layout.css";
 
 export default function Layout() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  // Fetch user info when logged in
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      setUser(currentUser);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
-  };
 
   return (
     <>
@@ -74,20 +53,10 @@ export default function Layout() {
             >
               Profile
             </Link>
+
           </nav>
 
-          {/* LOGIN / LOGOUT SMALL LINK */}
-          <div className="header-auth">
-            {user ? (
-              <button onClick={handleLogout} className="header-logout">
-                Logout
-              </button>
-            ) : (
-              <Link to="/login" className="header-logout">
-                Log In
-              </Link>
-            )}
-          </div>
+          {/* keeping header clean; accessibility gear sits bottom-right, profile/logout inside settings */}
         </div>
       </header>
 
@@ -95,6 +64,10 @@ export default function Layout() {
       <main className="main-content">
         <Outlet />
       </main>
+
+      <div className="accessibility-container">
+        <AccessibilityMenu />
+      </div>
     </>
   );
 }

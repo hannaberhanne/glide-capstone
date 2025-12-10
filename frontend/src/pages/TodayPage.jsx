@@ -141,7 +141,7 @@ export default function TodayPage() {
         <h1>No schedule for today</h1>
         <p>Let AI build your daily plan based on your tasks, habits, and energy levels.</p>
         <button className="generate-btn" onClick={handleGenerate} disabled={generating}>
-          {generating ? "Generating..." : "✨ Generate Today's Schedule"}
+          {generating ? "Generating..." : "Generate today's schedule"}
         </button>
       </div>
     );
@@ -209,10 +209,10 @@ export default function TodayPage() {
 
       <div className="today-actions">
         <button className="generate-btn" onClick={handleGenerate} disabled={generating}>
-          {generating ? "Generating..." : "✨ Generate schedule"}
+          {generating ? "Generating..." : "Generate schedule"}
         </button>
         <button className="replan-btn" onClick={handleReplan}>
-          🔄 Replan Schedule
+          Replan schedule
         </button>
       </div>
     </div>

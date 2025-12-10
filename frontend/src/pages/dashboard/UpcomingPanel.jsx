@@ -16,7 +16,16 @@ export default function UpcomingPanel({
   const [newTaskCategory, setNewTaskCategory] = useState("academic");
 
   const groupedTasks = useMemo(() => {
-    const groupsMap = new Map();
+    const groupDefs = [
+      ["overdue", "Overdue"],
+      ["today", "Today"],
+      ["tomorrow", "Tomorrow"],
+      ["this-week", "This week"],
+      ["next-week", "Next week"],
+      ["later", "Later"],
+      ["no-date", "No due date"],
+    ];
+    const groupsMap = new Map(groupDefs.map(([key, label]) => [key, { key, label, items: [] }]));
     const filtered = tasks.filter((t) => {
       const cat = (t.category || "academic").toLowerCase();
       if (activeFilter === "all") return true;
@@ -43,41 +52,33 @@ export default function UpcomingPanel({
 
     sorted.forEach((task) => {
       const d = parseDueDate(task);
-      let label = "No due date";
       let key = "no-date";
       if (d) {
         const today = new Date();
-        const sameDay = d.toDateString() === today.toDateString();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const isTomorrow = d.toDateString() === tomorrow.toDateString();
-        if (sameDay) {
-          label = "Today";
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((d - today) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) {
+          key = "overdue";
+        } else if (diffDays === 0) {
           key = "today";
-        } else if (isTomorrow) {
-          label = "Tomorrow";
+        } else if (diffDays === 1) {
           key = "tomorrow";
+        } else if (diffDays <= 6) {
+          key = "this-week";
+        } else if (diffDays <= 13) {
+          key = "next-week";
         } else {
-          label = d.toLocaleDateString(undefined, {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-          });
-          key = d.toISOString().slice(0, 10);
+          key = "later";
         }
       }
 
-      if (!groupsMap.has(key)) {
-        groupsMap.set(key, { label, items: [] });
-      }
-      groupsMap.get(key).items.push(task);
+      groupsMap.get(key)?.items.push(task);
     });
 
-    return Array.from(groupsMap.entries()).map(([key, value]) => ({
-      key,
-      label: value.label,
-      items: value.items,
-    }));
+    return groupDefs
+      .map(([key]) => groupsMap.get(key))
+      .filter((group) => group?.items.length)
+      .map((group) => ({ key: group.key, label: group.label, items: group.items }));
   }, [tasks, activeFilter]);
 
   const handleQuickAdd = async () => {

@@ -1,35 +1,27 @@
-/* theme variables */
-
-/* LIGHT MODE */
 :root {
   --header-bg: #ffffff;
   --header-text: #111827;
   --header-subtle: #6b7280;
   --header-shadow: rgba(0, 0, 0, 0.06);
   --accent: #f97316; /* orange + sign color */
+  --page-gutter: clamp(16px, 5vw, 40px);
 }
 
-/* DARK MODE */
 html.dark-mode {
   --header-bg: #1e293b;
   --header-text: #f1f5f9;
   --header-subtle: #cbd5e1;
   --header-shadow: rgba(0, 0, 0, 0.45);
-  --accent: #f59e0b; /* warm yellow-orange for visibility */
+  --accent: #f59e0b;
 }
 
-/* HIGH CONTRAST MODE */
 html.high-contrast {
-  --header-bg: black;
-  --header-text: yellow;
-  --header-subtle: yellow;
+  --header-bg: #000000;
+  --header-text: #ffffff;
+  --header-subtle: #ffffff;
   --header-shadow: none;
-  --accent: yellow;
+  --accent: #f97316;
 }
-
-/* =========================
-   NAVBAR BASE STYLES
-   ========================= */
 
 .main-header {
   position: fixed;
@@ -41,27 +33,25 @@ html.high-contrast {
   z-index: 50;
 }
 
-/* INNER WRAPPER */
 .header-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 10px 6vw;     
+  padding: 10px 6vw;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* LOGO */
 .logo {
   font-weight: 800;
   font-size: 20px;
   color: var(--header-text);
 }
+
 .plus {
   color: var(--accent);
 }
 
-/* NAV LINKS */
 .nav-links {
   display: flex;
   align-items: center;
@@ -72,11 +62,10 @@ html.high-contrast {
   text-decoration: none;
   color: var(--header-text);
   font-weight: 600;
-  position: relative;     
+  position: relative;
   transition: color 0.2s ease;
 }
 
-/* Hover underline animation */
 .nav-links a::after {
   content: "";
   position: absolute;
@@ -91,40 +80,30 @@ html.high-contrast {
 .nav-links a:hover {
   color: var(--accent);
 }
+
 .nav-links a:hover::after {
   width: 100%;
 }
 
-/* Active link state */
 .nav-links a.active {
   color: var(--accent);
   font-weight: 700;
 }
+
 .nav-links a.active::after {
   width: 100%;
 }
 
-/* AUTH / LOGOUT */
-.header-auth {
-  display: flex;
-  align-items: center;
-}
-
-.header-logout {
-  background: none;
-  border: none;
-  color: var(--header-subtle);
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 4px 6px;
-}
-
-.header-logout:hover {
-  color: var(--header-text);
-}
-
-/* Push content below navbar */
 main {
   margin-top: 75px;
+}
+
+.accessibility-container {
+  position: fixed;
+  bottom: 24px;
+  right: var(--page-gutter);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

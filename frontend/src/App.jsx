@@ -12,7 +12,6 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import DemoPage from "./pages/DemoPage.jsx";
 import GoalsPage from "./pages/GoalsPage.jsx";
 import TodayPage from "./pages/TodayPage.jsx";
-import AccessibilityPage from "./pages/AccessibilityPage.jsx"; // ← ADD THIS
 import "./App.css";
 
 function NotFound() {
@@ -48,8 +47,6 @@ export default function App() {
         {/* Settings/Profile */}
         <Route path="/profile" element={<SettingsPage />} />
 
-        {/* NEW ACCESSIBILITY ROUTE */}
-        <Route path="/settings/accessibility" element={<AccessibilityPage />} />
       </Route>
 
       {/* 404 fallback */}

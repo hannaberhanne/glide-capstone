@@ -2,27 +2,30 @@
    THEME VARIABLES
    ========================================= */
 
-   :root {
-    --goals-bg: radial-gradient(circle at top left, #ffffff 0, #f9fafb 55%, #eef2ff 100%);
-    --goals-text: #0f172a;
-    --goals-subtext: #6b7280;
-  
-    --card-bg: #ffffff;
-    --card-border: #e5e7eb;
-    --card-shadow: rgba(15, 23, 42, 0.06);
-  
-    --pill-bg: #ffedd5;
-    --pill-text: #c2410c;
-  
-    --cta-bg: linear-gradient(135deg, #f97316, #fb923c);
-    --cta-text: #111827;
-    --cta-shadow: rgba(249, 115, 22, 0.35);
-  }
-  
-  html.dark-mode {
-    --goals-bg: radial-gradient(circle at top left, #0f172a 0, #111827 55%, #1e293b 100%);
-    --goals-text: #f1f5f9;
-    --goals-subtext: #cbd5e1;
+:root {
+  --goals-bg: radial-gradient(circle at top left, #ffffff 0, #f9fafb 55%, #eef2ff 100%);
+  --goals-text: #0f172a;
+  --goals-subtext: #6b7280;
+
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --card-shadow: rgba(15, 23, 42, 0.06);
+
+  --pill-bg: #ffedd5;
+  --pill-text: #c2410c;
+
+  --cta-bg: linear-gradient(135deg, #f97316, #fb923c);
+  --cta-text: #111827;
+  --cta-shadow: rgba(249, 115, 22, 0.35);
+
+  --goals-banner-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(255, 255, 255, 0.95));
+  --goals-banner-border: rgba(249, 115, 22, 0.2);
+}
+
+html.dark-mode {
+  --goals-bg: radial-gradient(circle at top left, #0f172a 0, #111827 55%, #1e293b 100%);
+  --goals-text: #f1f5f9;
+  --goals-subtext: #cbd5e1;
   
     --card-bg: #1e293b;
     --card-border: #334155;
@@ -32,26 +35,50 @@
     --pill-text: #f59e0b;
   
     --cta-bg: linear-gradient(135deg, #f59e0b, #fb923c);
-    --cta-text: #000000;
-    --cta-shadow: rgba(245, 158, 11, 0.35);
-  }
+  --cta-text: #000000;
+  --cta-shadow: rgba(245, 158, 11, 0.35);
+
+  --goals-banner-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.2), #0f172a 70%);
+  --goals-banner-border: rgba(249, 115, 22, 0.4);
+}
+
+html.dark-mode .xp-board,
+html.dark-mode .quest-card {
+  background: #14213d;
+  border-color: #2e3d5c;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+html.dark-mode .xp-track {
+  background: #1f2933;
+}
+
+html.high-contrast .xp-board,
+html.high-contrast .quest-card {
+  background: #000;
+  border-color: #f97316;
+  box-shadow: none;
+}
   
-  html.high-contrast {
-    --goals-bg: black;
-    --goals-text: yellow;
-    --goals-subtext: yellow;
-  
-    --card-bg: black;
-    --card-border: yellow;
-    --card-shadow: none;
-  
-    --pill-bg: yellow;
-    --pill-text: black;
-  
-    --cta-bg: yellow;
-    --cta-text: black;
-    --cta-shadow: none;
-  }
+html.high-contrast {
+  --goals-bg: black;
+  --goals-text: #ffffff;
+  --goals-subtext: rgba(255, 255, 255, 0.85);
+
+  --card-bg: black;
+  --card-border: yellow;
+  --card-shadow: none;
+
+  --pill-bg: yellow;
+  --pill-text: black;
+
+  --cta-bg: yellow;
+  --cta-text: black;
+  --cta-shadow: none;
+
+  --goals-banner-bg: #000;
+  --goals-banner-border: #f97316;
+}
   
   /* =========================================
      PAGE LAYOUT
@@ -123,6 +150,295 @@
     box-shadow: 0 16px 30px var(--cta-shadow);
   }
 
+  .goals-banner {
+    background: var(--goals-banner-bg);
+    border-radius: 24px;
+    padding: 28px 32px;
+    color: var(--goals-text);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    box-shadow: 0 24px 45px rgba(15, 23, 42, 0.12);
+    border: 1px solid var(--goals-banner-border);
+  }
+
+  .goals-banner-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1 1 240px;
+  }
+
+  .goals-banner-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    border: 2px solid rgba(249, 115, 22, 0.6);
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    font-weight: 700;
+    background: #fff;
+  }
+
+  .goals-banner-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .goals-banner-sub {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--goals-subtext);
+  }
+
+  .goals-banner-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(80px, 1fr));
+    gap: 12px;
+    min-width: 240px;
+  }
+
+  .goals-banner-label {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--goals-subtext);
+  }
+
+  .goals-banner-value {
+    margin: 4px 0 0;
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .goals-banner-cta {
+    background: rgba(249, 115, 22, 0.2);
+    border: none;
+    border-radius: 14px;
+    padding: 12px 20px;
+    color: #111827;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+.goals-gameboard {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.xp-board,
+.quest-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--card-border);
+}
+
+.xp-board,
+.quest-card {
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.xp-board-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--goals-subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.xp-level {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.xp-value {
+  margin: 12px 0 6px;
+  font-size: clamp(32px, 4vw, 40px);
+  color: var(--goals-text);
+}
+
+.xp-note {
+  margin: 0 0 16px;
+  color: var(--goals-subtext);
+  font-size: 14px;
+}
+
+.xp-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.xp-track-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  border-radius: 999px;
+}
+
+.xp-board-meta {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(80px, 1fr));
+  gap: 12px;
+  font-weight: 600;
+}
+
+.xp-board-meta small {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--goals-subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.quest-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.quest-card-head p {
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--goals-subtext);
+  letter-spacing: 0.08em;
+  margin: 0 0 4px;
+}
+
+ .quest-card-head h3 {
+  margin: 0;
+  font-size: 22px;
+  color: var(--goals-text);
+}
+
+ .quest-card-sub {
+  margin: 12px 0 16px;
+  color: var(--goals-subtext);
+}
+
+ .pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.quest-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.goals-secondary {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: transparent;
+  color: var(--goals-text);
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 12px 20px;
+  transition: background 0.2s ease;
+}
+
+.goals-secondary:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.zen-panel {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(255, 255, 255, 0.9));
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.zen-tabs {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.zen-tab {
+  border-radius: 999px;
+  padding: 8px 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--goals-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.zen-tab.active {
+  border-color: var(--goals-text);
+  background: rgba(14, 165, 233, 0.1);
+}
+
+.zen-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zen-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.zen-body {
+  margin: 0;
+  color: var(--goals-subtext);
+  line-height: 1.5;
+}
+
+.zen-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  color: #fff;
+}
+
+.zen-btn.neutral {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+}
+
+.zen-status {
+  margin: 0;
+  font-size: 13px;
+  color: var(--goals-subtext);
+}
+
   .badge-toast {
     display: flex;
     align-items: center;
@@ -152,6 +468,29 @@
     margin: 0;
     font-size: 15px;
   }
+
+.daily-quest-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.daily-quest-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.daily-quest-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.daily-quest-header p {
+  margin: 0;
+  color: var(--goals-subtext);
+}
   
   /* =========================================
      GOALS GRID + CARDS
@@ -360,7 +699,7 @@
   }
   
   /* Empty state links + muted text */
-  
+ 
   .goals-actions {
     grid-column: 1 / -1;
     display: flex;
@@ -369,14 +708,26 @@
   }
   
   .goals-primary {
-    color: var(--pill-text);
-    font-weight: 800;
-    text-decoration: none;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f97316, #fb923c);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 16px 30px rgba(249, 115, 22, 0.35);
   }
-  
+
   .goals-primary:hover {
-    text-decoration: underline;
+    opacity: 0.95;
   }
+
+.quest-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
   
   .goals-muted {
     margin: 0;
@@ -443,24 +794,27 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 12px;
   }
   
   .habit-title-row {
     display: flex;
-    gap: 8px;
     align-items: center;
-  }
-  
-  .habit-icon {
-    font-size: 20px;
-    color: var(--goals-text);
+    gap: 12px;
   }
   
   .habit-title {
     margin: 0;
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--goals-text);
+  }
+  
+  .habit-subtitle {
+    margin: 2px 0 0;
+    color: var(--goals-subtext);
+    font-size: 13px;
+    text-transform: capitalize;
   }
   
   .habit-streak {
@@ -471,6 +825,11 @@
     font-size: 13px;
     color: var(--goals-subtext);
     font-weight: 700;
+  }
+
+  .habit-streak span {
+    font-size: 15px;
+    color: var(--goals-text);
   }
   
   /* =========================================
@@ -485,17 +844,25 @@
   
   .habit-meta {
     display: flex;
-    gap: 8px;
     flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
   }
-  
+
   .habit-chip {
-    padding: 4px 8px;
+    padding: 6px 12px;
     border-radius: 999px;
-    background: var(--pill-bg);
     border: 1px solid var(--card-border);
     font-size: 12px;
-    color: var(--pill-text);
+    font-weight: 700;
+    color: var(--goals-text);
+    background: var(--card-bg);
+  }
+
+  .habit-quest-pill {
+    background: rgba(249, 115, 22, 0.12);
+    border-color: rgba(249, 115, 22, 0.4);
+    color: #f97316;
   }
   
   /* =========================================

@@ -11,7 +11,8 @@ export default function DashboardHero({ todayStr, displayName, canvasLabel, canv
         </p>
         <div className="dash-hero-actions">
           <Link to="/planner" className="primary-cta">Open Calendar</Link>
-          <Link to="/goals" className="ghost-cta">View Goals</Link>
+          <Link to="/goals" className="ghost-cta">Earn XP</Link>
+          <Link to="/goals#zen-panel" className="ghost-cta secondary">Reset week</Link>
         </div>
       </div>
       <div className="canvas-chip">
