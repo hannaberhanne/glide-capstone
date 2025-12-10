@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../config/firebase.js";
+import useUser from "../hooks/useUser";
 import "./HomePage.css";
 
 export default function HomePage() {
@@ -16,6 +17,8 @@ export default function HomePage() {
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const { user } = useUser(API_URL);
 
   const goals = []; // keep empty for now
   const [currentGoalIndex, setCurrentGoalIndex] = useState(0);
@@ -103,9 +106,10 @@ export default function HomePage() {
     }
   };
 
+  const firstName = Array.isArray(user) ? user[0]?.firstName : null;
   const name =
-    auth.currentUser?.displayName ||
-    auth.currentUser?.email?.split("@")[0] ||
+    firstName ||
+    auth.currentUser?.displayName?.split(" ")[0] ||
     "there";
 
   return (

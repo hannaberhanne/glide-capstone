@@ -22,7 +22,7 @@ export default function DashboardPage() {
 
   const displayName =
     (Array.isArray(user) && user[0]?.firstName) ||
-    auth.currentUser?.email?.split("@")[0] ||
+    auth.currentUser?.displayName?.split(" ")[0] ||
     "User";
 
   const todayStr = useMemo(

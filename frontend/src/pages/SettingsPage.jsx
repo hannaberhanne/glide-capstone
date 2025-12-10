@@ -1,9 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../config/firebase";
+import useUser from "../hooks/useUser";
 import "./SettingsPage.css";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const { user } = useUser(API_URL);
+  const firstName = Array.isArray(user) ? user[0]?.firstName : null;
+  const displayName =
+    firstName ||
+    auth.currentUser?.displayName?.split(" ")[0] ||
+    "User";
 
   const handleLogout = async () => {
     try {
@@ -64,7 +72,7 @@ export default function SettingsPage() {
         <div className="settings-card subtle">
           <h2 className="settings-card-title">Session</h2>
           <p className="settings-card-desc">
-            Signed in as {auth.currentUser?.email || "user"}.
+            Signed in as {displayName}.
           </p>
 
           <button className="settings-link" onClick={handleLogout}>
