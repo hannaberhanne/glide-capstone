@@ -67,8 +67,15 @@ export default function OnboardingPage() {
 
   const current = questions[step - 1];
 
+  const hasSelection = () => {
+    const value = answers[step];
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "string") return value.trim().length > 0;
+    return false;
+  };
+
   const handleNext = () => {
-    if (!answers[step]) return;
+    if (!hasSelection()) return;
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
@@ -126,20 +133,32 @@ export default function OnboardingPage() {
 
         <div className="onboarding-choices">
           {current.type === "multiple" &&
-            current.options.map((opt) => (
-              <label key={opt} className="onboarding-option">
-                <input
-                  type="radio"
-                  name={`step-${step}`}
-                  value={opt}
-                  checked={answers[step] === opt}
-                  onChange={() =>
-                    setAnswers((prev) => ({ ...prev, [step]: opt }))
-                  }
-                />
-                <span className="onboarding-option-text">{opt}</span>
-              </label>
-            ))}
+            current.options.map((opt) => {
+              const selected = Array.isArray(answers[step])
+                ? answers[step].includes(opt)
+                : false;
+              return (
+                <label key={opt} className="onboarding-option" tabIndex={0}>
+                  <input
+                    type="checkbox"
+                    value={opt}
+                    checked={selected}
+                    onChange={() => {
+                      setAnswers((prev) => {
+                        const existing = Array.isArray(prev[step])
+                          ? prev[step]
+                          : [];
+                        const next = existing.includes(opt)
+                          ? existing.filter((item) => item !== opt)
+                          : [...existing, opt];
+                        return { ...prev, [step]: next };
+                      });
+                    }}
+                  />
+                  <span className="onboarding-option-text">{opt}</span>
+                </label>
+              );
+            })}
 
           {current.type === "text" && (
             <textarea
@@ -165,7 +184,7 @@ export default function OnboardingPage() {
           <button
             className="onboarding-primary-btn"
             type="button"
-            disabled={!answers[step]}
+            disabled={!hasSelection()}
             onClick={handleNext}
           >
             {step === totalSteps ? "Finish" : "Next →"}
