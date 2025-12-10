@@ -137,7 +137,7 @@ export default function OnboardingPage() {
                     setAnswers((prev) => ({ ...prev, [step]: opt }))
                   }
                 />
-                {opt}
+                <span className="onboarding-option-text">{opt}</span>
               </label>
             ))}
 
