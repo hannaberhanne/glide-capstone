@@ -64,7 +64,7 @@ export default function SignupPage() {
       }
 
       alert("Account created successfully!");
-      nav("/dashboard");
+      nav("/onboarding");
     } catch (err) {
       console.error("Signup error:", err.message);
       let errorMessage = err.message;
