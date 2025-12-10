@@ -63,44 +63,6 @@ export default function useUser(API_URL) {
     }
   }, [API_URL]);
 
-  const fillProfileGaps = useCallback(async (userData) => {
-    if (!auth.currentUser) return;
-    const profile = Array.isArray(userData) ? userData[0] : userData;
-    if (!profile) return;
-
-    const displayName = auth.currentUser.displayName || "";
-    const [firstFromName] = displayName.split(" ").filter(Boolean);
-    const payload = {};
-
-    if (!profile.firstName && firstFromName) {
-      payload.firstName = firstFromName;
-    }
-    if (!profile.lastName && displayName && displayName.includes(" ")) {
-      payload.lastName = displayName.split(" ").slice(-1)[0];
-    }
-    if (!profile.email && auth.currentUser.email) {
-      payload.email = auth.currentUser.email;
-    }
-
-    if (!Object.keys(payload).length) {
-      return;
-    }
-
-    try {
-      const token = await auth.currentUser.getIdToken();
-      await fetch(`${API_URL}/api/users/${auth.currentUser.uid}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-    } catch (err) {
-      console.error("Failed to fill profile gaps:", err);
-    }
-  }, [API_URL]);
-
   useEffect(() => {
     refreshUser();
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
