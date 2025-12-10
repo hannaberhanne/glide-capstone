@@ -1,4 +1,4 @@
-# Glide+ (Capstone Project)
+# Glide+ 
 
 ## Project Description
 Glide+ is an AI-powered student life platform that helps college students manage academics, habits, and social activities in one place. It combines:
