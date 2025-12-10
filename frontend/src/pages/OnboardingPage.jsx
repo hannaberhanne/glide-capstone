@@ -171,13 +171,6 @@ export default function OnboardingPage() {
             {step === totalSteps ? "Finish" : "Next →"}
           </button>
         </div>
-
-        <p className="onboarding-footer">
-          Don't have an account yet?{" "}
-          <Link to="/signup" className="onboarding-link">
-            Sign up here
-          </Link>
-        </p>
       </div>
     </div>
   );
