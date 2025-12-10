@@ -249,6 +249,10 @@
     display: flex;
     justify-content: center;
   }
+
+  .xp-wide-panel {
+  margin-top: -6px;
+}
   
   .xp-panel {
     width: 100%;
@@ -269,6 +273,9 @@
     align-items: center;
     justify-content: space-between;
   }
+  .xp-header-row {
+  margin-bottom: 4px;
+}
   
   .xp-header {
     margin: 0;
@@ -444,6 +451,10 @@
     color: #f9fafb;
     border-color: #020617;
   }
+
+  .kpi.kpi-dark {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
   
   html.dark-mode .kpi.kpi-dark {
     background: #1e2533;
@@ -510,7 +521,7 @@
     color: black;
     box-shadow: none;
   }
-
+ 
 /* =========================
    MAIN GRID (UPCOMING + QUICK LINKS)
    ========================= */
@@ -530,7 +541,7 @@
     border-radius: 20px;
     box-shadow: var(--dash-shadow-soft);
     border: 1px solid var(--dash-border);
-    padding: 16px;
+    padding: 18px 16px;
   }
   
   /* Panel headers */
@@ -542,6 +553,9 @@
     gap: 8px;
     flex-wrap: wrap;
   }
+  .panel-head {
+  margin-top: -4px;
+}
 
   
   .panel-head h2 {
