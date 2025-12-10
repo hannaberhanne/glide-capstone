@@ -1,130 +1,130 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import "./OnboardingPage.css";
+
+const questions = [
+  {
+    id: 1,
+    question: "What’s your main reason for using Glide+?",
+    type: "multiple",
+    options: [
+      "Stay organized and manage my time better",
+      "Keep track of classes, deadlines, and exams",
+      "Reduce stress and avoid burnout",
+      "Build productive habits and routines",
+      "Other",
+    ],
+  },
+  {
+    id: 2,
+    question: "Which area would you like Glide+ to help you improve most?",
+    type: "multiple",
+    options: [
+      "Time management and scheduling",
+      "Focus and motivation",
+      "Consistency and routine-building",
+      "Mental health and balance",
+      "Other",
+    ],
+  },
+  {
+    id: 3,
+    question: "How do you usually plan your week?",
+    type: "multiple",
+    options: [
+      "I use a planner or calendar app",
+      "I write things down manually",
+      "I mostly keep it in my head",
+      "I go with the flow",
+      "Other",
+    ],
+  },
+  {
+    id: 4,
+    question: "What motivates you to stay on track?",
+    type: "multiple",
+    options: [
+      "Achieving goals and progress milestones",
+      "Encouragement or reminders",
+      "Rewards, streaks, or gamified achievements",
+      "Accountability and teamwork",
+      "Other",
+    ],
+  },
+  {
+    id: 5,
+    question: "What’s one big goal you’d like to accomplish?",
+    type: "text",
+  },
+];
+
+const totalSteps = questions.length;
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState({});
   const [finished, setFinished] = useState(false);
-  const totalSteps = 5;
-
-  const questions = [
-    {
-      id: 1,
-      question: "What’s your main reason for using Glide+?",
-      type: "multiple",
-      options: [
-        "Stay organized and manage my time better",
-        "Keep track of classes, deadlines, and exams",
-        "Reduce stress and avoid burnout",
-        "Build productive habits and routines",
-        "Other",
-      ],
-    },
-    {
-      id: 2,
-      question: "Which area would you like Glide+ to help you improve most?",
-      type: "multiple",
-      options: [
-        "Time management and scheduling",
-        "Focus and motivation",
-        "Consistency and routine-building",
-        "Mental health and balance",
-        "Other",
-      ],
-    },
-    {
-      id: 3,
-      question: "How do you usually plan your week?",
-      type: "multiple",
-      options: [
-        "I use a planner or calendar app",
-        "I write things down manually",
-        "I mostly keep it in my head",
-        "I go with the flow",
-        "Other",
-      ],
-    },
-    {
-      id: 4,
-      question: "What motivates you to stay on track?",
-      type: "multiple",
-      options: [
-        "Achieving goals and progress milestones",
-        "Encouragement or reminders",
-        "Rewards, streaks, or gamified achievements",
-        "Accountability and teamwork",
-        "Other",
-      ],
-    },
-    {
-      id: 5,
-      question: "What’s one big goal you’d like to accomplish?",
-      type: "text",
-    },
-  ];
 
   const current = questions[step - 1];
 
-  // canvas sync question
+  const handleNext = () => {
+    if (!answers[step]) return;
+    if (step < totalSteps) {
+      setStep(step + 1);
+    } else {
+      setFinished(true);
+    }
+  };
+
   if (finished) {
     return (
       <div className="onboarding-container">
-        <div className="onboarding-card" style={{ textAlign: "center" }}>
-          
-          <h2 className="onboarding-question">Sync your Canvas account?</h2>
-  
-          <p style={{ marginBottom: "30px", fontSize: "18px" }}>
-            You can automatically import assignments and class data from Canvas.
-          </p>
-  
-          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-            
-            {/* YES BUTTON → Canvas setup page (placeholder for now) */}
-            <a
-              href="/canvas-setup"
-              className="onboarding-next"
-              style={{ textDecoration: "none", display: "inline-block" }}
-            >
-              Yes, sync Canvas →
-            </a>
-  
-            {/* NO BUTTON → Dashboard */}
-            <a
-              href="/dashboard"
-              className="onboarding-back"
-              style={{
-                textDecoration: "none",
-                display: "inline-block",
-                textAlign: "center",
-              }}
-            >
-              No thanks
-            </a>
-  
+        <div className="onboarding-card onboarding-card--centered">
+          <div className="onboarding-header">
+            <h1>Sync Canvas</h1>
+            <p>Bring assignments, deadlines, and course data into Glide+ automatically.</p>
           </div>
+
+          <h2 className="onboarding-question">Sync your Canvas account?</h2>
+          <p className="onboarding-sub">
+            Staying in sync with Canvas helps Glide+ understand your academic load and surface smarter suggestions.
+          </p>
+
+          <div className="onboarding-choices onboarding-choices--stacked">
+            <Link to="/canvas-setup" className="onboarding-primary-btn">
+              Yes, sync Canvas →
+            </Link>
+            <Link to="/dashboard" className="onboarding-backbtn">
+              No thanks
+            </Link>
+          </div>
+
+          <p className="onboarding-footer">
+            Need an account?{" "}
+            <Link to="/signup" className="onboarding-link">
+              Sign up here
+            </Link>
+          </p>
         </div>
       </div>
     );
-  }  
+  }
 
   return (
     <div className="onboarding-container">
-      {/* Logo */}
-      <div className="onboarding-logo">
-        Glide<span>+</span>
-      </div>
-
-      {/* Step Indicator */}
-      <p className="onboarding-step">
-        Step {step} of {totalSteps}
-      </p>
-
-      {/* Main Card */}
       <div className="onboarding-card">
+        <div className="onboarding-header">
+          <h1>Personalize Glide+</h1>
+          <p>Five quick questions to tailor the experience to your goals.</p>
+        </div>
+
+        <p className="onboarding-step">
+          Step {step} of {totalSteps}
+        </p>
+
         <h2 className="onboarding-question">{current.question}</h2>
 
         <div className="onboarding-choices">
-          {/* MULTIPLE CHOICE */}
           {current.type === "multiple" &&
             current.options.map((opt) => (
               <label key={opt} className="onboarding-option">
@@ -141,7 +141,6 @@ export default function OnboardingPage() {
               </label>
             ))}
 
-          {/* TEXT INPUT */}
           {current.type === "text" && (
             <textarea
               className="onboarding-textarea"
@@ -153,34 +152,32 @@ export default function OnboardingPage() {
             />
           )}
         </div>
-      </div>
 
-      {/* ⭐ Back + Next row under card */}
-      <div className="onboarding-nav">
-        {step > 1 ? (
+        <div className="onboarding-nav">
           <button
-            className="onboarding-back"
-            onClick={() => setStep(step - 1)}
+            className="onboarding-backbtn"
+            type="button"
+            onClick={() => setStep(Math.max(1, step - 1))}
+            disabled={step === 1}
           >
             ← Back
           </button>
-        ) : (
-          <div></div> // keeps layout aligned
-        )}
+          <button
+            className="onboarding-primary-btn"
+            type="button"
+            disabled={!answers[step]}
+            onClick={handleNext}
+          >
+            {step === totalSteps ? "Finish" : "Next →"}
+          </button>
+        </div>
 
-        <button
-          className="onboarding-next"
-          disabled={!answers[step]}
-          onClick={() => {
-            if (step < totalSteps) {
-              setStep(step + 1);
-            } else {
-              setFinished(true);
-            }
-          }}
-        >
-          {step === totalSteps ? "Finish" : "Next →"}
-        </button>
+        <p className="onboarding-footer">
+          Don't have an account yet?{" "}
+          <Link to="/signup" className="onboarding-link">
+            Sign up here
+          </Link>
+        </p>
       </div>
     </div>
   );
