@@ -20,8 +20,9 @@ export default function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [streak] = useState(4);
 
+  const userRecord = Array.isArray(user) ? user[0] : user;
   const displayName =
-    (Array.isArray(user) && user[0]?.firstName) ||
+    userRecord?.firstName ||
     auth.currentUser?.displayName?.split(" ")[0] ||
     "User";
 

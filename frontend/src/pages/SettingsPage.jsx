@@ -7,9 +7,9 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const { user } = useUser(API_URL);
-  const firstName = Array.isArray(user) ? user[0]?.firstName : null;
+  const userRecord = Array.isArray(user) ? user[0] : user;
   const displayName =
-    firstName ||
+    userRecord?.firstName ||
     auth.currentUser?.displayName?.split(" ")[0] ||
     "User";
 

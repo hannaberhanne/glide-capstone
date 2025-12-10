@@ -106,9 +106,9 @@ export default function HomePage() {
     }
   };
 
-  const firstName = Array.isArray(user) ? user[0]?.firstName : null;
+  const userRecord = Array.isArray(user) ? user[0] : user;
   const name =
-    firstName ||
+    userRecord?.firstName ||
     auth.currentUser?.displayName?.split(" ")[0] ||
     "there";
 

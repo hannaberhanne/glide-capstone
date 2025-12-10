@@ -10,6 +10,9 @@ import {
 
 router.use(verifyToken);
 
+// GET /api/users - return current user profile
+router.get('/', getUser);
+
 // GET /api/users/:userId - return list of all users
 router.get('/:userId', getUser);
 
