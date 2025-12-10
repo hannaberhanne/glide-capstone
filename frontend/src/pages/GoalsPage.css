@@ -1,1128 +1,428 @@
-/* =========================================
-   THEME VARIABLES
-   ========================================= */
-
 :root {
-  --goals-bg: radial-gradient(circle at top left, #ffffff 0, #f9fafb 55%, #eef2ff 100%);
+  --goals-bg: #f5f5f7;
   --goals-text: #0f172a;
-  --goals-subtext: #6b7280;
-
-  --card-bg: #ffffff;
-  --card-border: #e5e7eb;
-  --card-shadow: rgba(15, 23, 42, 0.06);
-
-  --pill-bg: #ffedd5;
-  --pill-text: #c2410c;
-
-  --cta-bg: linear-gradient(135deg, #f97316, #fb923c);
-  --cta-text: #111827;
-  --cta-shadow: rgba(249, 115, 22, 0.35);
-
-  --goals-banner-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(255, 255, 255, 0.95));
-  --goals-banner-border: rgba(249, 115, 22, 0.2);
+  --goals-subtext: #475569;
+  --goals-card: #ffffff;
+  --goals-border: #e5e7eb;
+  --goals-accent: #f97316;
+  --goals-muted: #64748b;
 }
 
-html.dark-mode {
-  --goals-bg: radial-gradient(circle at top left, #0f172a 0, #111827 55%, #1e293b 100%);
-  --goals-text: #f1f5f9;
-  --goals-subtext: #cbd5e1;
-  
-    --card-bg: #1e293b;
-    --card-border: #334155;
-    --card-shadow: rgba(0, 0, 0, 0.5);
-  
-    --pill-bg: #3b2f1b;
-    --pill-text: #f59e0b;
-  
-    --cta-bg: linear-gradient(135deg, #f59e0b, #fb923c);
-  --cta-text: #000000;
-  --cta-shadow: rgba(245, 158, 11, 0.35);
-
-  --goals-banner-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.2), #0f172a 70%);
-  --goals-banner-border: rgba(249, 115, 22, 0.4);
+.goals {
+  min-height: 100vh;
+  padding: 32px 40px;
+  background: var(--goals-bg);
+  color: var(--goals-text);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-html.dark-mode .xp-board,
-html.dark-mode .quest-card {
-  background: #14213d;
-  border-color: #2e3d5c;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+.goals-inner {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-html.dark-mode .xp-track {
-  background: #1f2933;
+.goals-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
-html.high-contrast .xp-board,
-html.high-contrast .quest-card {
-  background: #000;
-  border-color: #f97316;
-  box-shadow: none;
+.goals-hero > div:first-of-type {
+  flex: 1;
 }
-  
-html.high-contrast {
-  --goals-bg: black;
-  --goals-text: #ffffff;
-  --goals-subtext: rgba(255, 255, 255, 0.85);
 
-  --card-bg: black;
-  --card-border: yellow;
-  --card-shadow: none;
-
-  --pill-bg: yellow;
-  --pill-text: black;
-
-  --cta-bg: yellow;
-  --cta-text: black;
-  --cta-shadow: none;
-
-  --goals-banner-bg: #000;
-  --goals-banner-border: #f97316;
+.goals-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
 }
-  
-  /* =========================================
-     PAGE LAYOUT
-     ========================================= */
-  
-  .goals {
-    min-height: 100vh;
-    padding: 32px 20px 48px;
-    background: var(--goals-bg);
-    color: var(--goals-text);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-  
-  /* =========================================
-     HERO SECTION
-     ========================================= */
-  
-  .goals-hero {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
-    padding: 8px 0 12px;
-  }
-  
-  .goals-kicker {
-    margin: 0;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--goals-subtext);
-  }
-  
-  .goals-title {
-    margin: 6px 0 4px;
-    font-size: clamp(28px, 3vw, 34px);
-    font-weight: 900;
-    letter-spacing: -0.01em;
-    color: var(--goals-text);
-  }
-  
-  .goals-sub {
-    margin: 0;
-    max-width: 540px;
-    color: var(--goals-subtext);
-    line-height: 1.6;
-  }
-  
-  /* CTA BUTTON */
-  .goals-cta {
-    align-self: center;
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: var(--cta-bg);
-    color: var(--cta-text);
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: 0 12px 24px var(--cta-shadow);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  
-  .goals-cta:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 16px 30px var(--cta-shadow);
-  }
 
-  .goals-banner {
-    background: var(--goals-banner-bg);
-    border-radius: 24px;
-    padding: 28px 32px;
-    color: var(--goals-text);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 22px;
-    box-shadow: 0 24px 45px rgba(15, 23, 42, 0.12);
-    border: 1px solid var(--goals-banner-border);
-  }
+.goals-primary,
+.goals-secondary {
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-  .goals-banner-profile {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex: 1 1 240px;
-  }
+.goals-primary {
+  background: linear-gradient(135deg, var(--goals-accent), #fb923c);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.35);
+}
 
-  .goals-banner-avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 16px;
-    border: 2px solid rgba(249, 115, 22, 0.6);
-    display: grid;
-    place-items: center;
-    font-size: 26px;
-    font-weight: 700;
-    background: #fff;
-  }
+.goals-secondary {
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  color: var(--goals-text);
+}
 
-  .goals-banner-title {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-  }
+.goals-primary:hover,
+.goals-secondary:hover {
+  transform: translateY(-2px);
+}
 
-  .goals-banner-sub {
-    margin: 4px 0 0;
-    font-size: 14px;
-    color: var(--goals-subtext);
-  }
+.goals-kicker {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--goals-subtext);
+}
 
-  .goals-banner-stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(80px, 1fr));
-    gap: 12px;
-    min-width: 240px;
-  }
+.goals-title {
+  margin: 6px 0;
+  font-size: 32px;
+  font-weight: 800;
+}
 
-  .goals-banner-label {
-    margin: 0;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--goals-subtext);
-  }
+.goals-sub {
+  margin: 0;
+  max-width: 480px;
+  color: var(--goals-subtext);
+}
 
-  .goals-banner-value {
-    margin: 4px 0 0;
-    font-size: 22px;
-    font-weight: 600;
-  }
+.goals-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
 
-  .goals-banner-cta {
-    background: rgba(249, 115, 22, 0.2);
-    border: none;
-    border-radius: 14px;
-    padding: 12px 20px;
-    color: #111827;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
+.goals-actions {
+  display: flex;
+  gap: 12px;
+}
 
-.goals-gameboard {
-  margin-top: 24px;
+.goals-tags {
+  display: flex;
+  gap: 12px;
+}
+
+.goals-tags button {
+  border-radius: 10px;
+  padding: 8px 16px;
+  border: 1px solid var(--goals-border);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.card-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
 }
 
-.xp-board,
-.quest-card {
-  background: var(--card-bg);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
-  border: 1px solid var(--card-border);
+.card-column {
+  background: #fff;
+  border-radius: 24px;
+  padding: 16px;
+  border: 1px solid var(--goals-border);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
 }
 
-.xp-board,
-.quest-card {
-  transition: border 0.2s ease, background 0.2s ease;
+.card-column h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
 }
 
-.xp-board-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  color: var(--goals-subtext);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.primary-card {
+  border-radius: 18px;
+  padding: 16px;
+  background: #fff7ee;
+  margin-bottom: 14px;
+  border: 1px solid rgba(249, 115, 22, 0.2);
 }
 
-.xp-level {
-  background: rgba(249, 115, 22, 0.15);
-  color: #f97316;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+.secondary-card {
+  border-radius: 18px;
+  padding: 16px;
+  background: #f7f7fb;
+  margin-bottom: 14px;
+  border: 1px solid rgba(99, 102, 241, 0.15);
 }
 
-.xp-value {
-  margin: 12px 0 6px;
-  font-size: clamp(32px, 4vw, 40px);
-  color: var(--goals-text);
-}
-
-.xp-note {
-  margin: 0 0 16px;
-  color: var(--goals-subtext);
-  font-size: 14px;
-}
-
-.xp-track {
-  background: #f1f5f9;
-  border-radius: 999px;
-  height: 10px;
-  overflow: hidden;
-}
-
-.xp-track-fill {
-  height: 100%;
-  background: linear-gradient(135deg, #f97316, #fb923c);
-  border-radius: 999px;
-}
-
-.xp-board-meta {
-  margin-top: 16px;
+.reward-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(80px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
+}
+
+.reward-card {
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  border: 1px dashed rgba(15, 23, 42, 0.15);
+}
+
+.quick-form {
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  background: #fff;
+  display: grid;
+  gap: 12px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.quick-form-text h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.quick-form-text p {
+  margin: 4px 0 0;
+  color: var(--goals-subtext);
+}
+
+.quick-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quick-form-fields input,
+.quick-form-fields textarea {
+  border-radius: 12px;
+  border: 1px solid var(--goals-border);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.quick-form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-notice {
+  font-size: 14px;
+  color: var(--goals-muted);
+  margin: 0;
+}
+
+.action-status {
+  font-size: 14px;
+  color: var(--goals-accent);
+  margin: 0;
   font-weight: 600;
 }
 
-.xp-board-meta small {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--goals-subtext);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.daily-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.quest-card-head {
+.daily-card {
+  border: 1px solid var(--goals-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
 }
 
-.quest-card-head p {
-  text-transform: uppercase;
-  font-size: 12px;
-  color: var(--goals-subtext);
-  letter-spacing: 0.08em;
-  margin: 0 0 4px;
-}
-
- .quest-card-head h3 {
+.daily-card h3 {
   margin: 0;
-  font-size: 22px;
-  color: var(--goals-text);
+  font-size: 16px;
 }
 
- .quest-card-sub {
-  margin: 12px 0 16px;
+.daily-card p {
+  margin: 4px 0;
   color: var(--goals-subtext);
+  font-size: 14px;
 }
 
- .pill {
-  padding: 6px 14px;
+.daily-card small {
+  color: var(--goals-muted);
+}
+
+.daily-complete {
+  border: none;
   border-radius: 999px;
-  background: rgba(249, 115, 22, 0.12);
-  color: #f97316;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.quest-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.goals-secondary {
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: transparent;
-  color: var(--goals-text);
-  font-weight: 700;
+  padding: 6px 14px;
   cursor: pointer;
-  border-radius: 12px;
-  padding: 12px 20px;
-  transition: background 0.2s ease;
+  background: linear-gradient(135deg, var(--goals-accent), #fb923c);
+  color: #fff;
+  font-weight: 600;
 }
 
-.goals-secondary:hover {
-  background: rgba(15, 23, 42, 0.06);
+.daily-complete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.empty-note {
+  color: var(--goals-muted);
+  margin: 0;
+  font-size: 14px;
+}
+
+.habit-card {
+  border: 1px solid var(--goals-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  background: #fff;
+}
+
+.habit-card h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.habit-card p {
+  margin: 4px 0 0;
+  color: var(--goals-subtext);
+  font-size: 14px;
+}
+
+.habit-chip {
+  margin-top: 8px;
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--goals-border);
+  font-size: 12px;
+}
+
+.xp-board {
+  background: var(--goals-card);
+  border-radius: 24px;
+  padding: 20px;
+  border: 1px solid var(--goals-border);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.1);
+}
+
+.xp-board header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.xp-progress {
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #f97316, #fb923c);
 }
 
 .zen-panel {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(255, 255, 255, 0.9));
   border-radius: 24px;
   padding: 24px;
   border: 1px solid rgba(249, 115, 22, 0.3);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(255, 255, 255, 0.9));
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
 }
 
 .zen-tabs {
-  display: inline-flex;
-  gap: 8px;
+  display: flex;
+  gap: 12px;
 }
 
 .zen-tab {
   border-radius: 999px;
   padding: 8px 18px;
   border: 1px solid transparent;
-  background: transparent;
-  color: var(--goals-text);
-  font-weight: 600;
+  background: #fff;
   cursor: pointer;
-  transition: border 0.2s ease, background 0.2s ease;
 }
 
 .zen-tab.active {
-  border-color: var(--goals-text);
-  background: rgba(14, 165, 233, 0.1);
-}
-
-.zen-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.zen-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.zen-body {
-  margin: 0;
-  color: var(--goals-subtext);
-  line-height: 1.5;
+  border-color: #f97316;
+  background: rgba(249, 115, 22, 0.2);
 }
 
 .zen-btn {
+  margin-top: 12px;
   border: none;
   border-radius: 14px;
-  padding: 12px 18px;
-  font-weight: 700;
-  cursor: pointer;
+  padding: 10px 16px;
   background: linear-gradient(135deg, #f97316, #fb923c);
   color: #fff;
-}
-
-.zen-btn.neutral {
-  background: rgba(249, 115, 22, 0.12);
-  color: #f97316;
-  border: 1px solid rgba(249, 115, 22, 0.4);
+  font-weight: 700;
 }
 
 .zen-status {
-  margin: 0;
-  font-size: 13px;
-  color: var(--goals-subtext);
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--goals-muted);
+  font-weight: 600;
 }
 
-  .badge-toast {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    border-radius: 14px;
-    background: rgba(249, 115, 22, 0.08);
-    border: 1px solid rgba(249, 115, 22, 0.4);
-    color: var(--goals-text);
-    box-shadow: 0 12px 30px rgba(249, 115, 22, 0.25);
-    font-weight: 600;
+@media (max-width: 1200px) {
+  .card-columns {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
   }
-
-  .badge-toast-icon {
-    font-size: 22px;
-  }
-
-  .badge-toast-title {
-    margin: 0;
-    font-size: 13px;
-    color: var(--goals-subtext);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .badge-toast-copy {
-    margin: 0;
-    font-size: 15px;
-  }
-
-.daily-quest-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
-.daily-quest-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.daily-quest-header h2 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.daily-quest-header p {
-  margin: 0;
-  color: var(--goals-subtext);
-}
-  
-  /* =========================================
-     GOALS GRID + CARDS
-     ========================================= */
-  
-  .goals-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 18px;
+@media (max-width: 900px) {
+  .goals {
+    padding: 24px;
   }
 
-  .goals-card {
-    background: var(--card-bg);
-    border-radius: 18px;
-    padding: 16px;
-    box-shadow: 0 18px 40px var(--card-shadow);
-    border: 1px solid var(--card-border);
-    display: flex;
+  .goals-hero {
     flex-direction: column;
-    gap: 10px;
-  }
-
-/* =========================================
-   GOALS CARD CONTENT
-   ========================================= */
-
-   .goals-card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 13px;
-    color: var(--goals-subtext);
-  }
-  
-  .goals-pill {
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: var(--pill-bg);
-    color: var(--pill-text);
-    font-weight: 700;
-  }
-  
-  .goals-progress {
-    font-weight: 700;
-    color: var(--goals-text);
-  }
-  
-  .goals-card-title {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--goals-text);
-  }
-  
-  .goals-card-desc {
-    margin: 0;
-    color: var(--goals-subtext);
-    line-height: 1.6;
-  }
-  
-  .goals-card-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: var(--goals-subtext);
-  }
-
-  .goals-badges {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 18px;
-    padding: 18px 20px;
-    box-shadow: 0 16px 30px var(--card-shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .goals-badges-header {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .goals-badges-header h2 {
-    margin: 0;
-    font-size: 20px;
-    color: var(--goals-text);
-  }
-
-  .goals-badges-header p {
-    margin: 0;
-    color: var(--goals-subtext);
-    font-size: 14px;
-  }
-
-  .badges-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-  }
-
-  .badge-card {
-    display: flex;
-    gap: 12px;
     align-items: flex-start;
-    padding: 12px 14px;
-    border-radius: 14px;
-    border: 1px solid var(--card-border);
-    background: var(--goals-bg);
   }
 
-  .badge-icon {
-    font-size: 24px;
-    line-height: 1;
-  }
-
-  .badge-copy h3 {
-    margin: 0;
-    font-size: 16px;
-    color: var(--goals-text);
-  }
-
-  .badge-copy p {
-    margin: 6px 0 0;
-    color: var(--goals-subtext);
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .badge-empty {
-    margin: 0;
-    color: var(--goals-subtext);
-    font-size: 14px;
-  }
-  
-  /* =========================================
-     EMPTY STATE
-     ========================================= */
-  
-  .goals-empty {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    gap: 14px;
-    align-items: center;
-    background: var(--card-bg);
-    position: relative;
-    overflow: hidden;
-    border-radius: 16px;
-    border: 1px solid var(--card-border);
-  }
-  
-  .goals-empty::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-      radial-gradient(circle at 20px 20px, rgba(249, 115, 22, 0.08), transparent 35%),
-      radial-gradient(circle at 80% 30%, rgba(15, 23, 42, 0.05), transparent 30%);
-    pointer-events: none;
-  }
-  
-  /* For dark mode: muted out pattern */
-  html.dark-mode .goals-empty::after {
-    background-image:
-      radial-gradient(circle at 20px 20px, rgba(245, 158, 11, 0.15), transparent 35%),
-      radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.06), transparent 30%);
-  }
-  
-  html.high-contrast .goals-empty::after {
-    display: none; /* remove decorative styling for accessibility */
-  }
-  
-  .goals-illustration {
-    width: 64px;
-    height: 64px;
-    border-radius: 14px;
-    background: var(--pill-bg);
-    display: grid;
-    place-items: center;
-    font-size: 28px;
-    box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.2);
-    color: var(--pill-text);
-  }
-  
-  html.dark-mode .goals-illustration {
-    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.3);
-  }
-  
-  html.high-contrast .goals-illustration {
-    background: yellow;
-    color: black;
-    box-shadow: none;
-  }
-  
-  .goals-empty-text h3 {
-    margin: 0 0 4px;
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--goals-text);
-  }
-  
-  .goals-empty-text p {
-    margin: 0;
-    color: var(--goals-subtext);
-  }
-  
-  /* Empty state links + muted text */
- 
-  .goals-actions {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .goals-primary {
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #f97316, #fb923c);
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 16px 30px rgba(249, 115, 22, 0.35);
-  }
-
-  .goals-primary:hover {
-    opacity: 0.95;
-  }
-
-.quest-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-  
-  .goals-muted {
-    margin: 0;
-    color: var(--goals-subtext);
-    font-size: 13px;
-  }
-
-/* =========================================
-   SKELETON LOADER
-   ========================================= */
-
-   .skeleton {
-    height: 160px;
-    background: linear-gradient(
-      90deg,
-      var(--card-border) 0%,
-      var(--card-bg) 50%,
-      var(--card-border) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.2s infinite;
-    border-radius: 18px;
-  }
-  
-  html.high-contrast .skeleton {
-    background: yellow !important;
-    animation: none;
-  }
-  
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-  
-  /* =========================================
-     HABITS GRID + CARDS
-     ========================================= */
-  
-  .habits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 18px;
-  }
-  
-  .habit-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 12px 30px var(--card-shadow);
-    display: grid;
-    gap: 10px;
-  }
-  
-  /* =========================================
-     HABIT CARD HEADER
-     ========================================= */
-  
-  .habit-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  
-  .habit-title-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .habit-title {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--goals-text);
-  }
-  
-  .habit-subtitle {
-    margin: 2px 0 0;
-    color: var(--goals-subtext);
-    font-size: 13px;
-    text-transform: capitalize;
-  }
-  
-  .habit-streak {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    font-size: 13px;
-    color: var(--goals-subtext);
-    font-weight: 700;
-  }
-
-  .habit-streak span {
-    font-size: 15px;
-    color: var(--goals-text);
-  }
-  
-  /* =========================================
-     HABIT CARD BODY TEXT
-     ========================================= */
-  
-  .habit-desc {
-    margin: 0;
-    color: var(--goals-subtext);
-    line-height: 1.5;
-  }
-  
-  .habit-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 12px 0;
-  }
-
-  .habit-chip {
-    padding: 6px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--card-border);
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--goals-text);
-    background: var(--card-bg);
-  }
-
-  .habit-quest-pill {
-    background: rgba(249, 115, 22, 0.12);
-    border-color: rgba(249, 115, 22, 0.4);
-    color: #f97316;
-  }
-  
-  /* =========================================
-     HABIT COMPLETE BUTTON
-     ========================================= */
-  
-  .habit-complete-btn {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: none;
-    background: var(--cta-bg);
-    color: var(--cta-text);
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 10px 20px var(--cta-shadow);
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-  }
-  
-  .habit-complete-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-  
-  .habit-complete-btn:not(:disabled):hover {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 24px var(--cta-shadow);
-  }
-  
-  /* High contrast override */
-  html.high-contrast .habit-complete-btn {
-    background: yellow;
-    color: black;
-    box-shadow: none;
-  }
-
-/* =========================================
-   HABIT MODAL OVERLAY
-   ========================================= */
-
-   .habitmodal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 120;
-    padding: 16px;
-  }
-  
-  html.dark-mode .habitmodal-overlay {
-    background: rgba(0, 0, 0, 0.45);
-  }
-  
-  html.high-contrast .habitmodal-overlay {
-    background: black;
-  }
-  
-  /* =========================================
-     HABIT MODAL CARD
-     ========================================= */
-  
-  .habitmodal {
-    background: var(--card-bg);
-    border-radius: 16px;
-    border: 1px solid var(--card-border);
-    box-shadow: 0 20px 50px var(--card-shadow);
-    max-width: 560px;
+  .goals-hero-actions {
     width: 100%;
+    justify-content: stretch;
+  }
+
+  .goals-hero-actions button {
+    flex: 1;
+  }
+
+  .card-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .goals-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .goals {
     padding: 18px;
-    display: grid;
-    gap: 12px;
-  }
-  
-  html.high-contrast .habitmodal {
-    background: black;
-    border-color: yellow;
-    box-shadow: none;
-  }
-  
-  .habitmodal-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .habitmodal h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--goals-text);
-  }
-  
-  /* CLOSE BUTTON */
-  .habitmodal-close {
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: var(--goals-subtext);
-  }
-  
-  .habitmodal-close:hover {
-    color: var(--goals-text);
-  }
-  
-  html.high-contrast .habitmodal-close {
-    color: yellow;
-  }
-  
-  /* LABELS */
-  .habitmodal-label {
-    display: grid;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--goals-subtext);
-    font-weight: 600;
-  }
-  
-  /* =========================================
-     INPUTS / TEXTAREA / SELECTS
-     ========================================= */
-  
-  .habitmodal-input,
-  .habitmodal-textarea,
-  .habitmodal select {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--goals-text);
-    background: var(--card-bg);
-    box-sizing: border-box;
   }
 
-  /* Remove white glow on focus */
-  .habitmodal-input:focus,
-  .habitmodal-textarea:focus,
-  .habitmodal select:focus {
-    outline: none !important;
-    box-shadow: none !important;
-    background: var(--card-bg) !important;
-    color: var(--goals-text) !important;
-  }
-
-  .habitmodal-textarea {
-    min-height: 90px;
-    resize: vertical;
-  }
-  
-  html.high-contrast .habitmodal-input,
-  html.high-contrast .habitmodal-textarea,
-  html.high-contrast .habitmodal select {
-    background: black;
-    color: yellow;
-    border-color: yellow;
-  }
-  
-  /* GRID */
-  .habitmodal-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-  
-  /* RADIO + DAYS */
-  .habitmodal-radio {
-    display: flex;
-    gap: 12px;
-  }
-  
-  .habitmodal-days {
-    display: flex;
-    flex-wrap: wrap;
+  .goals-toolbar {
     gap: 8px;
   }
-  
-  /* DAY PILLS */
-  .day-pill {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 12px;
-    color: var(--goals-text);
+
+  .goals-tags {
+    width: 100%;
+    justify-content: space-between;
   }
-  
-  .day-pill.active {
-    background: var(--pill-bg);
-    border-color: rgba(249, 115, 22, 0.35);
-    color: var(--pill-text);
+
+  .card-column {
+    padding: 12px;
   }
-  
-  html.dark-mode .day-pill.active {
-    border-color: rgba(245, 158, 11, 0.45);
-  }
-  
-  html.high-contrast .day-pill {
-    background: black;
-    border-color: yellow;
-    color: yellow;
-  }
-  
-  html.high-contrast .day-pill.active {
-    background: yellow;
-    color: black;
-    border-color: yellow;
-  }
-  
-  /* =========================================
-     MODAL ACTION BUTTONS
-     ========================================= */
-  
-  .habitmodal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-  
-  .habitmodal-primary {
-    background: var(--cta-bg);
-    color: var(--cta-text);
-    border: none;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 10px 22px var(--cta-shadow);
-  }
-  
-  .habitmodal-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-  
-  html.high-contrast .habitmodal-primary {
-    background: yellow;
-    color: black;
-    box-shadow: none;
-  }
-  
-  .habitmodal-secondary {
-    background: var(--card-bg);
-    color: var(--goals-text);
-    border: 1px solid var(--card-border);
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  
-  html.high-contrast .habitmodal-secondary {
-    background: black;
-    color: yellow;
-    border-color: yellow;
-  }
-  
+}
