@@ -101,6 +101,7 @@ const completeHabit = async (req, res) => {
       const habit = habitSnap.data();
       const userData = userSnap.data();
       const history = Array.isArray(habit.completionHistory) ? habit.completionHistory : [];
+      const userBadges = Array.isArray(userData.badges) ? userData.badges : [];
 
       if (history.includes(todayKey)) {
         return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0, currentStreak: habit.currentStreak || 1 };
@@ -112,6 +113,14 @@ const completeHabit = async (req, res) => {
       const longestStreak = Math.max(habit.longestStreak || 0, currentStreak);
       const totalCompletions = (habit.totalCompletions || 0) + 1;
       const newTotalXP = (userData.totalXP || 0) + xpGained;
+      const badgeId = 'habit-7-day-streak';
+      const badgeTitle = '7-Day Habit Mastery';
+      const badgeDescription = 'Maintain a week-long streak on this habit';
+      const badgeIcon = '🏅';
+      const alreadyHasBadge = userBadges.some((b) => b?.id === badgeId);
+      const qualifiesForBadge = currentStreak >= 7 && !alreadyHasBadge;
+      let badgeAwarded = false;
+      let badgeRecord = null;
 
       // WRITES AFTER READS
       t.update(habitRef, {
@@ -123,12 +132,26 @@ const completeHabit = async (req, res) => {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      t.update(userRef, {
+      const userUpdate = {
         totalXP: newTotalXP,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      };
+      if (qualifiesForBadge) {
+        badgeAwarded = true;
+        badgeRecord = { id: badgeId, title: badgeTitle, description: badgeDescription, icon: badgeIcon };
+        userUpdate.badges = admin.firestore.FieldValue.arrayUnion({
+          ...badgeRecord,
+          earnedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
 
-      return { already: false, xpGained, newTotalXP, currentStreak };
+      t.update(userRef, userUpdate);
+
+      const responsePayload = { already: false, xpGained, newTotalXP, currentStreak };
+      if (badgeAwarded) {
+        responsePayload.badgesAwarded = [badgeRecord];
+      }
+      return responsePayload;
     });
 
     if (result.already) {
@@ -137,6 +160,7 @@ const completeHabit = async (req, res) => {
         xpGained: 0,
         newTotalXP: result.newTotalXP,
         currentStreak: result.currentStreak,
+        badgesAwarded: [],
         message: 'Already completed today'
       });
     }
@@ -146,6 +170,7 @@ const completeHabit = async (req, res) => {
       xpGained: result.xpGained,
       newTotalXP: result.newTotalXP,
       currentStreak: result.currentStreak,
+      badgesAwarded: result.badgesAwarded || [],
     });
   } catch (err) {
     if (err.message === 'NOT_FOUND') {

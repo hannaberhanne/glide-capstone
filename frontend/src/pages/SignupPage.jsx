@@ -152,8 +152,8 @@ export default function SignupPage() {
             <span className="underline" />
           </label>
 
-          <button className="login-btn" type="submit" disabled={!canSubmit}>
-            SIGN UP
+          <button className="login-btn" type="submit" disabled={!canSubmit || loading}>
+            {loading ? "Creating..." : "SIGN UP"}
           </button>
           {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
         </form>

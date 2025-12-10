@@ -14,7 +14,6 @@ import GoalsPage from "./pages/GoalsPage.jsx";
 import TodayPage from "./pages/TodayPage.jsx";
 import AccessibilityPage from "./pages/AccessibilityPage.jsx"; // ← ADD THIS
 import "./App.css";
-import { useState } from "react";
 
 function NotFound() {
   return (
@@ -26,8 +25,6 @@ function NotFound() {
 }
 
 export default function App() {
-  const [userId, setUserId] = useState(null);
-
   return (
     <Routes>
 

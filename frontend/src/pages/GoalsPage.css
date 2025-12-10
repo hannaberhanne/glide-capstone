@@ -122,6 +122,36 @@
     transform: translateY(-1px);
     box-shadow: 0 16px 30px var(--cta-shadow);
   }
+
+  .badge-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(249, 115, 22, 0.08);
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    color: var(--goals-text);
+    box-shadow: 0 12px 30px rgba(249, 115, 22, 0.25);
+    font-weight: 600;
+  }
+
+  .badge-toast-icon {
+    font-size: 22px;
+  }
+
+  .badge-toast-title {
+    margin: 0;
+    font-size: 13px;
+    color: var(--goals-subtext);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .badge-toast-copy {
+    margin: 0;
+    font-size: 15px;
+  }
   
   /* =========================================
      GOALS GRID + CARDS
@@ -132,7 +162,7 @@
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 18px;
   }
-  
+
   .goals-card {
     background: var(--card-bg);
     border-radius: 18px;
@@ -187,6 +217,75 @@
     justify-content: space-between;
     font-size: 13px;
     color: var(--goals-subtext);
+  }
+
+  .goals-badges {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: 0 16px 30px var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .goals-badges-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .goals-badges-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--goals-text);
+  }
+
+  .goals-badges-header p {
+    margin: 0;
+    color: var(--goals-subtext);
+    font-size: 14px;
+  }
+
+  .badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .badge-card {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    background: var(--goals-bg);
+  }
+
+  .badge-icon {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .badge-copy h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--goals-text);
+  }
+
+  .badge-copy p {
+    margin: 6px 0 0;
+    color: var(--goals-subtext);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .badge-empty {
+    margin: 0;
+    color: var(--goals-subtext);
+    font-size: 14px;
   }
   
   /* =========================================

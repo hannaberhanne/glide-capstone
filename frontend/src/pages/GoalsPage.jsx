@@ -184,10 +184,16 @@ function HabitModal({ open, onClose, onSubmit }) {
 
 export default function GoalsPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const { xp, setXp } = useUser(API_URL);
+  const { user, setXp, refreshUser } = useUser(API_URL);
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [badgeToast, setBadgeToast] = useState(null);
+  const currentUser = useMemo(() => (Array.isArray(user) ? user[0] : null), [user]);
+  const badges = useMemo(
+    () => Array.isArray(currentUser?.badges) ? currentUser.badges : [],
+    [currentUser]
+  );
 
   const fetchHabits = async () => {
     if (!auth.currentUser) return;
@@ -211,6 +217,12 @@ export default function GoalsPage() {
   useEffect(() => {
     fetchHabits();
   }, []);
+
+  useEffect(() => {
+    if (!badgeToast) return undefined;
+    const id = setTimeout(() => setBadgeToast(null), 3600);
+    return () => clearTimeout(id);
+  }, [badgeToast]);
 
   const isTodayCompleted = (habit) => {
     const history = Array.isArray(habit.completionHistory) ? habit.completionHistory : [];
@@ -255,6 +267,11 @@ export default function GoalsPage() {
         setXp(data.newTotalXP);
       }
       await fetchHabits();
+      await refreshUser();
+      const newBadge = Array.isArray(data.badgesAwarded) ? data.badgesAwarded[0] : null;
+      if (newBadge) {
+        setBadgeToast(newBadge);
+      }
     } catch (err) {
       console.error("Failed to complete habit:", err);
       alert("Failed to complete habit");
@@ -277,6 +294,40 @@ export default function GoalsPage() {
           <button className="goals-cta" onClick={() => setShowModal(true)}>+ Create Habit</button>
         </div>
       </header>
+
+      {badgeToast && (
+        <div className="badge-toast" role="status">
+          <span className="badge-toast-icon">{badgeToast.icon || "🏅"}</span>
+          <div>
+            <p className="badge-toast-title">Badge earned!</p>
+            <p className="badge-toast-copy">{badgeToast.title}</p>
+          </div>
+        </div>
+      )}
+
+      <section className="goals-badges">
+        <div className="goals-badges-header">
+          <h2>Badges</h2>
+          <p>Track streak milestones and celebrate achievements.</p>
+        </div>
+        {badges.length ? (
+          <div className="badges-grid">
+            {badges.map((badge) => (
+              <article className="badge-card" key={badge.id}>
+                <span className="badge-icon">{badge.icon || "🏅"}</span>
+                <div className="badge-copy">
+                  <h3>{badge.title}</h3>
+                  <p>{badge.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="badge-empty">
+            Unlock your first badge by keeping a habit alive for 7 straight days.
+          </p>
+        )}
+      </section>
 
       {loading ? (
         <div className="goals-card skeleton" aria-label="Loading habits"></div>

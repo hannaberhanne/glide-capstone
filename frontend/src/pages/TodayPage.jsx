@@ -12,7 +12,7 @@ const parseISOToLocal = (iso) => {
 
 export default function TodayPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const { xp, refreshUser } = useUser(API_URL);
+  const { refreshUser } = useUser(API_URL);
 
   const [blocks, setBlocks] = useState([]);
   const [loading, setLoading] = useState(true);

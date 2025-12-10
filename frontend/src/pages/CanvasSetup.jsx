@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../config/firebase";
 import "./CanvasSetup.css";
@@ -10,14 +10,6 @@ export default function CanvasSetup() {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState("");
-  const [userId, setUserId] = useState(null);
-
-  // Fetch the logged-in user's Firestore document ID
-  useEffect(() => {
-    if (auth.currentUser) {
-      setUserId(auth.currentUser.uid); // use the Firebase UID directly
-    }
-  }, [API_URL]);
 
   const handleSaveToken = async () => {
     if (!token.trim()) {
