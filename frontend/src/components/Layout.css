@@ -8,7 +8,7 @@
 }
 
 html.dark-mode {
-  --header-bg: #1e293b;
+  --header-bg: #0d1525;
   --header-text: #f1f5f9;
   --header-subtle: #cbd5e1;
   --header-shadow: rgba(0, 0, 0, 0.45);
@@ -96,6 +96,7 @@ html.high-contrast {
 
 main {
   margin-top: 75px;
+  background: transparent;
 }
 
 .accessibility-container {

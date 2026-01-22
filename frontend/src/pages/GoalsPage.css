@@ -1,11 +1,29 @@
 :root {
-  --goals-bg: #f5f5f7;
+  --goals-bg: #ffffff;
   --goals-text: #0f172a;
   --goals-subtext: #475569;
   --goals-card: #ffffff;
   --goals-border: #e5e7eb;
   --goals-accent: #f97316;
   --goals-muted: #64748b;
+}
+
+html.dark-mode {
+  --goals-bg: #0d1525;
+  --goals-text: #e5e7eb;
+  --goals-subtext: #94a3b8;
+  --goals-card: #1c273b;
+  --goals-border: #2a3347;
+  --goals-muted: #94a3b8;
+}
+
+html.high-contrast {
+  --goals-bg: #000000;
+  --goals-text: #ffffff;
+  --goals-subtext: #ffffff;
+  --goals-card: #000000;
+  --goals-border: #ffffff;
+  --goals-muted: #ffff00;
 }
 
 .goals {
@@ -62,7 +80,7 @@
 
 .goals-secondary {
   background: transparent;
-  border: 1px solid rgba(15, 23, 42, 0.2);
+  border: 1px solid var(--goals-border);
   color: var(--goals-text);
 }
 
@@ -112,9 +130,10 @@
   border-radius: 10px;
   padding: 8px 16px;
   border: 1px solid var(--goals-border);
-  background: #fff;
+  background: var(--goals-card);
   cursor: pointer;
   font-weight: 600;
+  color: var(--goals-text);
 }
 
 .card-columns {
@@ -124,7 +143,7 @@
 }
 
 .card-column {
-  background: #fff;
+  background: var(--goals-card);
   border-radius: 24px;
   padding: 16px;
   border: 1px solid var(--goals-border);
@@ -140,17 +159,17 @@
 .primary-card {
   border-radius: 18px;
   padding: 16px;
-  background: #fff7ee;
+  background: color-mix(in srgb, var(--goals-accent) 12%, var(--goals-card));
   margin-bottom: 14px;
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  border: 1px solid var(--goals-border);
 }
 
 .secondary-card {
   border-radius: 18px;
   padding: 16px;
-  background: #f7f7fb;
+  background: var(--goals-card);
   margin-bottom: 14px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--goals-border);
 }
 
 .reward-grid {
@@ -160,18 +179,18 @@
 }
 
 .reward-card {
-  background: #f8fafc;
+  background: var(--goals-card);
   border-radius: 14px;
   padding: 16px;
   text-align: center;
-  border: 1px dashed rgba(15, 23, 42, 0.15);
+  border: 1px dashed var(--goals-border);
 }
 
 .quick-form {
   border-radius: 18px;
   padding: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.15);
-  background: #fff;
+  border: 1px solid var(--goals-border);
+  background: var(--goals-card);
   display: grid;
   gap: 12px;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
@@ -202,6 +221,8 @@
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
+  background: var(--goals-card);
+  color: var(--goals-text);
 }
 
 .quick-form-actions {
@@ -232,7 +253,7 @@
   border: 1px solid var(--goals-border);
   border-radius: 16px;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--goals-card);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -280,7 +301,7 @@
   border-radius: 16px;
   padding: 12px 14px;
   margin-bottom: 12px;
-  background: #fff;
+  background: var(--goals-card);
 }
 
 .habit-card h3 {
@@ -301,6 +322,7 @@
   border-radius: 999px;
   border: 1px solid var(--goals-border);
   font-size: 12px;
+  color: var(--goals-text);
 }
 
 .xp-board {
@@ -320,21 +342,21 @@
 .xp-progress {
   height: 10px;
   border-radius: 999px;
-  background: #e5e7eb;
+  background: var(--goals-border);
   margin: 12px 0;
   overflow: hidden;
 }
 
 .xp-fill {
   height: 100%;
-  background: linear-gradient(135deg, #f97316, #fb923c);
+  background: linear-gradient(135deg, var(--goals-accent), #fb923c);
 }
 
 .zen-panel {
   border-radius: 24px;
   padding: 24px;
-  border: 1px solid rgba(249, 115, 22, 0.3);
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(255, 255, 255, 0.9));
+  border: 1px solid var(--goals-border);
+  background: color-mix(in srgb, var(--goals-accent) 8%, var(--goals-card));
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
 }
 
@@ -346,14 +368,15 @@
 .zen-tab {
   border-radius: 999px;
   padding: 8px 18px;
-  border: 1px solid transparent;
-  background: #fff;
+  border: 1px solid var(--goals-border);
+  background: var(--goals-card);
   cursor: pointer;
+  color: var(--goals-text);
 }
 
 .zen-tab.active {
-  border-color: #f97316;
-  background: rgba(249, 115, 22, 0.2);
+  border-color: var(--goals-accent);
+  background: color-mix(in srgb, var(--goals-accent) 25%, var(--goals-card));
 }
 
 .zen-btn {
@@ -361,7 +384,7 @@
   border: none;
   border-radius: 14px;
   padding: 10px 16px;
-  background: linear-gradient(135deg, #f97316, #fb923c);
+  background: linear-gradient(135deg, var(--goals-accent), #fb923c);
   color: #fff;
   font-weight: 700;
 }
