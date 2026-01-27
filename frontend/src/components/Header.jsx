@@ -26,3 +26,5 @@ export default function Header() {
     </header>
   );
 }
+
+// CAN MAYBE DELETE BC LAYOUT DOES THIS

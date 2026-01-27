@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./AccessibilityMenu.css";
 
+// DELETE THIS AND LOOK AT THE USER'S DATA
 const DEFAULT_SCALE = 100;
 const MIN_SCALE = 80;
 const MAX_SCALE = 140;
@@ -12,6 +13,7 @@ export default function AccessibilityMenu() {
   const [reduceMotion, setReduceMotion] = useState(false);
   const [highlightLinks, setHighlightLinks] = useState(false);
   const [fontScale, setFontScale] = useState(DEFAULT_SCALE);
+
 
   useEffect(() => {
     const savedDark = localStorage.getItem("darkMode") === "true";
@@ -77,6 +79,7 @@ export default function AccessibilityMenu() {
   const decreaseFont = () =>
     setFontScale((prev) => Math.max(prev - 10, MIN_SCALE));
 
+  // CHANGE THE USER MODE STUFF we might not store high contrast etc.
   const resetDefaults = () => {
     setDarkMode(false);
     setHighContrast(false);

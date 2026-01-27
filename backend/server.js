@@ -4,7 +4,6 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import dotenv from 'dotenv';
-import aiRoutes from './routes/aiRoutes.js';
 
 // Load .env variables
 dotenv.config();
@@ -23,25 +22,13 @@ const allowlist = new Set([
   // 'https://glide-plus.vercel.app',
 ]);
 
-/*
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowlist.has(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-*/
-
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 8080;
 
 // Route imports
+import aiRoutes from './routes/aiRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import canvasRoutes from './routes/canvasRoutes.js';
@@ -125,11 +112,11 @@ app.use((err, req, res, next) => {
 
 // Start
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on: http://localhost:${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server running on: http://localhost:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   if (process.env.NODE_ENV === 'production') {
-    console.log('🎨 Serving frontend from /dist');
+    console.log('Serving frontend from /dist');
   } else {
-    console.log('🎨 Frontend dev server should run separately on http://localhost:5173');
+    console.log('Frontend dev server should run separately on http://localhost:5173');
   }
 });
