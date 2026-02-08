@@ -1,77 +1,44 @@
-/* =========================================
-   THEME VARIABLES (LIGHT MODE)
-   ========================================= */
+:root {
+  --dash-accent: #f97316;
+  --dash-accent-soft: #ffedd5;
 
-   :root {
-    --dash-bg1: #ffffff;
-    --dash-bg2: #eef2ff;
-    --dash-ink: #0f172a;
-    --dash-muted: #6b7280;
-  
-    --dash-card: #ffffff;
-    --dash-border: #e5e7eb;
-    --dash-shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.06);
-  
-    --dash-accent: #f97316;
-    --dash-accent-soft: #ffedd5;
-  
-    --quick-bg: #f9fafb;
-    --quick-hover: #e5e7eb;
-  
-    --task-hover: #f9fafb;
-  }
-  
-  html:not(.dark-mode):not(.high-contrast) .xp-bar-wide {
-    background: #e2e8f0;   
-  }
+  --dash-shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.06);
 
-  /* =========================================
-     DARK MODE OVERRIDES
-     ========================================= */
+  --quick-bg: var(--bg-secondary);
+  --quick-hover: var(--border);
+
+  --task-hover: var(--bg-secondary);
+}
+
+html:not(.dark-mode):not(.high-contrast) .xp-bar-wide {
+  background: #e2e8f0;
+}
+
+html.dark-mode {
+  --dash-accent: #f59e0b;
+  --dash-accent-soft: #332815;
   
-  html.dark-mode {
-    --dash-bg1: #0d1525;
-    --dash-bg2: #1e293b;
-  
-    --dash-ink: #f1f5f9;
-    --dash-muted: #cbd5e1;
-  
-    --dash-card: #1e2533;
-    --dash-border: #334155;
-    --dash-shadow-soft: 0 20px 45px rgba(0, 0, 0, 0.55);
-  
-    --dash-accent: #f59e0b;
-    --dash-accent-soft: #332815;
-  
-    --quick-bg: #1e293b;
-    --quick-hover: #2b3547;
-  
-    --task-hover: #1f2937;
-  }
-  
-  /* =========================================
-     HIGH CONTRAST OVERRIDES
-     ========================================= */
-  
-  html.high-contrast {
-    --dash-bg1: black;
-    --dash-bg2: black;
-  
-    --dash-ink: yellow;
-    --dash-muted: yellow;
-  
-    --dash-card: black;
-    --dash-border: yellow;
-    --dash-shadow-soft: none;
-  
-    --dash-accent: yellow;
-    --dash-accent-soft: black;
-  
-    --quick-bg: black;
-    --quick-hover: yellow;
-  
-    --task-hover: black;
-  }
+
+  --dash-shadow-soft: 0 20px 45px rgba(0, 0, 0, 0.55);
+
+  --quick-bg: var(--bg-secondary);
+  --quick-hover: #2b3547;
+
+  --task-hover: #1f2937;
+}
+
+html.high-contrast {
+  --dash-accent: yellow;
+  --dash-accent-soft: black;
+
+  --dash-shadow-soft: none;
+
+  --quick-bg: black;
+  --quick-hover: yellow;
+
+  --task-hover: black;
+}
+
   
   /* =========================================
      GLOBAL PAGE WRAPPER
@@ -86,441 +53,180 @@
     align-items: center;
     gap: 24px;
     box-sizing: border-box;
-    background: var(--dash-bg1);
-    color: var(--dash-ink);
+    background: transparent;
+    color: var(--text);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   
-  /* =========================
-     ORDERING SECTIONS
-     ========================= */
-  
-  .dash-hero {
-    order: 1;
-  }
-  
-  .xp-wide-panel {
-    order: 2;
-  }
-  
-  .dash-kpis {
-    order: 3;
-  }
-  
-  .dash-main {
-    order: 4;
-  }
-  
-  /* =========================================
-     HERO SECTION
-     ========================================= */
-  
+/* hero section */
+
   .dash-hero {
     width: 100%;
-    max-width: 960px;
-    display: flex;
-    justify-content: space-between;
-    gap: 18px;
-    text-align: left;
-    padding: 12px 0 6px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
+    padding: 0px 32px 16px;
   }
   
-  .dash-hero-left {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  .dash-hero-center {
+    justify-self: center;
+    text-align: center;
+    max-width: 960px;
+  }
+
+  .dash-hero-date {
+    justify-self: start;
   }
   
   .dash-date {
     margin: 0;
-    font-size: 13px;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--dash-muted);
+    color: var(--text-muted);
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    width: fit-content;
+  }
+  
+  .dash-hero-center {
+    justify-self: center;
+    text-align: center;
   }
   
   .dash-title {
-    margin: 2px 0 4px;
-    font-size: clamp(30px, 4vw, 38px);
-    font-weight: 900;
+    margin: 0;
+    font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+    font-weight: 700;
     letter-spacing: -0.01em;
-    color: var(--dash-ink);
+    color: var(--text);
   }
   
-  .dash-sub {
-    margin: 0;
-    font-size: 15px;
-    color: var(--dash-muted);
-    line-height: 1.6;
-  }
-  
-  .dash-hero-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 6px;
-  }
-  
-  /* PRIMARY CTA */
-  .primary-cta {
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--dash-accent), #fb923c);
-    color: #111827;
-    font-weight: 800;
-    text-decoration: none;
-    box-shadow: 0 14px 30px rgba(249, 115, 22, 0.35);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  
-  html.dark-mode .primary-cta {
-    color: black;
-  }
-  
-  .primary-cta:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 36px rgba(249, 115, 22, 0.45);
-  }
-  
-  /* SECONDARY CTA */
-  .ghost-cta {
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid var(--dash-border);
-    background: var(--dash-card);
-    color: var(--dash-ink);
-    font-weight: 700;
-    text-decoration: none;
-    transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
-  }
-  
-  .ghost-cta:hover {
-    background: var(--quick-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
-  }
-  
-  /* CANVAS SYNC CHIP */
-  .canvas-chip {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: var(--quick-bg);
-    border: 1px solid var(--dash-border);
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
-    min-width: 200px;
-    justify-content: space-between;
-  }
-  
-  .chip-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.15);
-  }
-  
-  .chip-dot.warn {
-    background: var(--dash-accent);
-    box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.2);
-  }
-  
-  .chip-text {
-    flex: 1;
-    font-size: 13px;
-    color: var(--dash-muted);
-  }
-  
-  .chip-link {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--dash-accent);
-    text-decoration: none;
-  }
-
-/* =========================
-   XP PANEL (TOP)
-   ========================= */
-
-   .xp-wide-panel {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  .xp-wide-panel {
-  margin-top: -6px;
-}
-  
-  .xp-panel {
-    width: 100%;
-    max-width: 960px;
-    background: var(--dash-card);
-    border-radius: 22px;
-    padding: 22px 22px 24px;
-    box-shadow: var(--dash-shadow-soft);
-    border: 1px solid var(--dash-border);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  /* HEADER ROW */
-  .xp-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .xp-header-row {
-  margin-bottom: 4px;
-}
-  
-  .xp-header {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--dash-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-  }
-  
-  .xp-value-large {
-    font-size: 28px;
-    font-weight: 900;
-    margin: 0;
-    color: var(--dash-ink);
-  }
-  
-  /* XP TAG BADGE */
-  .xp-tag {
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: var(--dash-accent-soft);
-    color: var(--dash-accent);
-    font-weight: 800;
-    font-size: 12px;
-  }
-  
-  /* =========================
-     SEGMENTED XP BAR
-     ========================= */
-  
-  .xp-bar-wide {
-    width: 100%;
-    height: 14px;
-    border-radius: 999px;
-    background:
-      linear-gradient(
-        to right,
-        rgba(var(--dash-accent-rgb), 0.15) 0,
-        rgba(var(--dash-accent-rgb), 0.22) 45%,
-        rgba(224, 231, 255, 1) 45%,
-        rgba(224, 231, 255, 1) 100%
-      );
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* DARK MODE XP BAR RECOLORING */
-  html.dark-mode .xp-bar-wide {
-    background:
-      linear-gradient(
-        to right,
-        rgba(245, 158, 11, 0.15) 0,
-        rgba(245, 158, 11, 0.22) 45%,
-        #1e293b 45%,
-        #1e293b 100%
-      );
-  }
-  
-  /* HIGH CONTRAST XP BAR */
-  html.high-contrast .xp-bar-wide {
-    background: black;
-    border: 1px solid yellow;
-  }
-  
-  /* XP FILL OVERLAY */
-  .xp-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--dash-accent), #fb923c);
-    border-radius: 999px;
-    box-shadow: 0 0 12px rgba(249, 115, 22, 0.55);
-    transition: width 0.4s ease;
-  }
-  
-  /* Dark Mode Fill Fix */
-  html.dark-mode .xp-fill {
-    background: linear-gradient(90deg, var(--dash-accent), #fb923c);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.65);
-  }
-  
-  /* High Contrast Fill */
-  html.high-contrast .xp-fill {
-    background: yellow;
-    box-shadow: none;
-  }
-  
-  /* Optional subtle ticks */
-  .xp-bar-wide::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: linear-gradient(
-      to right,
-      rgba(148, 163, 184, 0.4) 1px,
-      transparent 1px
-    );
-    background-size: calc(100% / 6) 100%;
-    opacity: 0.3;
-    pointer-events: none;
-  }
-  
-  /* Dark Mode Ticks */
-  html.dark-mode .xp-bar-wide::before {
-    background-image: linear-gradient(
-      to right,
-      rgba(148, 163, 184, 0.25) 1px,
-      transparent 1px
-    );
-  }
-  
-  /* High Contrast removes ticks */
-  html.high-contrast .xp-bar-wide::before {
-    display: none;
-  }
-
-/* =========================
-   KPI STRIP
-   ========================= */
-
-   .dash-kpis {
-    width: 100%;
-    max-width: 960px;
+  .streak-widget {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    margin-top: 10px
   }
   
-  .kpi {
-    background: var(--dash-card);
-    border-radius: 18px;
-    padding: 16px;
-    box-shadow: var(--dash-shadow-soft);
-    border: 1px solid var(--dash-border);
+  .streak-count-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    font-weight: 700;
+    color: var(--text);
+  }
+  
+  .streak-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+  
+  .streak-day {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 4px;
   }
   
-  /* KPI HEADER */
-  .kpi-label {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--dash-muted);
+  .streak-day-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
   }
   
-  /* KPI VALUE */
-  .kpi-value {
-    font-size: 26px;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
+  .streak-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  
+  .streak-dot.active {
+    background: #84a98c; /* or a green token later */
+  }
+  
+  .dash-hero-level {
+    justify-self: end;
+    display: grid;
+    grid-template-rows: auto auto auto auto;
     gap: 6px;
-    color: var(--dash-ink);
+    padding: 16px 32px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    min-width: 110px;
+  }
+
+  .level-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+    
+  .level-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
   }
   
-  .kpi-emoji {
-    font-size: 18px;
+  .level-value {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .xp {
+    width: 100%;
+    max-width: 960px;
+    margin: 14px auto 0;
+  }
+
+  .xp-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--bg-secondary);
+    border-radius: 999px;
+    overflow: hidden;
   }
   
-  .kpi-note {
-    font-size: 12px;
-    color: var(--dash-muted);
+  .xp-bar-fill {
+    height: 100%;
+    width: 60%;
+    background: #f59e0b;
+    border-radius: 999px;
   }
   
   /* =========================
-     SPECIAL "RESET WEEK" DARK CARD
-     ========================= */
+   DASHBOARD SECTION HEADER
+   ========================= */
+
+   .dash-section-head {
+    max-width: 960px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    gap: 700px;
+  }
   
-  .kpi.kpi-dark {
-    background: #0f172a;
-    color: #f9fafb;
-    border-color: #020617;
+  .todays-tasks {
+    margin: 0;
+    color: var(--text);
+  }
+  
+  .dash-add-btn {
+    
   }
 
-  .kpi.kpi-dark {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-}
-  
-  html.dark-mode .kpi.kpi-dark {
-    background: #1e2533;
-    border-color: #334155;
-    color: #f1f5f9;
-  }
-  
-  html.high-contrast .kpi.kpi-dark {
-    background: black;
-    border-color: yellow;
-    color: yellow;
-  }
-  
-  .kpi-label-light {
-    color: #e5e7eb;
-  }
-  
-  html.dark-mode .kpi-label-light {
-    color: #cbd5e1;
-  }
-  
-  html.high-contrast .kpi-label-light {
-    color: yellow;
-  }
-  
-  .kpi-note-light {
-    color: #cbd5e1;
-  }
-  
-  html.dark-mode .kpi-note-light {
-    color: #e2e8f0;
-  }
-  
-  html.high-contrast .kpi-note-light {
-    color: yellow;
-  }
-  
-  /* BREAK BUTTON */
-  .break-btn {
-    margin-top: 6px;
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 999px;
-    border: none;
-    cursor: pointer;
-    background: linear-gradient(135deg, var(--dash-accent), #fb923c);
-    color: #111827;
-    font-size: 13px;
-    font-weight: 800;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  
-  html.dark-mode .break-btn {
-    color: black;
-  }
-  
-  .break-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(249, 115, 22, 0.45);
-  }
-  
-  html.high-contrast .break-btn {
-    background: yellow;
-    color: black;
-    box-shadow: none;
-  }
  
 /* =========================
    MAIN GRID (UPCOMING + QUICK LINKS)
@@ -537,10 +243,10 @@
   
   /* Shared card style */
   .panel {
-    background: var(--dash-card);
+    background: var(--card-bg);
     border-radius: 20px;
     box-shadow: var(--dash-shadow-soft);
-    border: 1px solid var(--dash-border);
+    border: 1px solid var(--border);
     padding: 18px 16px;
   }
   
@@ -556,13 +262,13 @@
   .panel-head {
   margin-top: -4px;
 }
+ 
 
-  
   .panel-head h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 800;
-    color: var(--dash-ink);
+    color: var(--text);
   }
   
   .panel-link {
@@ -590,33 +296,36 @@
   }
   
   .task-item {
-    display: grid;
-    grid-template-columns: 30px 1fr auto;
-    gap: 10px;
-    align-items: flex-start;
-    padding: 6px 4px;
-    border-radius: 10px;
-    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  
+    padding: 12px 14px 12px 18px;
+    border-radius: 14px;
+  
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+  
+    transition: background 0.15s ease, box-shadow 0.15s ease;
   }
+  .task-item {
+    position: relative;
+  }
+  
+  
   
   .task-item:hover {
-    background: var(--task-hover);
+    background: var(--card-bg-hover);
   }
   
-  /* Color dot */
-  .task-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    margin-top: 6px;
-    background: var(--dash-accent);
-  }
-  
+ 
   /* Task body (title + notes + meta) */
   .task-body {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex: 1;
+    min-width: 0;
   }
   
   .task-empty {
@@ -629,17 +338,23 @@
   .task-check {
     width: 22px;
     height: 22px;
-    border-radius: 6px;
-    border: 2px solid var(--dash-border);
-    background: var(--dash-card);
-    color: var(--dash-ink);
-    font-weight: 800;
-    font-size: 14px;
-    display: inline-flex;
+    flex-shrink: 0;
+  
+    border-radius: 50%;
+    border: 2px solid #000000;
+    background: transparent;
+  
+    display: flex;
     align-items: center;
     justify-content: center;
+  
+    font-size: 13px;
+    font-weight: 800;
     cursor: pointer;
-    transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+    position: relative;
+    z-index: 1;
+  
+    transition: background 0.12s ease, border-color 0.12s ease;
   }
   
   .task-check:hover {
@@ -665,102 +380,121 @@
     box-shadow: none;
   }
   
-  /* Task text button */
-  .task-text-btn {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--dash-ink);
+  .task-title {
     background: none;
     border: none;
     padding: 0;
+  
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  
     text-align: left;
     cursor: pointer;
-  }
   
-  .task-text-btn:hover {
-    text-decoration: underline;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .task-meta {
-    font-size: 12px;
-    color: var(--dash-muted);
+    font-size: 13px;
+    color: var(--text-muted);
   }
-  
-  .task-input-row {
+
+  /* ===== RIGHT SIDE ===== */
+  .task-side {
     display: flex;
+    align-items: center;
     gap: 10px;
-    width: 100%;
+  }
+
+/* ===== XP ===== */
+  .task-xp {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--task-accent);
+  }
+
+/* ===== DELETE ===== */
+  .delete-task-btn {
+   background: none;
+   border: none;
+   padding: 4px;
+   cursor: pointer;
+
+   opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+  .task-item:hover .delete-task-btn {
+    opacity: 1;
+  }
+
+  /* ===== DUE TIME (RIGHT SIDE) ===== */
+  .task-due {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  
+
+/* =========================
+   TASK TYPE IDENTITY
+   ========================= */
+
+  .task-item.canvas {
+    --task-accent: var(--dash-accent);
   }
   
-  .taskquick-input {
-    flex: 1;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 2px solid #e5e7eb;
-    font-size: 15px;
-    outline: none;
-    background: #ffffff;
-    color: #0f172a;
+  .task-item.goal {
+    --task-accent: var(--goal-accent, #22c55e);
   }
-  
-  .taskquick-select {
-    padding: 10px;
-    border-radius: 10px;
-    border: 2px solid #e5e7eb;
-    flex-shrink: 0;
+
+  /* =========================
+   APPLY TASK ACCENT
+   ========================= */
+
+
+  /* Title color */
+  .task-item.canvas .task-title,
+  .task-item.goal .task-title {
+    color: var(--task-accent);
   }
-  
-  /* Quick Add Task Bar */
-.taskquick-input,
-.taskquick-select {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 2px solid #e5e7eb;
-  font-size: 15px;
-  outline: none;
-  background: #ffffff;
-  color: #0f172a;
-  font-family: inherit;
-}
 
-.taskquick-input {
-  flex: 1;
-}
+  /* =========================
+   COMPLETED TASK STATE
+   ========================= */
 
-.taskquick-select {
-  padding: 10px;
-  flex-shrink: 0;
-}
+  .task-item.completed .task-title {
+    text-decoration: line-through;
+    opacity: 0.55;
+  }
 
-/* Dark Mode */
-html.dark-mode .taskquick-input,
-html.dark-mode .taskquick-select {
-  background: var(--card);
-  border-color: var(--dash-border);
-  color: var(--dash-ink);
-}
+  .task-item.completed .task-meta {
+    opacity: 0.5;
+  }
 
-/* High Contrast */
-html.high-contrast .taskquick-input,
-html.high-contrast .taskquick-select {
-  background: black;
-  color: yellow;
-  border: 1px solid yellow;
-}
+  .task-item.completed .task-xp {
+    opacity: 0.4;
+  }
+
+
 
   /* =========================
      ADD TASK BUTTON
      ========================= */
   
   .add-task-btn {
-    border: 1px solid var(--dash-border);
+    border: 1px solid var(--border);
     background: var(--quick-bg);
     padding: 8px 10px;
     border-radius: 10px;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.12s ease, box-shadow 0.12s ease;
-    color: var(--dash-ink);
+    color: var(--text);
   }
   
   .add-task-btn:hover {
@@ -788,9 +522,9 @@ html.high-contrast .taskquick-select {
   .filter-pill {
     padding: 6px 10px;
     border-radius: 999px;
-    border: 1px solid var(--dash-border);
+    border: 1px solid var(--border);
     background: var(--quick-bg);
-    color: var(--dash-ink);
+    color: var(--text);
     font-weight: 600;
     font-size: 12px;
     cursor: pointer;
@@ -823,7 +557,7 @@ html.high-contrast .taskquick-select {
   
   .task-group {
     padding: 8px 0;
-    border-bottom: 1px solid var(--dash-border);
+    border-bottom: 1px solid var(--border);
   }
   
   html.high-contrast .task-group {
@@ -844,7 +578,7 @@ html.high-contrast .taskquick-select {
   .task-group-label {
     font-weight: 800;
     font-size: 13px;
-    color: var(--dash-ink);
+    color: var(--text);
   }
   
   .task-group-count {
@@ -852,8 +586,8 @@ html.high-contrast .taskquick-select {
     background: var(--quick-bg);
     padding: 4px 8px;
     border-radius: 999px;
-    color: var(--dash-muted);
-    border: 1px solid var(--dash-border);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
   }
   
   html.high-contrast .task-group-count {
@@ -864,7 +598,7 @@ html.high-contrast .taskquick-select {
   
   .task-group-more {
     font-size: 12px;
-    color: var(--dash-muted);
+    color: var(--text-muted);
     margin-top: 6px;
   }
   
@@ -894,9 +628,9 @@ html.high-contrast .taskquick-select {
     align-items: center;
     padding: 11px 12px;
     border-radius: 14px;
-    border: 1px solid var(--dash-border);
+    border: 1px solid var(--border);
     background: var(--quick-bg);
-    color: var(--dash-ink);
+    color: var(--text);
     font-size: 14px;
     font-weight: 700;
     text-decoration: none;
@@ -932,7 +666,7 @@ html.high-contrast .taskquick-select {
     padding: 40px 0;
     display: flex;
     justify-content: center;
-    color: var(--dash-muted);
+    color: var(--text-muted);
     font-size: 15px;
   }
   
@@ -948,25 +682,25 @@ html.high-contrast .taskquick-select {
   .dash-empty {
     width: 100%;
     max-width: 960px;
-    background: var(--dash-card);
+    background: var(--card-bg);
     border-radius: 20px;
-    border: 1px solid var(--dash-border);
+    border: 1px solid var(--border);
     box-shadow: var(--dash-shadow-soft);
     padding: 22px;
     text-align: center;
-    color: var(--dash-muted);
+    color: var(--text-muted);
   }
   
   .dash-empty h3 {
     margin: 0 0 6px;
     font-size: 20px;
     font-weight: 800;
-    color: var(--dash-ink);
+    color: var(--text);
   }
   
   .dash-empty p {
     margin: 0;
-    color: var(--dash-muted);
+    color: var(--text-muted);
   }
   
   /* High contrast empty panel overrides */

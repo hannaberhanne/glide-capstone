@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { auth } from "../config/firebase.js";
 import "./DashboardPage.css";
 import DashboardHero from "./dashboard/DashboardHero.jsx";
-import KpiStrip from "./dashboard/KpiStrip.jsx";
 import UpcomingPanel from "./dashboard/UpcomingPanel.jsx";
 import TaskModal from "../components/TaskModal.jsx";
 import useTasks from "../hooks/useTasks";
@@ -154,21 +153,9 @@ export default function DashboardPage() {
         statusLoading={statusLoading}
       />
 
-      <section className="xp-wide-panel">
-        <div className="panel xp-panel">
-          <div className="xp-header-row">
-            <h2 className="xp-header">XP &amp; Progress</h2>
-            <span className="xp-tag">Gamified</span>
-          </div>
-          <div className="xp-value-large">XP {xp}</div>
+      
 
-          <div className="xp-bar xp-bar-wide">
-            <div className="xp-fill" style={{ width: "45%" }} />
-          </div>
-        </div>
-      </section>
-
-      <KpiStrip todayTasks={todayTasks} streak={streak} />
+      
 
       <UpcomingPanel
         tasks={tasks}
