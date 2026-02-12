@@ -4,6 +4,7 @@ import "./DashboardPage.css";
 import DashboardHero from "./dashboard/DashboardHero.jsx";
 import UpcomingPanel from "./dashboard/UpcomingPanel.jsx";
 import TaskModal from "../components/TaskModal.jsx";
+import Calendar from "./dashboard/Calendar";
 import useTasks from "../hooks/useTasks";
 import useUser from "../hooks/useUser";
 import useCanvasStatus from "../hooks/useCanvasStatus";
@@ -178,6 +179,9 @@ export default function DashboardPage() {
         onSubmit={handleSubmitTask}
         initialTask={editingTask}
       />
+
+      <Calendar/>
+
     </div>
   );
 }

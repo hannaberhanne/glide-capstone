@@ -10,9 +10,6 @@
   --task-hover: var(--bg-secondary);
 }
 
-html:not(.dark-mode):not(.high-contrast) .xp-bar-wide {
-  background: #e2e8f0;
-}
 
 html.dark-mode {
   --dash-accent: #f59e0b;
@@ -47,7 +44,7 @@ html.high-contrast {
   .dash {
     min-height: 100vh;
     width: 100%;
-    padding: 36px 22px 52px;
+    padding: 8px 22px 52px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -65,7 +62,7 @@ html.high-contrast {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: start;
-    padding: 0px 32px 16px;
+    padding: 0px 32px 8px;
   }
   
   .dash-hero-center {
@@ -80,8 +77,8 @@ html.high-contrast {
   
   .dash-date {
     margin: 0;
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--text-muted);
     padding-bottom: 6px;
@@ -89,16 +86,10 @@ html.high-contrast {
     width: fit-content;
   }
   
-  .dash-hero-center {
-    justify-self: center;
-    text-align: center;
-  }
-  
   .dash-title {
     margin: 0;
-    font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+    font-size: 40px;
     font-weight: 700;
-    letter-spacing: -0.01em;
     color: var(--text);
   }
   
@@ -139,7 +130,7 @@ html.high-contrast {
   }
   
   .streak-day-label {
-    font-size: 0.65rem;
+    font-size: 10px;
     color: var(--text-muted);
   }
   
@@ -222,10 +213,6 @@ html.high-contrast {
     margin: 0;
     color: var(--text);
   }
-  
-  .dash-add-btn {
-    
-  }
 
  
 /* =========================
@@ -258,11 +245,9 @@ html.high-contrast {
     margin-bottom: 10px;
     gap: 8px;
     flex-wrap: wrap;
+    margin-top: -4px;
   }
-  .panel-head {
-  margin-top: -4px;
-}
- 
+
 
   .panel-head h2 {
     margin: 0;
@@ -307,13 +292,9 @@ html.high-contrast {
     border: 1px solid var(--border-subtle);
   
     transition: background 0.15s ease, box-shadow 0.15s ease;
-  }
-  .task-item {
     position: relative;
   }
-  
-  
-  
+
   .task-item:hover {
     background: var(--card-bg-hover);
   }
@@ -508,48 +489,6 @@ html.high-contrast {
     color: yellow;
   }
   
-  /* =========================
-     FILTER PILLS
-     ========================= */
-  
-  .task-filters {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin: 6px 0 10px;
-  }
-  
-  .filter-pill {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--quick-bg);
-    color: var(--text);
-    font-weight: 600;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background 0.12s ease, box-shadow 0.12s ease;
-  }
-  
-  .filter-pill.active {
-    background: var(--dash-accent-soft);
-    border-color: rgba(249, 115, 22, 0.35);
-    box-shadow: 0 6px 12px rgba(249, 115, 22, 0.18);
-    color: var(--dash-accent);
-  }
-  
-  html.high-contrast .filter-pill {
-    background: black;
-    color: yellow;
-    border-color: yellow;
-  }
-  
-  html.high-contrast .filter-pill.active {
-    background: yellow;
-    color: black;
-    border-color: yellow;
-    box-shadow: none;
-  }
   
   /* =========================
      GROUPS
@@ -612,107 +551,6 @@ html.high-contrast {
     text-decoration: underline;
   }
   
-  /* =========================
-     QUICK LINKS
-     ========================= */
-  
-  .quick-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .quick-btn {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    padding: 11px 12px;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    background: var(--quick-bg);
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 700;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
-  }
-  
-  .quick-btn:hover {
-    background: var(--quick-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
-  }
-  
-  html.high-contrast .quick-btn {
-    background: black;
-    border-color: yellow;
-    color: yellow;
-  }
-  
-  html.high-contrast .quick-btn:hover {
-    background: yellow;
-    color: black;
-    box-shadow: none;
-  }
-
-/* =========================
-   LOADING STATE
-   ========================= */
-
-   .dash-loading {
-    width: 100%;
-    max-width: 960px;
-    padding: 40px 0;
-    display: flex;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 15px;
-  }
-  
-  /* High contrast loading text */
-  html.high-contrast .dash-loading {
-    color: yellow;
-  }
-  
-  /* =========================
-     EMPTY STATE PANEL
-     ========================= */
-  
-  .dash-empty {
-    width: 100%;
-    max-width: 960px;
-    background: var(--card-bg);
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    box-shadow: var(--dash-shadow-soft);
-    padding: 22px;
-    text-align: center;
-    color: var(--text-muted);
-  }
-  
-  .dash-empty h3 {
-    margin: 0 0 6px;
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--text);
-  }
-  
-  .dash-empty p {
-    margin: 0;
-    color: var(--text-muted);
-  }
-  
-  /* High contrast empty panel overrides */
-  html.high-contrast .dash-empty {
-    background: black;
-    border-color: yellow;
-    color: yellow;
-  }
-  
-  html.high-contrast .dash-empty h3 {
-    color: yellow;
-  }
   
   /* =========================
      RESPONSIVE LAYOUT
@@ -726,15 +564,6 @@ html.high-contrast {
     .dash-hero {
       flex-direction: column;
       align-items: flex-start;
-    }
-  
-    .xp-panel {
-      padding: 20px 18px;
-    }
-  
-    .dash-kpis {
-      grid-template-columns: 1fr;
-      gap: 14px;
     }
   
     .quick-grid {
@@ -753,9 +582,6 @@ html.high-contrast {
       font-size: 26px;
     }
   
-    .xp-value-large {
-      font-size: 24px;
-    }
   
     .panel {
       padding: 14px;
