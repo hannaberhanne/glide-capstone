@@ -1,3 +1,8 @@
+.landing-page {
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
 /* ===== NAVBAR ===== */
 .landing-header {
   position: absolute;
@@ -5,7 +10,6 @@
   left: 0;
   width: 100%;
   z-index: 20;
-  background: transparent;
   padding: 22px 7vw;
   box-sizing: border-box;
 }
@@ -22,29 +26,16 @@
   align-items: center;
   justify-content: flex-start;
   font-size: 22px;
-  font-weight: 900;
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
   padding: 0;
   margin: 0;
-  color: #111827;
-}
-
-.landing-logo span {
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
 }
 
 .logo-text {
-  color: #111827 !important;
   font-weight: 800;
 }
 
 .logo-plus {
-  color: #f97316 !important;
-  font-weight: 900;
+  font-weight: 800;
   margin-left: 2px;
 }
 
@@ -55,9 +46,8 @@
 }
 
 .nav-login {
-  background: var(--bg-color);
-  color: var(--text-color);
   font-weight: 700;
+  background: var(--bg-color);
   font-size: 13px;
   padding: 8px 20px;
   border-radius: 4px;
@@ -66,12 +56,12 @@
 }
 
 .nav-login:hover {
-  transform: scale(1.1);
+  transform: translateY(-3px);
 }
 
 .nav-signup {
-  background: #111827;
-  color: white;
+  background: var(--text-color); {/* Flipped bg and text */)}
+  color: var(--bg-color);
   font-weight: 800;
   font-size: 13px;
   padding: 8px 20px;
@@ -81,8 +71,7 @@
 }
 
 .nav-signup:hover {
-  background: #f97316;
-  color: #111827;
+  transform: translateY(-3px);
 }
 
 /* ===== HERO ===== */
@@ -93,7 +82,6 @@
   align-items: flex-end;
   justify-content: flex-start;
   padding: 80px 8vw;
-  box-sizing: border-box;
   overflow: hidden;
 }
 
@@ -103,21 +91,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.8);
-  z-index: 0;
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.75) 100%);
-  z-index: 1;
+  filter: brightness(0.6);
 }
 
 .hero-content {
   position: relative;
-  z-index: 2;
-  color: white;
+  color: #F5F1E8;
   max-width: 540px;
 }
 
@@ -134,7 +113,6 @@
 }
 
 .hero-subtitle {
-  color: #e5e7eb;
   font-size: 16px;
   line-height: 1.5;
   margin-bottom: 24px;
@@ -151,27 +129,27 @@
   font-weight: 700;
   padding: 10px 24px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  box-shadow: 0 6px 14px #3E3731;
 }
+
 
 .btn-primary {
-  background: #f97316;
-  color: #111827;
-  box-shadow: 0 6px 14px rgba(15,23,42,0.25);
+  background: var(--bg-color);
+  color: var(--text-color);
 }
-
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(15,23,42,0.35);
+  transform: translateY(-3px);
 }
 
 .btn-secondary {
-  border: 1px solid white;
-  color: white;
+  border: 1px solid var(--bg-color);
+  background: var(--text-color);
 }
 
 .btn-secondary:hover {
-  background: rgba(255,255,255,0.1);
+  filter: brightness(0.8);
+  transform: translateY(-3px);
 }
 
 /* ===== CAROUSEL ===== */

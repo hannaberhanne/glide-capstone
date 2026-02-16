@@ -34,7 +34,7 @@ export default function LandingPage() {
     <div className="landing-page">
 
       {/* ===== NAVBAR ===== */}
-<header className="landing-header">
+      <header className="landing-header">
   <div className="nav-container">
     <div className="nav-left">
       <div className="landing-logo">
@@ -54,7 +54,6 @@ export default function LandingPage() {
     <source src="/videos/skate-hero.mp4" type="video/mp4" />
   </video>
 
-  <div className="hero-overlay"></div>
 
   <div className="hero-content">
     <p className="hero-eyebrow">GLIDE+</p>
@@ -101,15 +100,6 @@ export default function LandingPage() {
   <div className="feature-grid">
     {/* AI Task Planner */}
     <Link to="/planner" className="feature-card">
-      <div className="feature-icon">
-        {/* Clipboard / List icon */}
-        <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="9" y="2" width="6" height="4" rx="1" ry="1"></rect>
-          <path d="M4 6h16v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"></path>
-          <line x1="9" y1="10" x2="15" y2="10"></line>
-          <line x1="9" y1="14" x2="13" y2="14"></line>
-        </svg>
-      </div>
       <div className="feature-content">
         <h4>AI Task Planner</h4>
         <p>Upload syllabi or assignments and let Glide+ create your adaptive plan.</p>
@@ -137,16 +127,6 @@ export default function LandingPage() {
 
     {/* Habit & Goal Tracking */}
     <Link to="/dashboard" className="feature-card">
-      <div className="feature-icon">
-        {/* Trophy / Reward icon */}
-        <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M8 21h8"></path>
-          <path d="M12 17v4"></path>
-          <path d="M7 4h10v4a5 5 0 0 1-10 0z"></path>
-          <path d="M5 4H3v4a5 5 0 0 0 5 5h.1"></path>
-          <path d="M19 4h2v4a5 5 0 0 1-5 5h-.1"></path>
-        </svg>
-      </div>
       <div className="feature-content">
         <h4>Habit & Goal Tracking</h4>
         <p>Track habits, earn XP, and stay consistent without burning out.</p>
