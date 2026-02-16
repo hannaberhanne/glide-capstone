@@ -1,13 +1,3 @@
-/* ===== RESET ===== */
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  overflow-x: hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #111827;
-}
-
 /* ===== NAVBAR ===== */
 .landing-header {
   position: absolute;
@@ -65,18 +55,18 @@ html, body, #root {
 }
 
 .nav-login {
-  background: white;
-  color: #111827;
+  background: var(--bg-color);
+  color: var(--text-color);
   font-weight: 700;
   font-size: 13px;
   padding: 8px 20px;
   border-radius: 4px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .nav-login:hover {
-  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.1);
 }
 
 .nav-signup {

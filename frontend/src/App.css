@@ -9,17 +9,19 @@ html, body, #root {
   box-sizing: border-box;
 }
 
+:root {
+  --bg-color: #F5F1E8;
+  --text-color: #3E3731;
+}
+
+:root.dark {
+  --bg-color: #3E3731;
+  --text-color: #F5F1E8;
+}
+
+
 body {
-  background-color: #ffffff;
-  color: #111827;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-/* Fix for layout stretching */
-.app-layout {
-  width: 100%;
-}
-
-main {
-  width: 100%;
+  background-color: var(--bg-color);
+  color: var(--text-color);
 }
