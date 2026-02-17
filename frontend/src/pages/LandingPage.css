@@ -199,8 +199,8 @@
 }
 
 .carousel-item.active {
-  background: #111827;
-  color: #f9fafb;
+  background: var(--bg-color);
+  color: var(--text-color);
   opacity: 1;
   transform: scale(1.05);
   box-shadow: 0 14px 36px rgba(0,0,0,0.35);
