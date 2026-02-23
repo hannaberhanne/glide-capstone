@@ -30,3 +30,4 @@ export default function KpiStrip({ todayTasks, streak }) {
     </section>
   );
 }
+ {/* WE CAN DELETE THIS FILE */}
