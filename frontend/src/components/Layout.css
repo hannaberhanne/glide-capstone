@@ -5,26 +5,24 @@
   left: 0;
   width: 100%;
   box-shadow: 0 2px 14px var(--text-color);
-  z-index: 50;
 }
 
 .header-inner {
   max-width: 1920px;
   margin: 0 auto;
-  padding: 10px 6vw;
+  padding: 10px 4vw;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .logo {
-  font-weight: 800;
+  font-weight: 700;
   font-size: 20px;
-  color: var(--header-text);
 }
 
 .plus {
-  color: var(--accent);
+  color: var(--highlight-color);
 }
 
 .nav-links {
@@ -35,7 +33,6 @@
 
 .nav-links a {
   text-decoration: none;
-  color: var(--header-text);
   font-weight: 600;
   position: relative;
   transition: color 0.2s ease;
@@ -48,7 +45,7 @@
   bottom: -3px;
   width: 0%;
   height: 2px;
-  background-color: var(--accent);
+  background-color: var(--highlight-color);
   transition: width 0.2s ease;
 }
 
