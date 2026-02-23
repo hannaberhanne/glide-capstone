@@ -1,40 +1,15 @@
-:root {
-  --header-bg: #ffffff;
-  --header-text: #111827;
-  --header-subtle: #6b7280;
-  --header-shadow: rgba(0, 0, 0, 0.06);
-  --accent: #f97316; /* orange + sign color */
-  --page-gutter: clamp(16px, 5vw, 40px);
-}
-
-html.dark-mode {
-  --header-bg: #0d1525;
-  --header-text: #f1f5f9;
-  --header-subtle: #cbd5e1;
-  --header-shadow: rgba(0, 0, 0, 0.45);
-  --accent: #f59e0b;
-}
-
-html.high-contrast {
-  --header-bg: #000000;
-  --header-text: #ffffff;
-  --header-subtle: #ffffff;
-  --header-shadow: none;
-  --accent: #f97316;
-}
 
 .main-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background: var(--header-bg);
-  box-shadow: 0 2px 14px var(--header-shadow);
+  box-shadow: 0 2px 14px var(--text-color);
   z-index: 50;
 }
 
 .header-inner {
-  max-width: 1200px;
+  max-width: 1920px;
   margin: 0 auto;
   padding: 10px 6vw;
   display: flex;

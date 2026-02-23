@@ -13,11 +13,13 @@ html, body, #root {
 :root {
   --bg-color: #F5F1E8;
   --text-color: #3E3731;
+  --highlight-color: #AE2DD5;
 }
 
 :root.dark {
   --bg-color: #3E3731;
   --text-color: #F5F1E8;
+  --highlight-color: #C630F4;
 }
 
 

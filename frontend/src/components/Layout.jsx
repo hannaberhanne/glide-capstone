@@ -26,12 +26,6 @@ export default function Layout() {
               Dashboard
             </Link>
 
-            <Link
-              to="/today"
-              className={location.pathname === "/today" ? "active" : ""}
-            >
-              Today
-            </Link>
 
             <Link
               to="/planner"

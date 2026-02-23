@@ -40,7 +40,6 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/home" element={<DashboardPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/today" element={<TodayPage />} />
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/goals" element={<GoalsPage />} />
 
