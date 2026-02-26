@@ -25,7 +25,7 @@
   color: #111827;
 }
 .demo-logo-plus {
-  color: #f97316;
+  color: var(--highlight-color);
   margin-left: 2px;
 }
 
@@ -40,7 +40,7 @@
   transition: 0.2s;
 }
 .demo-login-btn:hover {
-  background: #f97316;
+  background: var(--highlight-color);
   color: #111827;
 }
 
@@ -123,7 +123,7 @@
 }
 
 .demo-btn-primary {
-  background: #f97316;
+  background: var(--highlight-color);
   color: #111827;
   padding: 12px 32px;
   border-radius: 999px;

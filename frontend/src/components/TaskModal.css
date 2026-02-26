@@ -1,207 +1,40 @@
 .taskmodal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 120;
-  padding: 16px;
+  position: fixed; inset: 0; background: rgba(62,55,49,0.3);
+  display: flex; align-items: center; justify-content: center; z-index: 120; padding: 16px;
 }
+html.dark-mode .taskmodal-overlay { background: rgba(0,0,0,0.5); }
+html.high-contrast .taskmodal-overlay { background: rgba(0,0,0,0.85); }
 
 .taskmodal {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
-  max-width: 520px;
-  width: 100%;
-  padding: 18px;
-  display: grid;
-  gap: 12px;
-  border: 1px solid #e5e7eb;
+  background: var(--card-bg); border-radius: 16px; max-width: 520px; width: 100%; padding: 18px;
+  display: grid; gap: 12px; border: 1px solid var(--card-border); color: var(--text-color);
 }
-
-.taskmodal-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+html.high-contrast .taskmodal { background: black; border: 2px solid yellow; color: yellow; }
+.taskmodal-head { display: flex; justify-content: space-between; align-items: center; }
+.taskmodal h3 { margin: 0; font-size: 17px; font-weight: 800; color: var(--text-color); }
+.taskmodal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-muted); }
+.taskmodal-label { display: grid; gap: 5px; font-size: 13px; color: var(--text-muted); font-weight: 600; }
+.taskmodal-input, .taskmodal-textarea, .taskmodal select {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--card-border); font-size: 14px; font-family: inherit;
+  color: var(--text-color); background: var(--bg-color); box-sizing: border-box;
 }
-
-.taskmodal h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  color: #0f172a;
+.taskmodal-input:focus, .taskmodal-textarea:focus, .taskmodal select:focus {
+  outline: none; border-color: var(--highlight-color); box-shadow: 0 0 0 3px var(--accent-soft);
 }
-
-.taskmodal-close {
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #94a3b8;
-}
-
-.taskmodal-label {
-  display: grid;
-  gap: 6px;
-  font-size: 13px;
-  color: #475569;
-  font-weight: 600;
-}
-
-.taskmodal-input,
-.taskmodal-textarea,
-.taskmodal select {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  font-size: 14px;
-  font-family: inherit;
-  color: #0f172a;
-  box-sizing: border-box;
-}
-
-.taskmodal-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
-
-.taskmodal-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.taskmodal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 4px;
-}
-
+html.high-contrast .taskmodal-input, html.high-contrast .taskmodal-textarea, html.high-contrast .taskmodal select { background: black; color: yellow; border: 1px solid yellow; }
+.taskmodal-textarea { min-height: 80px; resize: vertical; }
+.taskmodal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.taskmodal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
 .taskmodal-primary {
-  background: linear-gradient(135deg, #f97316, #fb923c);
-  color: #111827;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 10px 22px rgba(249, 115, 22, 0.3);
+  background: var(--text-color); color: var(--bg-color);
+  border: none; padding: 10px 16px; border-radius: 999px; font-weight: 700; cursor: pointer; font-family: inherit;
 }
-
-.taskmodal-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
+.taskmodal-primary:hover { opacity: 0.9; }
+.taskmodal-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+html.high-contrast .taskmodal-primary { background: yellow; color: black; }
 .taskmodal-secondary {
-  background: #f8fafc;
-  color: #0f172a;
-  border: 1px solid #e5e7eb;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
+  background: var(--bg-secondary); color: var(--text-color);
+  border: 1px solid var(--card-border); padding: 10px 16px; border-radius: 999px; font-weight: 600; cursor: pointer; font-family: inherit;
 }
-  
-  /* ============================================================
-     DARK MODE OVERRIDES
-     ============================================================ */
-  
-  html.dark-mode .taskmodal-overlay {
-    background: rgba(0,0,0,0.45);
-  }
-  
-  html.dark-mode .taskmodal {
-    background: var(--card);
-    border-color: var(--dash-border);
-    color: var(--dash-ink);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
-  }
-  
-  html.dark-mode .taskmodal-title {
-    color: var(--dash-ink);
-  }
-  
-  html.dark-mode .taskmodal-label {
-    color: var(--dash-muted);
-  }
-  
-  html.dark-mode .taskmodal-input,
-  html.dark-mode .taskmodal-textarea,
-  html.dark-mode .taskmodal select {
-    background: var(--card);
-    border-color: var(--dash-border);
-    color: var(--dash-ink);
-  }
-  
-  html.dark-mode .taskmodal-secondary {
-    background: var(--quick-bg);
-    border-color: var(--dash-border);
-    color: var(--dash-ink);
-  }
-  
-  html.dark-mode .taskmodal-primary {
-    color: black; /* readable on orange gradient */
-  }
-  
-  html.dark-mode .taskmodal-close {
-    color: var(--dash-muted);
-  }
-  
-  html.dark-mode .taskmodal h3 {
-    color: var(--dash-ink) !important;
-  }
-  
-  /* ============================================================
-     HIGH CONTRAST OVERRIDES
-     ============================================================ */
-  
-  html.high-contrast .taskmodal-overlay {
-    background: rgba(0,0,0,0.8);
-  }
-  
-  html.high-contrast .taskmodal {
-    background: black;
-    border: 2px solid yellow;
-    color: yellow;
-    box-shadow: none;
-  }
-  
-  html.high-contrast .taskmodal-title,
-  html.high-contrast .taskmodal-label {
-    color: yellow;
-  }
-  
-  html.high-contrast .taskmodal-input,
-  html.high-contrast .taskmodal-textarea,
-  html.high-contrast .taskmodal select {
-    background: black;
-    color: yellow;
-    border: 1px solid yellow;
-  }
-  
-  html.high-contrast .taskmodal-secondary {
-    background: black;
-    color: yellow;
-    border: 1px solid yellow;
-  }
-  
-  html.high-contrast .taskmodal-primary {
-    background: yellow;
-    color: black;
-    box-shadow: none;
-  }
-  
-  html.high-contrast .taskmodal-close {
-    color: yellow;
-  }
-  
-  html.high-contrast .taskmodal h3 {
-    color: yellow !important;
-  }
-  
+html.high-contrast .taskmodal-secondary { background: black; color: yellow; border-color: yellow; }

@@ -83,7 +83,7 @@ export default function LoginPage() {
           </button>
           <p style={{ marginTop: "1rem" }}>
             Don't have an account?{" "}
-            <Link to="/signup" style={{ color: "#f97316", fontWeight: 500 }}>
+            <Link to="/signup" style={{ color: "var(--highlight-color)", fontWeight: 500 }}>
               Sign up here
             </Link>
           </p>

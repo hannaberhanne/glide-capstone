@@ -15,5 +15,5 @@
 .authlogo-plus {
   font-size: 22px;
   font-weight: 900;
-  color: #f97316; /* orange brand */
+  color: var(--highlight-color); /* orange brand */
 }
