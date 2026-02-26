@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import AccessibilityMenu from "./AccessibilityMenu.jsx";
+import Footer from "./Footer.jsx";
 import "./Layout.css";
 
 export default function Layout() {
@@ -58,6 +59,8 @@ export default function Layout() {
       <main className="main-content">
         <Outlet />
       </main>
+
+      <Footer />
 
       <div className="accessibility-container">
         <AccessibilityMenu />
