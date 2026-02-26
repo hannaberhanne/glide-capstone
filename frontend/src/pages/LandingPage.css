@@ -62,7 +62,7 @@
 }
 
 .nav-signup {
-  background: var(--text-color); {/* Flipped bg and text */)}
+  background: var(--text-color); /* Flipped bg and text */
   color: var(--bg-color);
   border: 1px solid var(--bg-color);
   font-weight: 800;
@@ -268,15 +268,15 @@
   text-align: left;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--highlight-color);
-  box-shadow: 0 6px 14px var(--highlight-color);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 6px 14px rgba(62, 55, 49, 0.12);
   text-decoration: none;
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .feature-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 28px var(--highlight-color);
+  box-shadow: 0 12px 28px rgba(62, 55, 49, 0.2);
 }
 
 /* Icon */
@@ -343,7 +343,7 @@
   margin: 0 0 8px;
   font-size: 18px;
   font-weight: 800;
-  color: #111827;
+  color: var(--text-color);
 }
 
 .feature-content p {
@@ -383,14 +383,14 @@
   font-weight: 800;
   border-radius: 999px;
   text-decoration: none;
-  box-shadow: 0 10px 25px var(--highlight-color);
+  box-shadow: 0 10px 25px rgba(62, 55, 49, 0.25);
   transition: all 0.3s ease;
   display: inline-block;
 }
 
 .cta-button:hover {
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 16px 40px var(--highlight-color);
+  box-shadow: 0 16px 40px rgba(62, 55, 49, 0.35);
   background: var(--text-color);
   color: var(--bg-color);
 }

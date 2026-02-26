@@ -7,36 +7,70 @@ html, body, #root {
   overflow-x: hidden;
   background: none;
   box-sizing: border-box;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ===== LIGHT MODE ===== */
 :root {
-  --bg-color: #F5F1E8;
-  --text-color: #3E3731;
-  --highlight-color: #C630F4;
+  /* Landing page originals — keep these exactly */
+  --bg-color:        #F5F1E8;
+  --text-color:      #3E3731;
+  --highlight-color: #8B6B5A
   --achievement-color: #A58F1C;
+
+  /* Extended palette for interior pages */
+  --card-bg:         #FAF7F2;
+  --card-border:     #E0D8CD;
+  --text-muted:      #7A6E65;
+  --accent:          #8B6B5A;
+  --accent-soft:     rgba(198, 48, 244, 0.10);
+  --bg-secondary:    #EDE8DF;
+  --color-green:     #4CAF50;
+  --color-red:       #E53935;
+  --color-gold:      #A58F1C;
+  --shadow-soft:     0 2px 12px rgba(62, 55, 49, 0.08);
 }
 
-:root.dark {
-  --bg-color: #3E3731;
-  --text-color: #F5F1E8;
-  --highlight-color: #C630F4;
+/* ===== DARK MODE ===== */
+html.dark-mode {
+  --bg-color:        #2A221C;
+  --text-color:      #F5F1E8;
+  --highlight-color: #8B6B5A;
   --achievement-color: #D4A574;
+
+  --card-bg:         #352B24;
+  --card-border:     #4A3C32;
+  --text-muted:      #B0A090;
+  --accent:          #8B6B5A;
+  --accent-soft:     rgba(217, 96, 248, 0.12);
+  --bg-secondary:    #3D3028;
+  --color-green:     #66BB6A;
+  --color-red:       #EF5350;
+  --color-gold:      #D4A574;
+  --shadow-soft:     0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* ===== HIGH CONTRAST ===== */
+html.high-contrast {
+  --bg-color:        #000000;
+  --text-color:      #ffffff;
+  --highlight-color: #ffff00;
+  --achievement-color: #ffff00;
+
+  --card-bg:         #000000;
+  --card-border:     #ffffff;
+  --text-muted:      #ffffff;
+  --accent:          #ffff00;
+  --accent-soft:     rgba(255,255,0,0.15);
+  --bg-secondary:    #000000;
+  --color-green:     #00ff00;
+  --color-red:       #ff0000;
+  --color-gold:      #ffff00;
+  --shadow-soft:     none;
+}
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
-
-button {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
-
-Link {
+  font-family: "Libre Baskerville", serif;
   background-color: var(--bg-color);
   color: var(--text-color);
 }
