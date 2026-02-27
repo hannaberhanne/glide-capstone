@@ -12,10 +12,10 @@ html, body, #root {
 
 /* ===== LIGHT MODE ===== */
 :root {
-  /* Landing page originals — keep these exactly */
-  --bg-color:        #F5F1E8;
-  --text-color:      #3E3731;
-  --highlight-color: #8B6B5A
+  --bg-color: #F5F1E8;
+  --text-color: #3E3731;
+  --highlight-color: #C630F4;
+  --accent-color: #F1F1F1;
   --achievement-color: #A58F1C;
 
   /* Extended palette for interior pages */
@@ -31,11 +31,11 @@ html, body, #root {
   --shadow-soft:     0 2px 12px rgba(62, 55, 49, 0.08);
 }
 
-/* ===== DARK MODE ===== */
-html.dark-mode {
-  --bg-color:        #2A221C;
-  --text-color:      #F5F1E8;
-  --highlight-color: #8B6B5A;
+:root.dark {
+  --bg-color: #3E3731;
+  --text-color: #F5F1E8;
+  --highlight-color: #C630F4;
+  --accent-color: #313131;
   --achievement-color: #D4A574;
 
   --card-bg:         #352B24;
