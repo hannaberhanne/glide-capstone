@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
 import "./SignupPage.css";
 import AuthLogo from "../components/AuthLogo";
+import AlertBanner from "../components/AlertBanner.jsx";
 
 export default function SignupPage() {
   const nav = useNavigate();
@@ -15,8 +16,9 @@ export default function SignupPage() {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [banner, setBanner] = useState(null);
 
-  const [error, setError] = useState("");
+  //const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   //const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{10,}$/;  PASSWORD REQUIREMENTS upper, lower, decimal, 10 chars
 
@@ -32,44 +34,45 @@ export default function SignupPage() {
 
   async function handleSignup(e) {
     e.preventDefault();
-    setError("");
 
-    if (!canSubmit) { setError("Please fill in all fields correctly"); return; }
+    if (!canSubmit) {
+      setBanner({ message: "Please fill in all fields correctly", type: "error" });
+      return;
+    }
 
     setLoading(true);
 
     try {
-      // 1. Create user in Firebase Auth
       const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCred.user;
       const idToken = await user.getIdToken();
 
-
-      const response = await fetch(`${API_URL}/api/auth/signup`, {  // route to sign up a new user
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({  // body in alphabetical order
+        body: JSON.stringify({
           email: email.trim(),
           firstName: firstName.trim(),
           lastName: lastName.trim(),
         })
-      })
+      });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to create profile');
+        setBanner({ message: data.error || "Failed to create profile", type: "error" });
+        setLoading(false);
+        return; // ❌ was missing — code was falling through to success banner
       }
 
-      alert("Account created successfully!");
-      nav("/onboarding");
+      setBanner({ message: "Account Created Successfully!", type: "success" });
+      setTimeout(() => nav("/onboarding"), 2000);
+
     } catch (err) {
-      console.error("Signup error:", err.message);
       let errorMessage = err.message;
 
-      // specific error messages from Claude
       if (err.code === 'auth/email-already-in-use') {
         errorMessage = 'An account with this email already exists';
       } else if (err.code === 'auth/invalid-email') {
@@ -77,13 +80,22 @@ export default function SignupPage() {
       } else if (err.code === 'auth/weak-password') {
         errorMessage = 'Password should be at least 6 characters';
       }
-      setError(errorMessage);
+
+      setBanner({ message: errorMessage, type: "error" });
       setLoading(false);
     }
   }
 
   return (
     <div className="login-wrap">
+      {banner && (
+          <AlertBanner
+              message={banner.message}
+              type={banner.type}
+              onClose={() => setBanner(null)}
+          />
+      )}
+
       <div className="login-top">
         <div className="login-top-left">Sign Up</div>
         <Link className="create-link" to="/login">
@@ -155,7 +167,8 @@ export default function SignupPage() {
           <button className="login-btn" type="submit" disabled={!canSubmit || loading}>
             {loading ? "Creating Account..." : "SIGN UP"}
           </button>
-          {error && <error>{error}</error>}
+          {/** error && <error>{error}</error>**/}
+
         </form>
       </div>
     </div>
