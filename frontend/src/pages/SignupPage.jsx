@@ -93,12 +93,12 @@ export default function SignupPage() {
 
       <div className="login-card">
         <h1 className="login-title">
-          CREATE ACCOUNT ON <AuthLogo />
+          Create Account
         </h1>
 
         <form className="login-form" onSubmit={handleSignup}>
           <label className="field">
-            <span className="field-label">FIRST NAME</span>
+            <span className="field-label">First Name</span>
             <input
               className="field-input"
               type="text"
@@ -109,7 +109,7 @@ export default function SignupPage() {
           </label>
 
           <label className="field">
-            <span className="field-label">LAST NAME</span>
+            <span className="field-label">Last Name</span>
             <input
                 className="field-input"
                 type="text"
@@ -120,7 +120,7 @@ export default function SignupPage() {
           </label>
 
           <label className="field">
-            <span className="field-label">EMAIL</span>
+            <span className="field-label">Email</span>
             <input
               className="field-input"
               type="email"
@@ -131,7 +131,7 @@ export default function SignupPage() {
           </label>
 
           <label className="field">
-            <span className="field-label">PASSWORD</span>
+            <span className="field-label">Password</span>
             <input
               className="field-input"
               type="password"
@@ -142,7 +142,7 @@ export default function SignupPage() {
           </label>
 
           <label className="field">
-            <span className="field-label">CONFIRM PASSWORD</span>
+            <span className="field-label">Confirm Password</span>
             <input
               className="field-input"
               type="password"
@@ -153,9 +153,9 @@ export default function SignupPage() {
           </label>
 
           <button className="login-btn" type="submit" disabled={!canSubmit || loading}>
-            {loading ? "Creating..." : "SIGN UP"}
+            {loading ? "Creating Account..." : "SIGN UP"}
           </button>
-          {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
+          {error && <error>{error}</error>}
         </form>
       </div>
     </div>
