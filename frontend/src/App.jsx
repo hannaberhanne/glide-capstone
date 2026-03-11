@@ -11,7 +11,6 @@ import SettingsPage from "./pages/SettingsPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import DemoPage from "./pages/DemoPage.jsx";
 import GoalsPage from "./pages/GoalsPage.jsx";
-import TodayPage from "./pages/TodayPage.jsx";
 import "./App.css";
 
 function NotFound() {
