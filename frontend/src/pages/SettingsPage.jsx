@@ -52,7 +52,10 @@ export default function SettingsPage() {
     firstName: userRecord?.firstName || "",
     lastName: userRecord?.lastName || "",
     email: auth.currentUser?.email || "",
+    password: "",
+    hometown: userRecord?.hometown || "",
     university: userRecord?.university || "",
+    year: userRecord?.year || "",
     major: userRecord?.major || "",
     timezone: userRecord?.timezone || "",
   });
@@ -75,7 +78,10 @@ export default function SettingsPage() {
       firstName: userRecord?.firstName || "",
       lastName: userRecord?.lastName || "",
       email: auth.currentUser?.email || "",
+      password: "",
+      hometown: userRecord?.hometown || "",
       university: userRecord?.university || "",
+      year: userRecord?.year || "",
       major: userRecord?.major || "",
       timezone: userRecord?.timezone || "",
     });
@@ -108,7 +114,10 @@ export default function SettingsPage() {
       firstName: userRecord?.firstName || "",
       lastName: userRecord?.lastName || "",
       email: auth.currentUser?.email || "",
+      password: "",
+      hometown: userRecord?.hometown || "",
       university: userRecord?.university || "",
+      year: userRecord?.year || "",
       major: userRecord?.major || "",
       timezone: userRecord?.timezone || "",
     });
@@ -133,7 +142,9 @@ export default function SettingsPage() {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
+        hometown: form.hometown.trim(),
         university: form.university.trim(),
+        year: form.year.trim(),
         major: form.major.trim(),
         timezone: form.timezone.trim(),
         preferences: { ...prefs },
@@ -211,33 +222,24 @@ export default function SettingsPage() {
                 />
               </label>
 
-              <label>
-                University
+              <label className="settings-field-full">
+                Password
                 <input
                   className="settings-input"
-                  value={form.university}
-                  onChange={(e) => updateFormField("university", e.target.value)}
-                  placeholder="University"
-                />
-              </label>
-
-              <label>
-                Major
-                <input
-                  className="settings-input"
-                  value={form.major}
-                  onChange={(e) => updateFormField("major", e.target.value)}
-                  placeholder="Major"
+                  value={form.password}
+                  onChange={(e) => updateFormField("password", e.target.value)}
+                  placeholder="Enter new password"
+                  type="password"
                 />
               </label>
 
               <label className="settings-field-full">
-                Timezone
+                Home Town
                 <input
                   className="settings-input"
-                  value={form.timezone}
-                  onChange={(e) => updateFormField("timezone", e.target.value)}
-                  placeholder="Timezone"
+                  value={form.hometown}
+                  onChange={(e) => updateFormField("hometown", e.target.value)}
+                  placeholder="Home town"
                 />
               </label>
             </div>
@@ -252,7 +254,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={resetForm}
               >
-                Reset
+              {/* Reset */}
               </button>
             </div>
 
@@ -369,44 +371,92 @@ export default function SettingsPage() {
             <div>
               <h1 className="settings-panel-title">Student</h1>
               <p className="settings-panel-subtitle">
-                Your academic profile and integrations.
+                Manage your academic profile and Canvas connection.
               </p>
             </div>
           </div>
 
-          <div className="student-grid">
-            <article className="settings-info-card">
-              <h2 className="settings-section-title">Academic Info</h2>
-              <div className="settings-info-list">
-                <div>
-                  <span className="settings-info-label">University</span>
-                  <p>{form.university || "Not set"}</p>
-                </div>
-                <div>
-                  <span className="settings-info-label">Major</span>
-                  <p>{form.major || "Not set"}</p>
-                </div>
-                <div>
-                  <span className="settings-info-label">Timezone</span>
-                  <p>{form.timezone || "Not set"}</p>
-                </div>
-              </div>
-            </article>
+          <form className="settings-form" onSubmit={handleProfileSave}>
+            <div className="student-grid">
+              <article className="settings-info-card">
+                <h2 className="settings-section-title">Academic Info</h2>
 
-            <article className="settings-info-card">
-              <h2 className="settings-section-title">Canvas Sync</h2>
-              <div className="settings-info-list">
-                <div>
-                  <span className="settings-info-label">Status</span>
-                  <p>{canvasConnected ? "Connected" : "Offline"}</p>
-                </div>
-              </div>
+                <div className="settings-form-grid">
+                  <label className="settings-field-full">
+                    University
+                    <input
+                      className="settings-input"
+                      value={form.university}
+                      onChange={(e) =>
+                        updateFormField("university", e.target.value)
+                      }
+                      placeholder="University"
+                    />
+                  </label>
 
-              <Link to="/canvas-setup" className="settings-btn inline-btn">
-                {canvasConnected ? "Manage Connection" : "Connect Canvas"}
-              </Link>
-            </article>
-          </div>
+                  <label>
+                    Year
+                    <input
+                      className="settings-input"
+                      value={form.year}
+                      onChange={(e) => updateFormField("year", e.target.value)}
+                      placeholder="Senior, Junior, etc."
+                    />
+                  </label>
+
+                  <label>
+                    Major
+                    <input
+                      className="settings-input"
+                      value={form.major}
+                      onChange={(e) => updateFormField("major", e.target.value)}
+                      placeholder="Major"
+                    />
+                  </label>
+                </div>
+              </article>
+
+              <article className="settings-info-card">
+                <h2 className="settings-section-title">Canvas Sync</h2>
+
+                <div className="settings-info-list">
+                  <div>
+                    <span className="settings-info-label">Status</span>
+                    <p>{canvasConnected ? "Connected" : "Offline"}</p>
+                  </div>
+
+                  <div>
+                    <span className="settings-info-label">Connection</span>
+                    <p>
+                      {canvasConnected
+                        ? "Your Canvas account is linked."
+                        : "Connect Canvas to import assignments and deadlines."}
+                    </p>
+                  </div>
+                </div>
+
+                <Link to="/canvas-setup" className="settings-btn inline-btn">
+                  {canvasConnected ? "Manage Connection" : "Connect Canvas"}
+                </Link>
+              </article>
+            </div>
+
+            <div className="settings-form-actions">
+              <button className="settings-btn" type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+
+              <button
+                className="settings-link"
+                type="button"
+                onClick={resetForm}
+              >
+                {/* Reset */}
+              </button>
+            </div>
+
+            {statusMessage && <p className="settings-status">{statusMessage}</p>}
+          </form>
         </section>
       );
     }
@@ -417,8 +467,7 @@ export default function SettingsPage() {
   return (
     <div className="settings-layout">
       <aside className="settings-sidebar">
-
-      <p className="settings-sidebar-title">Settings</p>
+        <p className="settings-sidebar-title">Settings</p>
 
         <button
           className={`settings-sidebar-item ${
