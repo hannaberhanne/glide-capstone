@@ -41,9 +41,11 @@ export default function SettingsPage() {
   const userRecord = Array.isArray(user) ? user[0] : user;
 
   const displayName =
-    userRecord?.firstName ||
-    auth.currentUser?.displayName?.split(" ")[0] ||
-    "User";
+    [userRecord?.firstName, userRecord?.lastName]
+      .filter(Boolean)
+      .join(" ") ||
+    auth.currentUser?.displayName ||
+      "User";
 
   const canvasConnected = !!canvasStatus?.hasToken;
 
@@ -367,14 +369,21 @@ export default function SettingsPage() {
     if (activeTab === "student") {
       return (
         <section className="settings-panel">
-          <div className="settings-panel-header">
-            <div>
-              <h1 className="settings-panel-title">Student</h1>
-              <p className="settings-panel-subtitle">
-                Manage your academic profile and Canvas connection.
-              </p>
+          <div className="settings-panel-header student-header">
+            <h1 className="settings-panel-title">Student</h1>
+
+            <div className="student-meta">
+              <span>{form.university || "University not set"}</span>
+              <span>·</span>
+              <span>{form.year || "Year not set"}</span>
+              <span>·</span>
+              <span>{form.major || "Major not set"}</span>
             </div>
           </div>
+
+<p className="settings-panel-subtitle">
+  Manage your academic profile and Canvas connection.
+</p>
 
           <form className="settings-form" onSubmit={handleProfileSave}>
             <div className="student-grid">

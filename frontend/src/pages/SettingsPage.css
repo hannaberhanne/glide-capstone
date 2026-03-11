@@ -340,6 +340,22 @@ html.dark-mode .settings-sidebar-item.logout {
   margin-top: 6px;
 }
 
+.student-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.student-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 html.high-contrast .settings-input {
   background: black;
   color: yellow;
