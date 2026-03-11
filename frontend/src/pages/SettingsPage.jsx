@@ -12,6 +12,10 @@ const OVERRIDE_PATTERNS = {
   personal: "personal",
 };
 
+const DEFAULT_FONT_SCALE = 100;
+const MIN_FONT_SCALE = 80;
+const MAX_FONT_SCALE = 140;
+
 const resolvePattern = (major, canvasCategory) => {
   const guess = (text) => {
     if (!text) return null;
@@ -45,7 +49,7 @@ export default function SettingsPage() {
       .filter(Boolean)
       .join(" ") ||
     auth.currentUser?.displayName ||
-      "User";
+    "User";
 
   const canvasConnected = !!canvasStatus?.hasToken;
 
@@ -65,6 +69,15 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState({
     notifications: userRecord?.notification || false,
     weeklySummary: userRecord?.weeklySummary || false,
+    theme: localStorage.getItem("darkMode") === "true" ? "dark" : "light",
+    taskColor: localStorage.getItem("taskColor") || "purple",
+    goalColor: localStorage.getItem("goalColor") || "blue",
+    defaultPriority: localStorage.getItem("defaultPriority") || "medium",
+    fontScale:
+      parseInt(localStorage.getItem("fontScale"), 10) || DEFAULT_FONT_SCALE,
+    highContrast: localStorage.getItem("highContrast") === "true",
+    highlightLinks: localStorage.getItem("highlightLinks") === "true",
+    reduceMotion: localStorage.getItem("reduceMotion") === "true",
   });
 
   const [saving, setSaving] = useState(false);
@@ -91,8 +104,67 @@ export default function SettingsPage() {
     setPrefs({
       notifications: userRecord?.notification || false,
       weeklySummary: userRecord?.weeklySummary || false,
+      theme: localStorage.getItem("darkMode") === "true" ? "dark" : "light",
+      taskColor: localStorage.getItem("taskColor") || "purple",
+      goalColor: localStorage.getItem("goalColor") || "blue",
+      defaultPriority: localStorage.getItem("defaultPriority") || "medium",
+      fontScale:
+        parseInt(localStorage.getItem("fontScale"), 10) || DEFAULT_FONT_SCALE,
+      highContrast: localStorage.getItem("highContrast") === "true",
+      highlightLinks: localStorage.getItem("highlightLinks") === "true",
+      reduceMotion: localStorage.getItem("reduceMotion") === "true",
     });
   }, [userRecord]);
+
+  useEffect(() => {
+    const isDark = prefs.theme === "dark";
+    document.documentElement.classList.toggle("dark-mode", isDark);
+    localStorage.setItem("darkMode", isDark);
+  }, [prefs.theme]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      "high-contrast",
+      prefs.highContrast
+    );
+    localStorage.setItem("highContrast", prefs.highContrast);
+  }, [prefs.highContrast]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      "highlight-links",
+      prefs.highlightLinks
+    );
+    localStorage.setItem("highlightLinks", prefs.highlightLinks);
+  }, [prefs.highlightLinks]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      "reduce-motion",
+      prefs.reduceMotion
+    );
+    localStorage.setItem("reduceMotion", prefs.reduceMotion);
+  }, [prefs.reduceMotion]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--font-scale",
+      `${prefs.fontScale}%`
+    );
+    localStorage.setItem("fontScale", prefs.fontScale);
+  }, [prefs.fontScale]);
+
+  useEffect(() => {
+    localStorage.setItem("taskColor", prefs.taskColor);
+  }, [prefs.taskColor]);
+
+  useEffect(() => {
+    localStorage.setItem("goalColor", prefs.goalColor);
+  }, [prefs.goalColor]);
+
+  useEffect(() => {
+    localStorage.setItem("defaultPriority", prefs.defaultPriority);
+  }, [prefs.defaultPriority]);
 
   const handleLogout = async () => {
     try {
@@ -111,6 +183,24 @@ export default function SettingsPage() {
     setPrefs((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const updatePref = (field, value) => {
+    setPrefs((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const increaseFontScale = () => {
+    setPrefs((prev) => ({
+      ...prev,
+      fontScale: Math.min(prev.fontScale + 10, MAX_FONT_SCALE),
+    }));
+  };
+
+  const decreaseFontScale = () => {
+    setPrefs((prev) => ({
+      ...prev,
+      fontScale: Math.max(prev.fontScale - 10, MIN_FONT_SCALE),
+    }));
+  };
+
   const resetForm = () => {
     setForm({
       firstName: userRecord?.firstName || "",
@@ -127,6 +217,15 @@ export default function SettingsPage() {
     setPrefs({
       notifications: userRecord?.notification || false,
       weeklySummary: userRecord?.weeklySummary || false,
+      theme: localStorage.getItem("darkMode") === "true" ? "dark" : "light",
+      taskColor: localStorage.getItem("taskColor") || "purple",
+      goalColor: localStorage.getItem("goalColor") || "blue",
+      defaultPriority: localStorage.getItem("defaultPriority") || "medium",
+      fontScale:
+        parseInt(localStorage.getItem("fontScale"), 10) || DEFAULT_FONT_SCALE,
+      highContrast: localStorage.getItem("highContrast") === "true",
+      highlightLinks: localStorage.getItem("highlightLinks") === "true",
+      reduceMotion: localStorage.getItem("reduceMotion") === "true",
     });
 
     setStatusMessage("");
@@ -256,7 +355,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={resetForm}
               >
-              {/* Reset */}
+                {/* Reset */}
               </button>
             </div>
 
@@ -307,9 +406,10 @@ export default function SettingsPage() {
           <div className="settings-section">
             <h2 className="settings-section-title">Badges</h2>
             <div className="badge-grid">
-              {(userRecord?.badges?.length ? userRecord.badges : [
-                "No badges unlocked yet",
-              ]).map((badge, index) => (
+              {(userRecord?.badges?.length
+                ? userRecord.badges
+                : ["No badges unlocked yet"]
+              ).map((badge, index) => (
                 <div className="badge-card" key={index}>
                   {badge}
                 </div>
@@ -334,33 +434,166 @@ export default function SettingsPage() {
 
           <div className="settings-section">
             <h2 className="settings-section-title">Notifications</h2>
-            <div className="settings-toggles">
-              <label className="settings-toggle">
+
+            <div className="settings-preference-list">
+              <label className="settings-preference-row checkbox-row">
+                <span className="settings-preference-label">
+                  Receive task reminders
+                </span>
                 <input
                   type="checkbox"
                   checked={prefs.notifications}
                   onChange={() => togglePref("notifications")}
                 />
-                <span>Receive task reminders</span>
               </label>
 
-              <label className="settings-toggle">
+              <label className="settings-preference-row checkbox-row">
+                <span className="settings-preference-label">
+                  Weekly progress summary
+                </span>
                 <input
                   type="checkbox"
                   checked={prefs.weeklySummary}
                   onChange={() => togglePref("weeklySummary")}
                 />
-                <span>Weekly progress summary</span>
               </label>
             </div>
           </div>
 
           <div className="settings-section">
             <h2 className="settings-section-title">Appearance</h2>
-            <p className="settings-muted-text">
-              Dark mode, color controls, and accessibility options can be added
-              here next.
-            </p>
+
+            <div className="settings-preference-list">
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">Theme</span>
+                <select
+                  className="settings-select"
+                  value={prefs.theme}
+                  onChange={(e) => updatePref("theme", e.target.value)}
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">Task color</span>
+                <select
+                  className="settings-select"
+                  value={prefs.taskColor}
+                  onChange={(e) => updatePref("taskColor", e.target.value)}
+                >
+                  <option value="purple">Purple</option>
+                  <option value="blue">Blue</option>
+                  <option value="green">Green</option>
+                  <option value="orange">Orange</option>
+                </select>
+              </div>
+
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">Goal color</span>
+                <select
+                  className="settings-select"
+                  value={prefs.goalColor}
+                  onChange={(e) => updatePref("goalColor", e.target.value)}
+                >
+                  <option value="blue">Blue</option>
+                  <option value="purple">Purple</option>
+                  <option value="green">Green</option>
+                  <option value="orange">Orange</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h2 className="settings-section-title">Task Defaults</h2>
+
+            <div className="settings-preference-list">
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">
+                  Default priority
+                </span>
+                <select
+                  className="settings-select"
+                  value={prefs.defaultPriority}
+                  onChange={(e) => updatePref("defaultPriority", e.target.value)}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h2 className="settings-section-title">Accessibility</h2>
+
+            <div className="settings-preference-list">
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">Font scale</span>
+                <div className="settings-font-scale">
+                  <button
+                    type="button"
+                    className="settings-font-btn"
+                    onClick={decreaseFontScale}
+                  >
+                    −
+                  </button>
+                  <span className="settings-font-value">{prefs.fontScale}%</span>
+                  <button
+                    type="button"
+                    className="settings-font-btn"
+                    onClick={increaseFontScale}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">High contrast</span>
+                <select
+                  className="settings-select"
+                  value={prefs.highContrast ? "on" : "off"}
+                  onChange={(e) =>
+                    updatePref("highContrast", e.target.value === "on")
+                  }
+                >
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">Highlight links</span>
+                <select
+                  className="settings-select"
+                  value={prefs.highlightLinks ? "on" : "off"}
+                  onChange={(e) =>
+                    updatePref("highlightLinks", e.target.value === "on")
+                  }
+                >
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+
+              <div className="settings-preference-row">
+                <span className="settings-preference-label">Reduce motion</span>
+                <select
+                  className="settings-select"
+                  value={prefs.reduceMotion ? "on" : "off"}
+                  onChange={(e) =>
+                    updatePref("reduceMotion", e.target.value === "on")
+                  }
+                >
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+            </div>
           </div>
         </section>
       );
@@ -381,9 +614,9 @@ export default function SettingsPage() {
             </div>
           </div>
 
-<p className="settings-panel-subtitle">
-  Manage your academic profile and Canvas connection.
-</p>
+          <p className="settings-panel-subtitle">
+            Manage your academic profile and Canvas connection.
+          </p>
 
           <form className="settings-form" onSubmit={handleProfileSave}>
             <div className="student-grid">

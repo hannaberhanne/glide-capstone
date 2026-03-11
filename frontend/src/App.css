@@ -31,7 +31,7 @@ html, body, #root {
   --shadow-soft:     0 2px 12px rgba(62, 55, 49, 0.08);
 }
 
-:root.dark {
+html.dark-mode {
   --bg-color: #3E3731;
   --text-color: #F5F1E8;
   --highlight-color: #C630F4;

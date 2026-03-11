@@ -229,6 +229,87 @@ html.dark-mode .settings-sidebar-item.logout {
   color: var(--text-muted);
 }
 
+/* ---------- PREFERENCES LAYOUT ---------- */
+
+.settings-preference-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--card-border);
+}
+
+.settings-preference-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.settings-preference-label {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.settings-select {
+  min-width: 150px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--card-border);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: var(--highlight-color);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.checkbox-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--highlight-color);
+  cursor: pointer;
+}
+
+.settings-font-scale {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.settings-font-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-font-btn:hover {
+  border-color: var(--highlight-color);
+}
+
+.settings-font-value {
+  min-width: 64px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* ---------- PROGRESS ---------- */
+
 .progress-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(180px, 1fr));
@@ -261,6 +342,8 @@ html.dark-mode .settings-sidebar-item.logout {
   color: var(--text-color);
 }
 
+/* ---------- BADGES ---------- */
+
 .badge-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -277,26 +360,7 @@ html.dark-mode .settings-sidebar-item.logout {
   color: var(--text-color);
 }
 
-.settings-toggles {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.settings-toggle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.settings-toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--highlight-color);
-}
+/* ---------- STUDENT SECTION ---------- */
 
 .student-grid {
   display: grid;
@@ -356,7 +420,10 @@ html.dark-mode .settings-sidebar-item.logout {
   color: var(--text-muted);
 }
 
-html.high-contrast .settings-input {
+/* ---------- HIGH CONTRAST ---------- */
+
+html.high-contrast .settings-input,
+html.high-contrast .settings-select {
   background: black;
   color: yellow;
   border-color: yellow;
@@ -386,6 +453,14 @@ html.high-contrast .settings-sidebar-item.active {
   border-color: yellow;
   color: yellow;
 }
+
+html.high-contrast .settings-font-btn {
+  background: black;
+  color: yellow;
+  border-color: yellow;
+}
+
+/* ---------- RESPONSIVE ---------- */
 
 @media (max-width: 960px) {
   .settings-layout {
@@ -432,5 +507,15 @@ html.high-contrast .settings-sidebar-item.active {
 
   .settings-sidebar {
     padding: 14px;
+  }
+
+  .settings-preference-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .settings-select {
+    width: 100%;
+    min-width: 0;
   }
 }
