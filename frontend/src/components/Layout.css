@@ -7,7 +7,7 @@
   max-width: 1920px; margin: 0 auto; padding: 12px 4vw;
   display: flex; align-items: center; justify-content: space-between;
 }
-.logo { font-weight: 800; font-size: 20px; text-decoration: none; color: var(--text-color); }
+.logo { font-weight: 800; font-size: 20px; text-decoration: none; color: var(--text-color); overflow: visible; display: inline-flex; align-items: center; }
 .plus { color: var(--highlight-color); }
 .nav-links { display: flex; align-items: center; gap: 18px; }
 .nav-links a {
