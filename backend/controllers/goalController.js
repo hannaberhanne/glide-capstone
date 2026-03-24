@@ -28,7 +28,7 @@ const getGoals = async (req, res) => {
 // post request to create a new goals
 const createGoal = async (req, res) => {
     try {
-        const { color, tasks, title } = req.body;
+        const { color, title } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a goal
@@ -40,9 +40,9 @@ const createGoal = async (req, res) => {
         const docRef = await db.collection('goals').add({
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             color: color || '#A58F1C',
+            completedToday: false,
             longestStreak: 0,
             streak: 0,
-            tasks: tasks || {},
             title: title.trim(),
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -52,10 +52,10 @@ const createGoal = async (req, res) => {
         res.status(201).json({
             createdAt: new Date().toISOString(),
             color: color,
+            completedToday: false,
             goalId: docRef.id,
             longestStreak: 0,
             streak: 0,
-            tasks: tasks || {},
             title: title.trim(),
             userId: uid,
             updatedAt: new Date().toISOString()
@@ -78,7 +78,7 @@ const updateGoal = async (req, res) => {
     try {
         const { goalId } = req.params;
         const uid = req.user.uid;
-        const { color, longestStreak, streak, tasks, title } = req.body;
+        const { color, completedToday, longestStreak, streak, tasks, title } = req.body;
 
         // Get the goal document
         const docRef = db.collection('goals').doc(goalId);
@@ -104,29 +104,16 @@ const updateGoal = async (req, res) => {
         }
 
         if (longestStreak !== undefined) {  // if the longestStreak is not undefined then add 1 to longest streak
-            updateData.longestStreak = admin.firestore.FieldValue.increment(1);
+            if (streak > longestStreak) {
+                updateData.longestStreak = admin.firestore.FieldValue.increment(1);
+            }
         }
 
         if (streak !== undefined) {  // add 1 to the streak if updated
-            updateData.streak = admin.firestore.FieldValue.increment(1);
-        }
-
-        if (tasks !== undefined) {
-            const currentTasks = doc.data().tasks || {};
-
-            // Handle removals first
-            if (tasks.remove && tasks.remove.length > 0) {
-                tasks.remove.forEach(title => {
-                    delete currentTasks[title];
-                });
+            if (completedToday === false) {
+                updateData.streak = admin.firestore.FieldValue.increment(1);
+                updateData.completedtoday = true;
             }
-
-            // Then handle additions
-            if (tasks.add && Object.keys(tasks.add).length > 0) {
-                Object.assign(currentTasks, tasks.add);
-            }
-
-            updateData.tasks = currentTasks;
         }
 
         if (title !== undefined) {

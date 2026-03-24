@@ -1,4 +1,11 @@
-import {getQuote} from "../controllers/quotesController.js";
-import router from "./quotesRoutes.js";
+import express from 'express';
+const router = express.Router();
+import verifyToken from '../middleware/authMiddleware.js';
+import { getQuote } from "../controllers/quotesController.js";
 
-router.get('/', getAssignments);
+router.use(verifyToken);
+
+// /api/quotes
+router.get('/', getQuote);
+
+export default router;

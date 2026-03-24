@@ -38,6 +38,7 @@ import scheduleRoutes from './routes/scheduleRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import quoteRoutes from './routes/quoteRoutes.js';
 
 // Routes
 app.use('/api/assignments', assignmentRoutes);
@@ -50,6 +51,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/quotes', quoteRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -69,6 +71,7 @@ app.get('/api/health', (req, res) => {
       auth: '/api/auth',
       ai: '/api/ai',
       health: '/api/health',
+      quotes: '/api/quotes'
     }
   });
 });
@@ -96,6 +99,7 @@ if (process.env.NODE_ENV === 'production') {
         auth: '/api/auth',
         health: '/api/health',
         ai: '/api/ai',
+        quote: '/api/quote',
       }
     });
   });

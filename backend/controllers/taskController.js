@@ -28,7 +28,7 @@ const getTasks = async (req, res) => {
 // post request to create a new task
 const createTask = async (req, res) => {
     try {
-        const { canvasAssignmentId, courseId, description, dueAt, estimatedTime, estimatedMinutes, priority, title, xpValue, category } = req.body;
+        const { title, xpValue, goalId } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a task
@@ -38,20 +38,9 @@ const createTask = async (req, res) => {
         }
 
         const docRef = await db.collection('tasks').add({
-            canvasAssignmentId: canvasAssignmentId || null,
-            completedAt: null,
-            courseId: courseId || null,
+            completedToday: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            description: description || '',
-            dueAt: dueAt || null,
-            estimatedMinutes: estimatedMinutes !== undefined
-              ? estimatedMinutes
-              : (estimatedTime !== undefined
-                ? ((Number(estimatedTime) <= 12 ? Number(estimatedTime) * 60 : Number(estimatedTime)) || 0)
-                : 0),
-            isComplete: false,
-            priority: priority || "medium",
-            category: category || "academic",
+            goalId: goalId,
             title: title.trim(),
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -60,20 +49,9 @@ const createTask = async (req, res) => {
 
         // if successful send back the new tasks created so it updates in real time
         res.status(201).json({
-            canvasAssignmentId: canvasAssignmentId || null,
-            completedAt: null,
-            courseId: courseId || null,
+            completedToday: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            description: description || '',
-            dueAt: dueAt || null,
-            estimatedMinutes: estimatedMinutes !== undefined
-              ? estimatedMinutes
-              : (estimatedTime !== undefined
-                ? ((Number(estimatedTime) <= 12 ? Number(estimatedTime) * 60 : Number(estimatedTime)) || 0)
-                : 0),
-            isComplete: false,
-            priority: priority || "medium",
-            category: category || "academic",
+            goalId: goalId,
             taskId: docRef.id,
             title: title.trim(),
             userId: uid,
@@ -97,7 +75,7 @@ const updateTask = async (req, res) => {
     try {
         const { taskId } = req.params;
         const uid = req.user.uid;
-        const { title, description, priority, isComplete } = req.body;
+        const { completedToday, title, xpValue } = req.body;
 
         // Get the task document
         const docRef = db.collection('tasks').doc(taskId);
@@ -127,24 +105,12 @@ const updateTask = async (req, res) => {
             updateData.title = title.trim();
         }
 
-        if (description !== undefined) {
-            updateData.description = description;
+        if (xpValue !== undefined) {
+            updateData.xpValue = xpValue;
         }
 
-        if (priority !== undefined) {
-            updateData.priority = priority;
-        }
-
-        if (isComplete !== undefined) {
-            updateData.isComplete = isComplete;
-
-            // Set completedAt timestamp when task is marked complete
-            if (isComplete === true) {
-                updateData.completedAt = new Date();
-            } else {
-                // Clear completedAt if task is marked incomplete
-                updateData.completedAt = null;
-            }
+        if (completedToday !== undefined) {
+            updateData.completedToday = completedToday;
         }
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
@@ -180,7 +146,6 @@ const completeTask = async (req, res) => {
             const taskRef = db.collection('tasks').doc(taskId);
             const userRef = db.collection('users').doc(uid);
 
-            // READS FIRST
             const taskSnap = await t.get(taskRef);
             const userSnap = await t.get(userRef);
 
@@ -194,23 +159,16 @@ const completeTask = async (req, res) => {
             const task = taskSnap.data();
             const userData = userSnap.data();
 
-            if (task.isComplete) {
+            // idempotent check — don't award XP twice
+            if (task.completedToday) {
                 return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
             }
 
-            let xpGained = 10; // base
-            if (task.priority === 'high') xpGained += 15;
-            else if (task.priority === 'medium') xpGained += 10;
-            // estimatedTime currently treated as hours (modal uses hours)
-            if (task.estimatedTime > 1) xpGained += 10;
-
+            const xpGained = task.xpValue || 0;
             const newTotalXP = (userData.totalXP || 0) + xpGained;
 
-            // WRITES AFTER READS
             t.update(taskRef, {
-                isComplete: true,
-                completedAt: admin.firestore.FieldValue.serverTimestamp(),
-                xpValue: xpGained,
+                completedToday: true,
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
@@ -227,22 +185,20 @@ const completeTask = async (req, res) => {
                 success: true,
                 xpGained: 0,
                 newTotalXP: result.newTotalXP,
-                message: 'Already complete'
+                message: 'Task already completed today'
             });
         }
 
         return res.json({
             success: true,
             xpGained: result.xpGained,
-            newTotalXP: result.newTotalXP
+            newTotalXP: result.newTotalXP,
+            message: 'Task completed'
         });
+
     } catch (err) {
-        if (err.message === 'NOT_FOUND') {
-            return res.status(404).json({ error: 'Task not found' });
-        }
-        if (err.message === 'USER_NOT_FOUND') {
-            return res.status(404).json({ error: 'User not found' });
-        }
+        if (err.message === 'NOT_FOUND') return res.status(404).json({ error: 'Task not found' });
+        if (err.message === 'USER_NOT_FOUND') return res.status(404).json({ error: 'User not found' });
         console.error('Complete task error:', err);
         return res.status(500).json({ error: 'Failed to complete task' });
     }
