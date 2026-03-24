@@ -47,8 +47,6 @@ const syncCanvas = async (req, res) => {
     let coursesUpdated = 0;
     let assignmentsAdded = 0;
     let assignmentsUpdated = 0;
-    let tasksAdded = 0;
-    let tasksUpdated = 0;
 
     for (const courseData of coursesWithAssignments) {
       // upsert course by canvasId for this user
@@ -129,41 +127,6 @@ const syncCanvas = async (req, res) => {
           assignmentsAdded++;
         }
 
-        // Upsert corresponding task so Canvas items appear in task views
-        if (assignmentData.canvasId) {
-        const existingTaskQuery = await db.collection('tasks')
-          .where('userId', '==', uid)
-          .where('canvasAssignmentId', '==', assignmentData.canvasId)
-          .limit(1)
-          .get();
-
-          const taskData = {
-            canvasAssignmentId: assignmentData.canvasId,
-            courseId: courseRef.id || null,
-            description: assignmentData.description || '',
-            dueAt: assignmentData.dueDate || null,
-            category: 'academic',
-            priority: 'medium',
-            title: assignmentData.title || '',
-            xpValue: xpValue || 0,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          };
-
-          if (!existingTaskQuery.empty) {
-            const taskRef = existingTaskQuery.docs[0].ref;
-            await taskRef.update(taskData);
-            tasksUpdated++;
-          } else {
-            await db.collection('tasks').add({
-              ...taskData,
-              category: 'academic',
-              createdAt: admin.firestore.FieldValue.serverTimestamp(),
-              isComplete: false,
-              userId: uid
-            });
-            tasksAdded++;
-          }
-        }
       }
     }
 
@@ -175,8 +138,6 @@ const syncCanvas = async (req, res) => {
         coursesUpdated,
         assignmentsAdded,
         assignmentsUpdated,
-        tasksAdded,
-        tasksUpdated,
         totalCourses: coursesAdded + coursesUpdated,
         totalAssignments: assignmentsAdded + assignmentsUpdated,
         tokenSource: canvasToken ? 'provided' : (userData?.canvasToken ? 'stored' : 'env')
