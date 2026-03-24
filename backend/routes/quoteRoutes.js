@@ -1,11 +1,8 @@
-import express from 'express';
-const router = express.Router();
-import verifyToken from '../middleware/authMiddleware.js';
+import express from "express";
 import { getQuote } from "../controllers/quotesController.js";
 
-router.use(verifyToken);
+const router = express.Router();
 
-// /api/quotes
-router.get('/', getQuote);
+router.get("/", getQuote);
 
 export default router;
