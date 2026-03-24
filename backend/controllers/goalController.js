@@ -28,7 +28,7 @@ const getGoals = async (req, res) => {
 // post request to create a new goals
 const createGoal = async (req, res) => {
     try {
-        const { color, longestStreak, streak, tasks, title } = req.body;
+        const { color, tasks, title } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a goal
@@ -39,34 +39,26 @@ const createGoal = async (req, res) => {
 
         const docRef = await db.collection('goals').add({
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            color: color || '#A58F1C'
-            description: description || '',
-            goalStreak: goalStreak || '',
-            isActive: isActive || true,
-            longestStreak: longestStreak || '',
-            priority: priority || 'medium',
-            timesPerWeek: timesPerWeek || '',
+            color: color || '#A58F1C',
+            longestStreak: 0,
+            streak: 0,
+            tasks: tasks || {},
             title: title.trim(),
             userId: uid,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            xpValue: xpValue || 0
         });
 
         // if successful send back the new goal created so it updates in real time
         res.status(201).json({
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            deadline: deadline || '',
-            description: description || '',
+            createdAt: new Date().toISOString(),
+            color: color,
             goalId: docRef.id,
-            goalStreak: goalStreak || '',
-            isActive: isActive || true,
-            longestStreak: longestStreak || '',
-            priority: priority || 'medium',
-            timesPerWeek: timesPerWeek || '',
+            longestStreak: 0,
+            streak: 0,
+            tasks: tasks || {},
             title: title.trim(),
             userId: uid,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            xpValue: xpValue || 0
+            updatedAt: new Date().toISOString()
         });
 
 
@@ -86,7 +78,7 @@ const updateGoal = async (req, res) => {
     try {
         const { goalId } = req.params;
         const uid = req.user.uid;
-        const { deadline, description, goalStreak, isActive, longestStreak, priority, timesPerWeek, title, xpValue } = req.body;
+        const { color, longestStreak, streak, tasks, title } = req.body;
 
         // Get the goal document
         const docRef = db.collection('goals').doc(goalId);
@@ -107,40 +99,38 @@ const updateGoal = async (req, res) => {
         // Build update object with only provided fields
         const updateData = {};
 
-        if (deadline !== undefined) {
-            updateData.deadline = deadline;
+        if (color !== undefined) {
+            updateData.color = color;
         }
 
-        if (description !== undefined) {
-            updateData.description = description;
+        if (longestStreak !== undefined) {  // if the longestStreak is not undefined then add 1 to longest streak
+            updateData.longestStreak = admin.firestore.FieldValue.increment(1);
         }
 
-        if (goalStreak !== undefined) {
-            updateData.goalStreak = goalStreak;
+        if (streak !== undefined) {  // add 1 to the streak if updated
+            updateData.streak = admin.firestore.FieldValue.increment(1);
         }
 
-        if (isActive !== undefined) {
-            updateData.isActive = isActive;
-        }
+        if (tasks !== undefined) {
+            const currentTasks = doc.data().tasks || {};
 
-        if (longestStreak !== undefined) {
-            updateData.longestStreak = longestStreak;
-        }
+            // Handle removals first
+            if (tasks.remove && tasks.remove.length > 0) {
+                tasks.remove.forEach(title => {
+                    delete currentTasks[title];
+                });
+            }
 
-        if (priority !== undefined) {
-            updateData.priority = priority;
-        }
+            // Then handle additions
+            if (tasks.add && Object.keys(tasks.add).length > 0) {
+                Object.assign(currentTasks, tasks.add);
+            }
 
-        if (timesPerWeek !== undefined) {
-            updateData.timesPerWeek = timesPerWeek;
+            updateData.tasks = currentTasks;
         }
 
         if (title !== undefined) {
             updateData.title = title;
-        }
-
-        if (xpValue !== undefined) {
-            updateData.xpValue = xpValue;
         }
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
@@ -151,9 +141,12 @@ const updateGoal = async (req, res) => {
         // Get the updated events to return
         const updatedDoc = await docRef.get();
 
+        const data = updatedDoc.data();
         res.json({
             goalId: updatedDoc.id,
-            ...updatedDoc.data(),
+            ...data,
+            createdAt: data.createdAt?.toDate().toISOString() || null,
+            updatedAt: data.updatedAt?.toDate().toISOString() || null,
             message: 'Goal updated successfully'
         });
 
