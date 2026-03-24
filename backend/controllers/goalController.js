@@ -28,7 +28,7 @@ const getGoals = async (req, res) => {
 // post request to create a new goals
 const createGoal = async (req, res) => {
     try {
-        const { deadline, description, goalStreak, isActive, longestStreak, priority, timesPerWeek, title, xpValue } = req.body;
+        const { color, longestStreak, streak, tasks, title } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a goal
@@ -39,7 +39,7 @@ const createGoal = async (req, res) => {
 
         const docRef = await db.collection('goals').add({
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            deadline: deadline || '',
+            color: color || '#A58F1C'
             description: description || '',
             goalStreak: goalStreak || '',
             isActive: isActive || true,
