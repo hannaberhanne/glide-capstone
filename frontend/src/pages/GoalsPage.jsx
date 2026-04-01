@@ -175,7 +175,7 @@ export default function GoalsPage() {
           <h1>Goals</h1>
           {quote && (
             <p className="goals-quote">
-              "{quote.text}" — {quote.author}
+              {quote.text} — {quote.author}
             </p>
           )}
         </div>
