@@ -4,21 +4,22 @@ import "./LoginPage.css";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
 import AuthLogo from "../components/AuthLogo";
+import AlertBanner from "../components/AlertBanner.jsx";
 
 export default function LoginPage() {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [banner, setBanner] = useState(null);
 
   const canSubmit = email.trim() !== "" && password.trim() !== "";
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit || loading) return;
-    
-    setError("");
+
+
     setLoading(true);
     
     try {
@@ -29,18 +30,15 @@ export default function LoginPage() {
 
     } catch (error) {
       console.error("Login error:", error);
-      let errorMessage = "Login failed. Please try again.";
+      setBanner({ message: "Please fill in all fields correctly", type: "error" });
       if (error.code === 'auth/invalid-credential') {
-        errorMessage = "Invalid email or password.";
+        setBanner({ message: "Invalid email or password.", type: "error" });
       } else if (error.code === 'auth/user-not-found') {
-        errorMessage = "No account found with this email.";
-      } else if (error.code === 'auth/wrong-password') {
-        errorMessage = "Incorrect password.";
+        setBanner({ message: "No account found with this email.", type: "error" });
       } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Too many failed attempts. Try again later.";
+        setBanner({ message: "Too many failed attempts. Try again later.", type: "error" });
       }
 
-      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -75,8 +73,13 @@ export default function LoginPage() {
               disabled={loading}
             />
           </label>
-          
-          {error && <p style={{ color: "red", marginTop: "1rem", fontSize: "0.9rem" }}>{error}</p>}
+
+          {banner && (
+              <AlertBanner
+                  message={banner.message}
+                  type={banner.type}
+                  onClose={() => setBanner(null)}
+              />)}
           
           <button type="submit" disabled={!canSubmit || loading}>
             {loading ? "Logging in..." : "Log In"}
