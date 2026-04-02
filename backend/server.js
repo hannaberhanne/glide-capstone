@@ -22,7 +22,10 @@ const allowlist = new Set([
   // 'https://glide-plus.vercel.app',
 ]);
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
 const PORT = process.env.PORT || 8080;
@@ -39,6 +42,7 @@ import taskRoutes from './routes/taskRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import quoteRoutes from './routes/quoteRoutes.js';
+import goalRoutes from './routes/goalRoutes.js';
 
 // Routes
 app.use('/api/assignments', assignmentRoutes);
@@ -52,6 +56,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/quotes', quoteRoutes);
+app.use('/api/goals', goalRoutes); 
 
 // Health check
 app.get('/api/health', (req, res) => {

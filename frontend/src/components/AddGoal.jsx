@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./AddGoal.css";
+import { auth } from "../config/firebase.js"; 
 
 // Preset color swatches matching Glide+ palette
 const COLOR_SWATCHES = [
@@ -12,6 +13,8 @@ const COLOR_SWATCHES = [
   "#4E8098",
   "#C47B5A",
 ];
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 export default function AddGoal({ onClose, onGoalCreated }) {
   const [title, setTitle] = useState("");
@@ -29,25 +32,28 @@ export default function AddGoal({ onClose, onGoalCreated }) {
     setError(null);
 
     try {
-      const token = await window.__getAuthToken?.();   // swap in your auth token helper
-
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/goals`, {
+      const res = await fetch(`${API_BASE_URL}/api/goals`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Authorization": `Bearer ${await auth.currentUser.getIdToken()}` // ← add this
         },
-        body: JSON.stringify({ title: title.trim(), color }),
+        credentials: "include",
+        body: JSON.stringify({
+          title: title.trim(),
+          color,
+        }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to create goal");
+        throw new Error(data.error || data.message || "Failed to create goal");
       }
 
-      const newGoal = await res.json();
-      onGoalCreated(newGoal);
+      onGoalCreated(data);
     } catch (err) {
+      console.error("Create goal error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -98,9 +104,13 @@ export default function AddGoal({ onClose, onGoalCreated }) {
               />
             ))}
           </div>
+
           {/* Preview */}
           <div className="add-goal-preview" style={{ borderColor: color }}>
-            <div className="add-goal-preview-header" style={{ backgroundColor: color }}>
+            <div
+              className="add-goal-preview-header"
+              style={{ backgroundColor: color }}
+            >
               <span>{title || "Goal Preview"}</span>
             </div>
           </div>
@@ -111,9 +121,14 @@ export default function AddGoal({ onClose, onGoalCreated }) {
 
         {/* Actions */}
         <div className="add-goal-actions">
-          <button className="add-goal-btn-cancel" onClick={onClose} disabled={loading}>
+          <button
+            className="add-goal-btn-cancel"
+            onClick={onClose}
+            disabled={loading}
+          >
             Cancel
           </button>
+
           <button
             className="add-goal-btn-submit"
             onClick={handleSubmit}

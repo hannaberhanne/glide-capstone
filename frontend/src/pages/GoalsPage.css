@@ -53,6 +53,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   background: var(--card-bg, #fff);
   border: 2px solid transparent; /* color set inline */
+  min-height: 180px; 
   transition: box-shadow 0.2s ease;
 }
 
@@ -120,6 +121,7 @@
   font-size: 1.1rem;
   line-height: 1;
   flex-shrink: 0;
+  
 }
 
 .goal-task-name {
@@ -148,31 +150,68 @@
 }
 
 /* ─── Add goal card ──────────────────────────────── */
+/* ─── Add goal card ──────────────────────────────── */
 .goal-card-add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-  border: 2px dashed var(--text-color, #3E3731);
-  background: transparent;
-  box-shadow: none;
+  min-height: 205px;
+  border: 2px dashed rgba(62, 55, 49, 0.22);
+  background: var(--card-bg, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  opacity: 0.4;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  padding: 0;
+  opacity: 1;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .goal-card-add:hover {
-  opacity: 0.75;
-  transform: translateY(-2px);
-  box-shadow: none;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+  border-color: var(--highlight-color);
+  background: rgba(198, 48, 244, 0.04);
 }
 
-.goal-card-add-icon {
-  font-size: 2.5rem;
-  font-weight: 300;
-  color: var(--text-color, #3E3731);
+.goal-card-add-inner {
+  min-height: 205px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.goal-card-add-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(198, 48, 244, 0.1);
+  color: var(--highlight-color);
+  font-size: 2rem;
+  font-weight: 400;
   line-height: 1;
   user-select: none;
+}
+
+.goal-card-add-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-color, #3E3731);
+}
+
+.goal-card-add-text {
+  margin: 0;
+  max-width: 240px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-muted, #888);
 }
 
 

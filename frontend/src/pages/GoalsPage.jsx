@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./GoalsPage.css";
 import AddGoal from "../components/AddGoal.jsx";
+import { auth } from "../config/firebase.js";
 
 // Mock badge data — swap out for real Firestore fetch later
 const MOCK_EARNED_BADGES = [
@@ -91,9 +92,19 @@ function GoalCard({ goal }) {
 
 function AddGoalCard({ onClick }) {
   return (
-    <div className="goal-card goal-card-add" onClick={onClick}>
-      <span className="goal-card-add-icon">+</span>
-    </div>
+    <button
+      type="button"
+      className="goal-card goal-card-add"
+      onClick={onClick}
+    >
+      <div className="goal-card-add-inner">
+        <div className="goal-card-add-badge">+</div>
+        <h3 className="goal-card-add-title">Add New Goal</h3>
+        <p className="goal-card-add-text">
+        Create a goal and start earning XP
+        </p>
+      </div>
+    </button>
   );
 }
 
@@ -120,7 +131,11 @@ function EarnedBadge({ badge }) {
 
 export default function GoalsPage() {
   const [quote, setQuote] = useState(null);
-  const [goals, setGoals] = useState(MOCK_GOALS);
+  const [goals, setGoals] = useState(() => {
+    const saved = localStorage.getItem("createdGoals");
+    const created = saved ? JSON.parse(saved) : [];
+    return [...MOCK_GOALS, ...created];
+  });
   const [showAddGoal, setShowAddGoal] = useState(false);
   const stats = MOCK_USER_STATS;
 
@@ -141,7 +156,14 @@ export default function GoalsPage() {
   }, []);
 
   const handleGoalCreated = (newGoal) => {
-    setGoals((prev) => [...prev, newGoal]);
+    setGoals((prev) => {
+      const updated = [...prev, newGoal];
+      const createdOnly = updated.filter(
+        (g) => !MOCK_GOALS.find((m) => m.goalId === g.goalId)
+      );
+      localStorage.setItem("createdGoals", JSON.stringify(createdOnly));
+      return updated;
+    });
     setShowAddGoal(false);
   };
 
@@ -153,7 +175,7 @@ export default function GoalsPage() {
           <h1>Goals</h1>
           {quote && (
             <p className="goals-quote">
-              "{quote.text}" — {quote.author}
+              {quote.text} — {quote.author}
             </p>
           )}
         </div>
