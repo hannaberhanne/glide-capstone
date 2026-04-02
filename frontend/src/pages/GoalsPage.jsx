@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./GoalsPage.css";
 import AddGoal from "../components/AddGoal.jsx";
 import { auth } from "../config/firebase.js";
+import AlertBanner from "../components/AlertBanner";
 
 // Mock badge data — swap out for real Firestore fetch later
 const MOCK_EARNED_BADGES = [
@@ -131,6 +132,7 @@ function EarnedBadge({ badge }) {
 
 export default function GoalsPage() {
   const [quote, setQuote] = useState(null);
+  const [banner, setBanner] = useState(null);
   const [goals, setGoals] = useState(() => {
     const saved = localStorage.getItem("createdGoals");
     const created = saved ? JSON.parse(saved) : [];
@@ -164,6 +166,7 @@ export default function GoalsPage() {
       localStorage.setItem("createdGoals", JSON.stringify(createdOnly));
       return updated;
     });
+    setBanner({ message: "New Goal Created!" });
     setShowAddGoal(false);
   };
 
@@ -218,10 +221,19 @@ export default function GoalsPage() {
       {/* ── Add Goal popup — rendered outside layout so it overlays everything ── */}
       {showAddGoal && (
         <AddGoal
-          onClose={() => setShowAddGoal(false)}
+          onClose={() =>
+              setShowAddGoal(false)}
           onGoalCreated={handleGoalCreated}
+
         />
       )}
+      {banner && (
+          <AlertBanner
+              message={banner.message}
+              type={banner.type}
+              onClose={() => setBanner(null)}
+          />
+          )}
     </>
   );
 }
