@@ -1,4 +1,39 @@
 import { admin, db } from '../config/firebase.js';
+import OpenAI from 'openai';
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+async function getXpFromAI(task) {
+  try {
+    const resp = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{
+        role: 'user',
+        content: `You are an XP reward system for a student productivity app.
+Task: "${task.title}"
+Category: ${task.category || 'general'}
+Estimated minutes: ${task.estimatedMinutes || 0}
+
+Reply with ONLY a number between 10 and 150 for how much XP this task deserves. No explanation, just the number.`
+      }],
+      max_tokens: 5,
+    });
+    const xp = parseInt(resp.choices[0]?.message?.content?.trim());
+    return isNaN(xp) ? 50 : Math.min(Math.max(xp, 10), 150);
+  } catch (err) {
+    console.error('AI XP error, fallback to 50:', err.message);
+    return 50;
+  }
+}
+
+function computeLevel(totalXP) {
+  let level = 0;
+  let accumulated = 0;
+  while (totalXP >= accumulated + 100 * (level + 1)) {
+    accumulated += 100 * (level + 1);
+    level++;
+  }
+  return level;
+}
 
 // get requests to retrieve all tasks
 const getTasks = async (req, res) => {
@@ -164,8 +199,9 @@ const completeTask = async (req, res) => {
                 return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
             }
 
-            const xpGained = task.xpValue || 0;
+            const xpGained = await getXpFromAI(task);
             const newTotalXP = (userData.totalXP || 0) + xpGained;
+            const newLevel = computeLevel(newTotalXP);
 
             t.update(taskRef, {
                 completedToday: true,
@@ -174,11 +210,13 @@ const completeTask = async (req, res) => {
 
             t.update(userRef, {
                 totalXP: newTotalXP,
+                level: newLevel,
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
+            
+            return { already: false, xpGained, newTotalXP, newLevel };
 
-            return { already: false, xpGained, newTotalXP };
-        });
+             }); 
 
         if (result.already) {
             return res.json({
@@ -193,6 +231,7 @@ const completeTask = async (req, res) => {
             success: true,
             xpGained: result.xpGained,
             newTotalXP: result.newTotalXP,
+            newLevel: result.newLevel,
             message: 'Task completed'
         });
 
