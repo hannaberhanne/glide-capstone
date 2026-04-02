@@ -1,28 +1,4 @@
 import { admin, db } from '../config/firebase.js';
-import OpenAI from 'openai';
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-async function getGoalXpFromAI(goal) {
-  try {
-    const resp = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: `You are an XP reward system for a student productivity app.
-Goal: "${goal.title}"
-Current streak: ${goal.streak || 0} days
-
-Reply with ONLY a number between 100 and 500 for how much XP completing this goal deserves. No explanation, just the number.`
-      }],
-      max_tokens: 5,
-    });
-    const xp = parseInt(resp.choices[0]?.message?.content?.trim());
-    return isNaN(xp) ? 200 : Math.min(Math.max(xp, 100), 500);
-  } catch (err) {
-    console.error('AI Goal XP error, fallback to 200:', err.message);
-    return 200;
-  }
-}
 
 function computeLevel(totalXP) {
   let level = 0;
@@ -241,7 +217,7 @@ const completeGoal = async (req, res) => {
         return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
       }
 
-      const xpGained = await getGoalXpFromAI(goal);
+      const xpGained = 0;
       const newTotalXP = (userData.totalXP || 0) + xpGained;
       const newLevel = computeLevel(newTotalXP);
       const newStreak = (goal.streak || 0) + 1;
