@@ -2,12 +2,84 @@ import { useMemo, useState } from "react";
 import { auth } from "../config/firebase.js";
 import "./DashboardPage.css";
 import DashboardHero from "./dashboard/DashboardHero.jsx";
-import KpiStrip from "./dashboard/KpiStrip.jsx";
 import UpcomingPanel from "./dashboard/UpcomingPanel.jsx";
 import TaskModal from "../components/TaskModal.jsx";
 import useTasks from "../hooks/useTasks";
 import useUser from "../hooks/useUser";
 import useCanvasStatus from "../hooks/useCanvasStatus";
+
+function getXpLevel(totalXP) {
+  const thresholds = [0, 100, 250, 500, 900, 1400, 2100, 3000, 4200, 5800, 8000];
+  let level = 1;
+  for (let i = 1; i < thresholds.length; i++) {
+    if (totalXP >= thresholds[i]) level = i + 1;
+    else break;
+  }
+  const currentFloor = thresholds[Math.min(level - 1, thresholds.length - 1)];
+  const nextCeiling = thresholds[Math.min(level, thresholds.length - 1)];
+  const progress = nextCeiling > currentFloor
+    ? Math.min(((totalXP - currentFloor) / (nextCeiling - currentFloor)) * 100, 100)
+    : 100;
+  const xpToNext = nextCeiling > currentFloor ? nextCeiling - totalXP : 0;
+  return { level, progress, xpToNext };
+}
+
+function MiniCalendar({ tasks, parseDueDate }) {
+  const [offset, setOffset] = useState(0);
+  const base = new Date();
+  base.setMonth(base.getMonth() + offset);
+  const year = base.getFullYear();
+  const month = base.getMonth();
+
+  const monthName = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(year, month, 1));
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startPad = (firstDay + 6) % 7;
+
+  const taskDays = new Set(
+    tasks.map((t) => {
+      const d = parseDueDate(t);
+      if (!d) return null;
+      if (d.getFullYear() === year && d.getMonth() === month) return d.getDate();
+      return null;
+    }).filter(Boolean)
+  );
+
+  const today = new Date();
+  const isThisMonth = today.getFullYear() === year && today.getMonth() === month;
+
+  const cells = [];
+  for (let i = 0; i < startPad; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div className="panel mini-cal">
+      <div className="mini-cal-head">
+        <span className="mini-cal-title">{monthName}</span>
+        <div className="mini-cal-nav">
+          <button onClick={() => setOffset((o) => o - 1)}>‹</button>
+          <button onClick={() => setOffset((o) => o + 1)}>›</button>
+        </div>
+      </div>
+      <div className="mini-cal-grid">
+        {["Mo","Tu","We","Th","Fr","Sa","Su"].map((d) => (
+          <span key={d} className="mini-cal-dow">{d}</span>
+        ))}
+        {cells.map((day, i) => (
+          <span key={i} className={[
+            "mini-cal-day",
+            !day ? "mini-cal-empty" : "",
+            day && isThisMonth && day === today.getDate() ? "mini-cal-today" : "",
+            day && taskDays.has(day) ? "mini-cal-has-task" : "",
+          ].join(" ")}>
+            {day || ""}
+            {day && taskDays.has(day) && <span className="mini-cal-dot" />}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -19,6 +91,7 @@ export default function DashboardPage() {
   const [editingTask, setEditingTask] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [streak] = useState(4);
+  const { level, progress, xpToNext } = getXpLevel(xp);
 
   const userRecord = Array.isArray(user) ? user[0] : user;
   const displayName =
@@ -145,52 +218,79 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="dash">
-      <DashboardHero
-        todayStr={todayStr}
-        displayName={displayName}
-        canvasLabel={canvasLabel}
-        canvasConnected={canvasConnected}
-        statusLoading={statusLoading}
-      />
+  <div className="dash">
+    <DashboardHero
+      todayStr={todayStr}
+      displayName={displayName}
+      canvasLabel={canvasLabel}
+      canvasConnected={canvasConnected}
+      statusLoading={statusLoading}
+    />
 
-      <section className="xp-wide-panel">
-        <div className="panel xp-panel">
-          <div className="xp-header-row">
+    <section className="xp-wide-panel">
+      <div className="panel xp-panel xp-panel-slim">
+        <div className="xp-header-row">
+          <div className="xp-header-left">
             <h2 className="xp-header">XP &amp; Progress</h2>
-            <span className="xp-tag">Gamified</span>
+            <span className="xp-level-badge">Lv. {level}</span>
           </div>
-          <div className="xp-value-large">XP {xp}</div>
-
-          <div className="xp-bar xp-bar-wide">
-            <div className="xp-fill" style={{ width: "45%" }} />
-          </div>
+          <span className="xp-slim-value">
+            {xp.toLocaleString()} XP
+            {xpToNext > 0 && <span className="xp-to-next"> · {xpToNext} to next</span>}
+          </span>
         </div>
-      </section>
+        <div className="xp-bar xp-bar-wide" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
+          <div className="xp-fill" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+    </section>
 
-      <KpiStrip todayTasks={todayTasks} streak={streak} />
+    <div className="dash-body">
+      <div className="dash-body-left">
+        <UpcomingPanel
+          tasks={tasks}
+          activeFilter={activeFilter}
+          setActiveFilter={setActiveFilter}
+          onQuickAdd={handleQuickAdd}
+          onComplete={handleCompleteTask}
+          onEdit={openEditModal}
+          onDelete={handleDeleteTask}
+          formatDue={formatDue}
+          openCreateModal={openCreateModal}
+        />
+      </div>
 
-      <UpcomingPanel
-        tasks={tasks}
-        activeFilter={activeFilter}
-        setActiveFilter={setActiveFilter}
-        onQuickAdd={handleQuickAdd}
-        onComplete={handleCompleteTask}
-        onEdit={openEditModal}
-        onDelete={handleDeleteTask}
-        formatDue={formatDue}
-        openCreateModal={openCreateModal}
-      />
+      <div className="dash-body-right">
+        <div className="panel streak-panel">
+          <div className="streak-label">CURRENT STREAK</div>
+          <div className="streak-gauge-wrap">
+            <svg viewBox="0 0 120 70" className="streak-svg">
+              <path d="M10,65 A50,50 0 0,1 110,65" fill="none" stroke="var(--card-border)" strokeWidth="10" strokeLinecap="round"/>
+              <path
+                d="M10,65 A50,50 0 0,1 110,65"
+                fill="none"
+                stroke="var(--highlight-color)"
+                strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray="157"
+                strokeDashoffset={157 - (Math.min(streak, 30) / 30) * 157}
+              />
+            </svg>
+            <div className="streak-number">{streak}</div>
+          </div>
+          <div className="streak-sublabel">days active</div>
+        </div>
 
-      <TaskModal
-        open={showTaskModal}
-        onClose={() => {
-          setShowTaskModal(false);
-          setEditingTask(null);
-        }}
-        onSubmit={handleSubmitTask}
-        initialTask={editingTask}
-      />
+        <MiniCalendar tasks={tasks} parseDueDate={parseDueDate} />
+      </div>
     </div>
-  );
+
+    <TaskModal
+      open={showTaskModal}
+      onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
+      onSubmit={handleSubmitTask}
+      initialTask={editingTask}
+    />
+  </div>
+);
 }

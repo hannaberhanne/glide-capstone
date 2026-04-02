@@ -10,7 +10,7 @@
 .authlogo-text {
   font-size: 22px;
   font-weight: 900;
-  color: #0f172a; /* dark navy */
+  color: var(--text-color); /* dark navy */
 }
 
 .authlogo-plus {

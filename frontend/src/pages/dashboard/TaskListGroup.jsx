@@ -1,4 +1,25 @@
+import { useState } from "react";
+
 export default function TaskListGroup({ groups, onComplete, onEdit, onDelete, formatDue }) {
+  const [completing, setCompleting] = useState(new Set());
+  const [recentlyCompleted, setRecentlyCompleted] = useState(new Set());
+
+  const handleComplete = async (taskId) => {
+    if (completing.has(taskId)) return;
+    setCompleting((prev) => new Set(prev).add(taskId));
+    setRecentlyCompleted((prev) => new Set(prev).add(taskId));
+    try {
+      await onComplete(taskId);
+    } catch (err) {
+      setCompleting((prev) => { const s = new Set(prev); s.delete(taskId); return s; });
+      setRecentlyCompleted((prev) => { const s = new Set(prev); s.delete(taskId); return s; });
+    }
+    setTimeout(() => {
+      setCompleting((prev) => { const s = new Set(prev); s.delete(taskId); return s; });
+      setRecentlyCompleted((prev) => { const s = new Set(prev); s.delete(taskId); return s; });
+    }, 800);
+  };
+
   return (
     <>
       {groups.map((group) => (

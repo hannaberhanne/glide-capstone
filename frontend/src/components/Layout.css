@@ -24,3 +24,9 @@
 .nav-links a.active::after { width: 100%; }
 main { margin-top: 60px; }
 .accessibility-container { position: fixed; bottom: 24px; right: 24px; z-index: 60; display: flex; align-items: center; justify-content: center; }
+
+/* LOGO DARK MODE + HIGH CONTRAST */
+html.high-contrast .main-header { background: #000; border-color: yellow; }
+html.high-contrast .nav-links a { color: yellow; }
+html.high-contrast .nav-links a:hover, html.high-contrast .nav-links a.active { color: #fff; }
+html.high-contrast .nav-links a::after { background: yellow; }

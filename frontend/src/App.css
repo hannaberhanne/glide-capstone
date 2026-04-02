@@ -14,7 +14,7 @@ html, body, #root {
 :root {
   --bg-color: #F5F1E8;
   --text-color: #3E3731;
-  --highlight-color: #C630F4;
+  --highlight-color: #9CAF88;
   --accent-color: #F1F1F1;
   --achievement-color: #A58F1C;
 
@@ -23,7 +23,7 @@ html, body, #root {
   --card-border:     #E0D8CD;
   --text-muted:      #7A6E65;
   --accent:          #8B6B5A;
-  --accent-soft:     rgba(198, 48, 244, 0.10);
+  --accent-soft:     rgba(156, 175, 136, 0.15);
   --bg-secondary:    #EDE8DF;
   --color-green:     #4CAF50;
   --color-red:       #E53935;
@@ -34,7 +34,7 @@ html, body, #root {
 html.dark-mode  {
   --bg-color: #3E3731;
   --text-color: #F5F1E8;
-  --highlight-color: #C630F4;
+  --highlight-color: #9CAF88;
   --accent-color: #313131;
   --achievement-color: #D4A574;
 
@@ -42,7 +42,7 @@ html.dark-mode  {
   --card-border:     #4A3C32;
   --text-muted:      #B0A090;
   --accent:          #8B6B5A;
-  --accent-soft:     rgba(217, 96, 248, 0.12);
+  --accent-soft:     rgba(156, 175, 136, 0.15);
   --bg-secondary:    #3D3028;
   --color-green:     #66BB6A;
   --color-red:       #EF5350;

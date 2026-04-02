@@ -11,10 +11,9 @@
   color: var(--text-color);
 }
 
-.dash-hero    { order: 1; }
+.dash-hero     { order: 1; }
 .xp-wide-panel { order: 2; }
-.dash-kpis    { order: 3; }
-.dash-main    { order: 4; }
+.dash-body     { order: 3; }
 
 .dash-hero {
   width: 100%; max-width: 960px;
@@ -198,4 +197,73 @@ html.high-contrast .dash-empty { background: black; border-color: yellow; color:
   .dash-title { font-size: 26px; }
   .panel { padding: 14px; }
   .task-item { grid-template-columns: 26px 1fr auto; }
+}
+/* CHECK-OFF LOGIC */
+.task-item-done { opacity: 0.55; transition: opacity 0.4s ease; }
+.task-text-done { text-decoration: line-through; color: var(--text-muted) !important; }
+.task-check.spinning { border-color: var(--highlight-color); animation: spin-pulse 0.6s ease infinite alternate; }
+@keyframes spin-pulse {
+  from { box-shadow: 0 0 0 0 rgba(198,48,244,0.3); }
+  to   { box-shadow: 0 0 0 4px rgba(198,48,244,0); }
+}
+.check-spinner {
+  display: inline-block; width: 8px; height: 8px;
+  border: 2px solid var(--highlight-color); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.5s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.overdue-label { color: var(--color-red) !important; }
+.overdue-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--color-red); margin-right: 6px; vertical-align: middle; }
+html.reduce-motion .task-item-done, html.reduce-motion .check-spinner, html.reduce-motion .task-check { animation: none !important; transition: none !important; }
+
+/* XP PROGRESS BAR */
+.xp-header-left { display: flex; align-items: center; gap: 10px; }
+.xp-level-badge { padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--highlight-color); font-weight: 800; font-size: 12px; letter-spacing: 0.06em; border: 1px solid rgba(198,48,244,0.2); }
+.xp-value-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.xp-to-next { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.xp-bar-labels { display: flex; justify-content: space-between; margin-top: 4px; }
+.xp-bar-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.xp-bar-label:nth-child(2) { color: var(--highlight-color); }
+html.high-contrast .xp-bar-label { color: yellow; }
+html.high-contrast .xp-level-badge { background: black; color: yellow; border-color: yellow; }
+
+/* TWO-COLUMN BODY */
+.dash-body { width: 100%; max-width: 960px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: flex-start; }
+.dash-body-left { display: flex; flex-direction: column; gap: 20px; }
+.dash-body-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
+
+/* SLIM XP */
+.xp-panel-slim { gap: 8px !important; padding: 14px 18px !important; }
+.xp-slim-value { font-size: 13px; font-weight: 700; color: var(--color-gold); }
+.xp-to-next { font-weight: 400; color: var(--text-muted); }
+
+/* STREAK GAUGE */
+.streak-panel { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 20px 16px 14px; }
+.streak-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+.streak-gauge-wrap { position: relative; width: 120px; }
+.streak-svg { width: 100%; display: block; }
+.streak-number { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 32px; font-weight: 900; color: var(--text-color); line-height: 1; }
+.streak-sublabel { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+/* MINI CALENDAR */
+.mini-cal { padding: 14px 16px; }
+.mini-cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.mini-cal-title { font-size: 14px; font-weight: 700; color: var(--text-color); }
+.mini-cal-nav { display: flex; gap: 4px; }
+.mini-cal-nav button { background: none; border: 1px solid var(--card-border); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 14px; color: var(--text-color); display: flex; align-items: center; justify-content: center; }
+.mini-cal-nav button:hover { background: var(--bg-secondary); }
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.mini-cal-dow { font-size: 10px; font-weight: 700; color: var(--text-muted); text-align: center; padding: 2px 0 6px; }
+.mini-cal-day { position: relative; font-size: 12px; text-align: center; padding: 5px 2px; border-radius: 6px; color: var(--text-color); }
+.mini-cal-empty { visibility: hidden; }
+.mini-cal-today { background: var(--highlight-color); color: #fff !important; font-weight: 700; }
+.mini-cal-has-task { font-weight: 700; }
+.mini-cal-dot { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--highlight-color); }
+.mini-cal-today .mini-cal-dot { background: #fff; }
+
+@media (max-width: 760px) {
+  .dash-body { grid-template-columns: 1fr; }
+  .dash-body-right { position: static; flex-direction: row; flex-wrap: wrap; }
+  .streak-panel { flex: 1; min-width: 140px; }
+  .mini-cal { flex: 1; min-width: 240px; }
 }
