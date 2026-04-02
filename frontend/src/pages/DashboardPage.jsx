@@ -9,18 +9,16 @@ import useUser from "../hooks/useUser";
 import useCanvasStatus from "../hooks/useCanvasStatus";
 
 function getXpLevel(totalXP) {
-  const thresholds = [0, 100, 250, 500, 900, 1400, 2100, 3000, 4200, 5800, 8000];
-  let level = 1;
-  for (let i = 1; i < thresholds.length; i++) {
-    if (totalXP >= thresholds[i]) level = i + 1;
-    else break;
+  let level = 0;
+  let accumulated = 0;
+  while (totalXP >= accumulated + 100 * (level + 1)) {
+    accumulated += 100 * (level + 1);
+    level++;
   }
-  const currentFloor = thresholds[Math.min(level - 1, thresholds.length - 1)];
-  const nextCeiling = thresholds[Math.min(level, thresholds.length - 1)];
-  const progress = nextCeiling > currentFloor
-    ? Math.min(((totalXP - currentFloor) / (nextCeiling - currentFloor)) * 100, 100)
-    : 100;
-  const xpToNext = nextCeiling > currentFloor ? nextCeiling - totalXP : 0;
+  const currentFloor = accumulated;
+  const xpForNext = 100 * (level + 1);
+  const progress = (totalXP - currentFloor) / xpForNext * 100;
+  const xpToNext = xpForNext - (totalXP - currentFloor);
   return { level, progress, xpToNext };
 }
 
