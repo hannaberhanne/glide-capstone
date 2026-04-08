@@ -21,16 +21,16 @@ export default function AddGoal({ onClose, onGoalCreated }) {
   const [title, setTitle] = useState("");
   const [color, setColor] = useState(COLOR_SWATCHES[0]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [banner, setBanner] = useState(null);
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      setError("Goal title is required.");
+      setBanner({ message: "Goal title is required.", type: "error" });
       return;
     }
 
     setLoading(true);
-    setError(null);
+    setBanner(null);
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/goals`, {
@@ -49,13 +49,13 @@ export default function AddGoal({ onClose, onGoalCreated }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || data.message || "Failed to create goal");
+        setBanner({ message: data.error || data.message || "Failed to create goal", type: "error" });
       }
 
       onGoalCreated(data);
     } catch (err) {
-      console.error("Create goal error:", err);
-      setError(err.message);
+      setBanner({ message: "Create goal error:", err, type: "error" });
+
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,13 @@ export default function AddGoal({ onClose, onGoalCreated }) {
         </div>
 
         {/* Error */}
-        {error && <p className="add-goal-error">{error}</p>}
+        {banner && (
+            <AlertBanner
+                message={banner.message}
+                type={banner.type}
+                onClose={() => setBanner(null)}
+            />
+        )}
 
         {/* Actions */}
         <div className="add-goal-actions">

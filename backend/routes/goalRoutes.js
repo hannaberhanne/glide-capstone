@@ -7,7 +7,8 @@ import {
     createGoal,
     updateGoal,
     deleteGoal,
-    completeGoal
+    completeGoal,
+    suggestTasks
 } from '../controllers/goalController.js';
 
 router.use(verifyToken);
@@ -17,6 +18,9 @@ router.get('/', getGoals);
 
 // POST /api/Goals - Create new Goal
 router.post('/', createGoal);
+
+
+router.post("/suggest-tasks", verifyToken, suggestTasks);
 
 // PATCH /api/Goals/:goalId - Update Goal
 router.patch('/:goalId', updateGoal);

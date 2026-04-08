@@ -10,6 +10,61 @@ function computeLevel(totalXP) {
   return level;
 }
 
+const XP_MAP = {
+    easy: 5,
+    medium: 10,
+    hard: 15,
+    expert: 20,
+};
+
+exports.suggestTasks = async (req, res) => {
+    const { title } = req.body;
+
+    if (!title) {
+        return res.status(400).json({ error: "Goal title is required." });
+    }
+
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0.7,
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a student productivity assistant. When given a goal title, suggest 2-3 concrete tasks to help achieve it. Respond ONLY with a valid JSON array. No explanation, no markdown, no code fences. Each object must have: "title" (string), "difficulty" (one of: easy, medium, hard, expert).`,
+                    },
+                    {
+                        role: "user",
+                        content: `Goal: "${title.trim()}"`,
+                    },
+                ],
+            }),
+        });
+
+        const data = await response.json();
+        const raw = data.choices[0].message.content.trim();
+        const parsed = JSON.parse(raw);
+
+        const tasks = parsed.map((task) => ({
+            title: task.title,
+            difficulty: task.difficulty,
+            xp: XP_MAP[task.difficulty] ?? 5,
+        }));
+
+        return res.status(200).json({ tasks });
+    } catch (err) {
+        console.error("suggestTasks error:", err);
+        return res.status(500).json({ error: "Failed to generate task suggestions." });
+    }
+};
+
+
 // get requests to retrieve all goals
 const getGoals = async (req, res) => {
     try {
@@ -50,7 +105,6 @@ const createGoal = async (req, res) => {
         const docRef = await db.collection('goals').add({
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             color: color || '#A58F1C',
-            completedToday: false,
             longestStreak: 0,
             streak: 0,
             title: title.trim(),
