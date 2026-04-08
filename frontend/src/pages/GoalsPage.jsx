@@ -147,11 +147,14 @@ export default function GoalsPage() {
         const res = await fetch(
           `${import.meta.env.VITE_API_BASE_URL}/api/quotes`
         );
-        if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+        if (!res.ok) {
+          setBanner({ message: `Request failed with status ${res.status}`, type: "error" });
+        }
         const data = await res.json();
         setQuote(data);
       } catch (err) {
         console.error("Error fetching quote:", err);
+        setBanner({ message: "Error fetching quote", type: "error" });
       }
     };
     fetchQuote();

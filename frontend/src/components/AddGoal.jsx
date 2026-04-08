@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./AddGoal.css";
-import { auth } from "../config/firebase.js"; 
+import { auth } from "../config/firebase.js";
+import AlertBanner from "../components/AlertBanner";
 
 // Preset color swatches matching Glide+ palette
 const COLOR_SWATCHES = [
