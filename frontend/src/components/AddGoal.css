@@ -23,7 +23,7 @@
   border-radius: 14px;
   padding: 1.75rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -242,27 +242,24 @@
   gap: 0.5rem;
 }
 
-.add-goal-task-input {
-  flex: 1;
-  min-width: 0; /* prevents overflow past flex container */
-}
 
-.add-goal-task-select {
-  background: var(--bg-color, #F5F1E8);
-  border: 1px solid var(--card-border, #E0D8CD);
-  border-radius: 8px;
-  padding: 0.6rem 0.5rem;
+.add-goal-task-xp {
+  background: none;
+  border: none;
   font-size: 0.8rem;
   font-family: inherit;
-  color: var(--text-color, #3E3731);
+  color: var(--text-muted, #7A6E65);
   cursor: pointer;
   outline: none;
   flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0.2rem 0;
 }
 
-.add-goal-task-select:focus {
-  border-color: var(--highlight-color, #C630F4);
-  box-shadow: 0 0 0 3px var(--accent-soft, rgba(198, 48, 244, 0.10));
+.add-goal-task-xp:focus {
+  color: var(--text-color, #3E3731);
+
 }
 
 .add-goal-task-remove {
@@ -299,4 +296,23 @@
 .add-goal-btn-add-task:hover {
   background: var(--bg-secondary, #EDE8DF);
   color: var(--text-color, #3E3731);
+}
+
+.add-goal-task-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--card-border, #E0D8CD);
+  border-radius: 0;
+  padding: 0.4rem 0.25rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text-color, #3E3731);
+  outline: none;
+}
+
+.add-goal-task-input:focus {
+  border-bottom-color: var(--highlight-color, #C630F4);
+  box-shadow: none;
 }

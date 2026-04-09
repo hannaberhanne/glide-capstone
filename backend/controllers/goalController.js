@@ -37,7 +37,7 @@ const suggestTasks = async (req, res) => {
                 messages: [
                     {
                         role: "system",
-                        content: `You are a student productivity assistant. When given a goal title, suggest 2-3 concrete tasks to help achieve it. Respond ONLY with a valid JSON array. No explanation, no markdown, no code fences. Each object must have: "title" (string), "difficulty" (one of: easy, medium, hard, expert).`,
+                        content: `You are a student productivity assistant. When given a goal title, suggest 1-3 concrete tasks to help achieve it. Respond ONLY with a valid JSON array. No explanation, no markdown, no code fences. Each object must have: "title" (string), "difficulty" (one of: easy, medium, hard, expert).`,
                     },
                     {
                         role: "user",

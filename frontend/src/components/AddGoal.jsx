@@ -196,7 +196,7 @@ export default function AddGoal({ onClose, onGoalCreated }) {
 
                       {/* Editable title */}
                       <input
-                          className="add-goal-input add-goal-task-input"
+                          className="add-goal-task-input"
                           type="text"
                           value={task.title}
                           onChange={(e) =>
@@ -210,22 +210,22 @@ export default function AddGoal({ onClose, onGoalCreated }) {
 
                       {/* Difficulty selector */}
                       <select
-                          className="add-goal-task-select"
-                          value={task.difficulty}
+                          className="add-goal-task-xp"
+                          value={task.xp}
                           onChange={(e) => {
-                            const difficulty = e.target.value;
-                            const xpMap = { easy: 5, medium: 10, hard: 15, expert: 20 };
+                            const xp = Number(e.target.value);
+                            const diffMap = { 5: "easy", 10: "medium", 15: "hard", 20: "expert" };
                             setSuggestedTasks((prev) =>
                                 prev.map((t, idx) =>
-                                    idx === i ? { ...t, difficulty, xp: xpMap[difficulty] } : t
+                                    idx === i ? { ...t, xp, difficulty: diffMap[xp] } : t
                                 )
                             );
                           }}
                       >
-                        <option value="easy">Easy — 5 XP</option>
-                        <option value="medium">Medium — 10 XP</option>
-                        <option value="hard">Hard — 15 XP</option>
-                        <option value="expert">Expert — 20 XP</option>
+                        <option value={5}>5 XP</option>
+                        <option value={10}>10 XP</option>
+                        <option value={15}>15 XP</option>
+                        <option value={20}>20 XP</option>
                       </select>
 
                       {/* Remove button */}
