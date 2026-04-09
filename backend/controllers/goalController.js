@@ -17,7 +17,7 @@ const XP_MAP = {
     expert: 20,
 };
 
-exports.suggestTasks = async (req, res) => {
+const suggestTasks = async (req, res) => {
     const { title } = req.body;
 
     if (!title) {
@@ -319,5 +319,6 @@ export {
     getGoals,
     updateGoal,
     deleteGoal,
-    completeGoal
+    completeGoal,
+    suggestTasks
 };

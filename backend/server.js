@@ -76,7 +76,8 @@ app.get('/api/health', (req, res) => {
       auth: '/api/auth',
       ai: '/api/ai',
       health: '/api/health',
-      quotes: '/api/quotes'
+      quotes: '/api/quotes',
+      goals: '/api/goals'
     }
   });
 });

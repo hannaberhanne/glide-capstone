@@ -19,8 +19,7 @@ router.get('/', getGoals);
 // POST /api/Goals - Create new Goal
 router.post('/', createGoal);
 
-
-router.post("/suggest-tasks", verifyToken, suggestTasks);
+router.post("/suggest-tasks", suggestTasks);
 
 // PATCH /api/Goals/:goalId - Update Goal
 router.patch('/:goalId', updateGoal);

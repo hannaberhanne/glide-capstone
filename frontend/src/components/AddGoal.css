@@ -201,3 +201,102 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+
+/* ─── Suggest button ─────────────────────────────── */
+.add-goal-btn-suggest {
+  background: none;
+  border: 1px dashed var(--card-border, #E0D8CD);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--text-muted, #7A6E65);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.add-goal-btn-suggest:hover:not(:disabled) {
+  background: var(--bg-secondary, #EDE8DF);
+  color: var(--text-color, #3E3731);
+  border-color: var(--text-muted, #7A6E65);
+}
+
+.add-goal-btn-suggest:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Task list ──────────────────────────────────── */
+.add-goal-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.add-goal-task-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-goal-task-input {
+  flex: 1;
+  min-width: 0; /* prevents overflow past flex container */
+}
+
+.add-goal-task-select {
+  background: var(--bg-color, #F5F1E8);
+  border: 1px solid var(--card-border, #E0D8CD);
+  border-radius: 8px;
+  padding: 0.6rem 0.5rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: var(--text-color, #3E3731);
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.add-goal-task-select:focus {
+  border-color: var(--highlight-color, #C630F4);
+  box-shadow: 0 0 0 3px var(--accent-soft, rgba(198, 48, 244, 0.10));
+}
+
+.add-goal-task-remove {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  color: var(--text-muted, #7A6E65);
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.add-goal-task-remove:hover {
+  background: var(--bg-secondary, #EDE8DF);
+  color: var(--color-red, #E53935);
+}
+
+/* ─── Add task button ────────────────────────────── */
+.add-goal-btn-add-task {
+  background: none;
+  border: 1px dashed var(--card-border, #E0D8CD);
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: var(--text-muted, #7A6E65);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.add-goal-btn-add-task:hover {
+  background: var(--bg-secondary, #EDE8DF);
+  color: var(--text-color, #3E3731);
+}
