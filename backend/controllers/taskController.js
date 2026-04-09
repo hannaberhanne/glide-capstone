@@ -1,29 +1,6 @@
 import { admin, db } from '../config/firebase.js';
 import OpenAI from 'openai';
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-async function getXpFromAI(task) {
-  try {
-    const resp = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: `You are an XP reward system for a student productivity app.
-Task: "${task.title}"
-Category: ${task.category || 'general'}
-Estimated minutes: ${task.estimatedMinutes || 0}
-
-Reply with ONLY a number between 10 and 150 for how much XP this task deserves. No explanation, just the number.`
-      }],
-      max_tokens: 5,
-    });
-    const xp = parseInt(resp.choices[0]?.message?.content?.trim());
-    return isNaN(xp) ? 50 : Math.min(Math.max(xp, 10), 150);
-  } catch (err) {
-    console.error('AI XP error, fallback to 50:', err.message);
-    return 50;
-  }
-}
 
 function computeLevel(totalXP) {
   let level = 0;
@@ -35,7 +12,7 @@ function computeLevel(totalXP) {
   return level;
 }
 
-// get requests to retrieve all tasks
+// get requests to retrieve all tasks for a user
 const getTasks = async (req, res) => {
     try {
         const uid = req.user.uid;
@@ -63,7 +40,7 @@ const getTasks = async (req, res) => {
 // post request to create a new task
 const createTask = async (req, res) => {
     try {
-        const { title, xpValue, goalId } = req.body;
+        const { color, title, xpValue, goalId } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {  // at least needs a title for a task
@@ -73,25 +50,24 @@ const createTask = async (req, res) => {
         }
 
         const docRef = await db.collection('tasks').add({
-            completedToday: false,
+            color: color || '#A58F1C',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             goalId: goalId,
+            lastCompleted: '',
             title: title.trim(),
             userId: uid,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            xpValue: xpValue || 0
+            xpValue: xpValue || 5
         });
 
         // if successful send back the new tasks created so it updates in real time
         res.status(201).json({
-            completedToday: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             goalId: goalId,
+            lastCompleted: '',
             taskId: docRef.id,
             title: title.trim(),
             userId: uid,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            xpValue: xpValue || 0
+            xpValue: xpValue || 5
         });
 
 
@@ -110,7 +86,7 @@ const updateTask = async (req, res) => {
     try {
         const { taskId } = req.params;
         const uid = req.user.uid;
-        const { completedToday, title, xpValue } = req.body;
+        const { lastCompleted, title, xpValue } = req.body;
 
         // Get the task document
         const docRef = db.collection('tasks').doc(taskId);
@@ -144,8 +120,8 @@ const updateTask = async (req, res) => {
             updateData.xpValue = xpValue;
         }
 
-        if (completedToday !== undefined) {
-            updateData.completedToday = completedToday;
+        if (lastCompleted !== undefined) {
+            updateData.lastCompleted = lastCompleted;
         }
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();

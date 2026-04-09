@@ -52,7 +52,7 @@ export default function AddGoal({ onClose, onGoalCreated }) {
       const goalData = await goalRes.json();
 
       if (!goalRes.ok) {
-        throw new Error(goalData.error || goalData.message || "Failed to create goal");
+        setBanner({ message: goalData.error || goalData.message || "Failed to create goal", type: "error" });
       }
 
       // Step 2: POST each task in parallel using the returned goalId
@@ -67,9 +67,9 @@ export default function AddGoal({ onClose, onGoalCreated }) {
                   },
                   body: JSON.stringify({
                     title: task.title,
-                    difficulty: task.difficulty,
-                    xp: task.xp,
                     goalId: goalData.id,
+                    color: color || '#A58F1C',
+                    xpValue: task.xpValue
                   }),
                 })
             )
@@ -83,6 +83,7 @@ export default function AddGoal({ onClose, onGoalCreated }) {
     } finally {
       setLoading(false);
     }
+
   };
 
   const handleSuggestTasks = async () => {
@@ -211,13 +212,13 @@ export default function AddGoal({ onClose, onGoalCreated }) {
                       {/* Difficulty selector */}
                       <select
                           className="add-goal-task-xp"
-                          value={task.xp}
+                          value={task.xpValue}
                           onChange={(e) => {
-                            const xp = Number(e.target.value);
+                            const xpValue = Number(e.target.value);
                             const diffMap = { 5: "easy", 10: "medium", 15: "hard", 20: "expert" };
                             setSuggestedTasks((prev) =>
                                 prev.map((t, idx) =>
-                                    idx === i ? { ...t, xp, difficulty: diffMap[xp] } : t
+                                    idx === i ? { ...t, xpValue, difficulty: diffMap[xpValue] } : t
                                 )
                             );
                           }}
@@ -252,7 +253,7 @@ export default function AddGoal({ onClose, onGoalCreated }) {
                       onClick={() =>
                           setSuggestedTasks((prev) => [
                             ...prev,
-                            { title: "", difficulty: "easy", xp: 5 },
+                            { title: "", difficulty: "easy", xpValue: 5 },
                           ])
                       }
                   >
