@@ -55,26 +55,28 @@ export default function AddGoal({ onClose, onGoalCreated }) {
         setBanner({ message: goalData.error || goalData.message || "Failed to create goal", type: "error" });
       }
 
-      // Step 2: POST each task in parallel using the returned goalId
-      if (suggestedTasks.length > 0) {
-        await Promise.all(
-            suggestedTasks.map((task) =>
-                fetch(`${API_BASE_URL}/api/tasks`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                  },
-                  body: JSON.stringify({
-                    title: task.title,
-                    goalId: goalData.id,
-                    color: color || '#A58F1C',
-                    xpValue: task.xpValue
-                  }),
-                })
-            )
-        );
-      }
+      await Promise.all(
+          suggestedTasks.map(async (task) => {
+            const taskRes = await fetch(`${API_BASE_URL}/api/tasks`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                title: task.title,
+                goalId: goalData.goalId,
+                color: color || '#A58F1C',
+                xpValue: task.xp,
+              }),
+            });
+
+            if (!taskRes.ok) {
+              const err = await taskRes.json();
+              console.error("Task creation failed:", err);
+            }
+          })
+      );
 
       onGoalCreated(goalData);
     } catch (err) {
