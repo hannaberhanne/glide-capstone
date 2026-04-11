@@ -78,7 +78,12 @@ export default function AddGoal({ onClose, onGoalCreated }) {
           })
       );
 
-      onGoalCreated(goalData);
+      const tasksMap = {};
+      suggestedTasks.forEach((task) => {
+        tasksMap[task.title] = task.xp;
+      });
+
+      onGoalCreated({ ...goalData, tasks: tasksMap });
     } catch (err) {
       console.error("Submit error:", err);
       setBanner({ message: err.message, type: "error" });

@@ -70,18 +70,33 @@ const getGoals = async (req, res) => {
     try {
         const uid = req.user.uid;
 
-        // this here it looks at the uid making that request and checks db makes sure they match (userId field in db for this goal)
         const snapshot = await db.collection('goals')
             .where('userId', '==', uid)
             .get();
 
-        // cleanup goals and put them in a map
         const goals = snapshot.docs.map(doc => ({
             goalId: doc.id,
             ...doc.data()
         }));
 
-        res.json(goals);
+        // Fetch tasks for each goal and attach them
+        const goalsWithTasks = await Promise.all(
+            goals.map(async (goal) => {
+                const tasksSnapshot = await db.collection('tasks')
+                    .where('goalId', '==', goal.goalId)
+                    .get();
+
+                const tasks = {};
+                tasksSnapshot.docs.forEach(doc => {
+                    const task = doc.data();
+                    tasks[task.title] = task.xpValue;
+                });
+
+                return { ...goal, tasks };
+            })
+        );
+
+        res.json(goalsWithTasks);
 
     } catch (err) {
         console.error('Get goals error:', err.message);

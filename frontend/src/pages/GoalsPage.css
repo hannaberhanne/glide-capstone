@@ -55,10 +55,42 @@
   border: 2px solid transparent; /* color set inline */
   min-height: 180px; 
   transition: box-shadow 0.2s ease;
+  position: relative;
 }
 
 .goal-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Delete button */
+.goal-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Show on hover */
+.goal-card:hover .goal-delete-btn {
+  opacity: 1;
+}
+
+/* Hover effect */
+.goal-delete-btn:hover {
+  transform: scale(1.1);
+  background: rgba(255, 0, 0, 0.8);
 }
 
 .goal-card-header {
@@ -149,7 +181,7 @@
   margin: 0;
 }
 
-/* ─── Add goal card ──────────────────────────────── */
+
 /* ─── Add goal card ──────────────────────────────── */
 .goal-card-add {
   min-height: 205px;
