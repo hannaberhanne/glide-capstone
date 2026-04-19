@@ -46,6 +46,8 @@ const signUp = async (req, res) => {
             gradYear: '',
             lastName: lastName.trim(),
             longestStreak: 0,
+            loginStreak: 0,
+            lastLoginDate: new Date().toISOString().split('T')[0],
             major: '',
             notifications: false,
             photo: '',
@@ -72,6 +74,8 @@ const signUp = async (req, res) => {
                 gradYear: user.gradYear,
                 lastName: user.lastName,
                 longestStreak: user.longestStreak,
+                loginStreak: user.loginStreak,
+                lastLoginDate: new Date().toISOString().split('T')[0],
                 major: user.major,
                 notifications: user.notifications,
                 photo: user.photo,
@@ -95,7 +99,7 @@ const signUp = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email } = req.body;
-        const uid = req.user.uid; // From verifyToken middleware
+        const uid = req.user.uid;
 
         if (!email) {
             return res.status(400).json({
@@ -104,8 +108,8 @@ const login = async (req, res) => {
             });
         }
 
-        // Get user data from Firestore
-        const userDoc = await db.collection('users').doc(uid).get();
+        const userRef = db.collection('users').doc(uid);
+        const userDoc = await userRef.get();
 
         if (!userDoc.exists) {
             return res.status(404).json({
@@ -115,6 +119,30 @@ const login = async (req, res) => {
         }
 
         const userData = userDoc.data();
+        const todayStr = new Date().toISOString().split('T')[0];
+        const { lastLoginDate, loginStreak = 0, longestStreak = 0 } = userData;
+
+        let newStreak = loginStreak;
+
+        if (lastLoginDate !== todayStr) {
+            if (lastLoginDate) {
+                const diffDays = Math.round(
+                    (new Date(todayStr) - new Date(lastLoginDate)) / (1000 * 60 * 60 * 24)
+                );
+                newStreak = diffDays === 1 ? loginStreak + 1 : 1;
+            } else {
+                newStreak = 1;
+            }
+
+            const newLongest = Math.max(newStreak, longestStreak);
+
+            await userRef.update({
+                lastLoginDate: todayStr,
+                loginStreak: newStreak,
+                longestStreak: newLongest,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
 
         res.json({
             success: true,
@@ -130,7 +158,9 @@ const login = async (req, res) => {
                 gradYear: userData.gradYear,
                 totalXP: userData.totalXP,
                 badges: userData.badges || [],
-                longestStreak: userData.longestStreak,
+                loginStreak: newStreak,
+                longestStreak: Math.max(newStreak, longestStreak),
+                lastLoginDate: todayStr,
                 photo: userData.photo,
                 timezone: userData.timezone,
                 darkMode: userData.darkMode,
