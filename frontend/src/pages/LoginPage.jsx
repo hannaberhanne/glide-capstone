@@ -96,7 +96,7 @@ export default function LoginPage() {
           <Link to="/signup" className="create-link">
             Create Account
           </Link>
-          <Link to="/forgot-password" className="help-link">Can't log in?</Link>
+          <Link to="/forgot-password" className="help-link">Forgot Password</Link>
         </div>
       </div>
     </div>
