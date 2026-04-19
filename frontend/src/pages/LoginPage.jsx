@@ -19,26 +19,37 @@ export default function LoginPage() {
     e.preventDefault();
     if (!canSubmit || loading) return;
 
-
     setLoading(true);
-    
+
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const token = await userCredential.user.getIdToken();
 
+      let streakData = null;
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ email: email.trim() }),
+        });
+        const data = await res.json();
+        if (data.success) streakData = data.data;
+      } catch (err) {
+        console.error("Streak update failed:", err);
+      }
 
-      nav("/dashboard");
+      nav("/dashboard", { state: { streakData } });
 
     } catch (error) {
       console.error("Login error:", error);
-      setBanner({ message: "Please fill in all fields correctly", type: "error" });
-      if (error.code === 'auth/invalid-credential') {
-        setBanner({ message: "Invalid email or password.", type: "error" });
-      } else if (error.code === 'auth/user-not-found') {
-        setBanner({ message: "No account found with this email.", type: "error" });
-      } else if (error.code === 'auth/too-many-requests') {
-        setBanner({ message: "Too many failed attempts. Try again later.", type: "error" });
-      }
-
+      let message = "Please fill in all fields correctly";
+      if (error.code === "auth/invalid-credential") message = "Invalid email or password.";
+      else if (error.code === "auth/user-not-found") message = "No account found with this email.";
+      else if (error.code === "auth/too-many-requests") message = "Too many failed attempts. Try again later.";
+      setBanner({ message, type: "error" });
     } finally {
       setLoading(false);
     }

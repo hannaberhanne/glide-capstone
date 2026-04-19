@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { auth } from "../config/firebase.js";
 import "./DashboardPage.css";
 import DashboardHero from "./dashboard/DashboardHero.jsx";
@@ -7,6 +8,7 @@ import TaskModal from "../components/TaskModal.jsx";
 import useTasks from "../hooks/useTasks";
 import useUser from "../hooks/useUser";
 import useCanvasStatus from "../hooks/useCanvasStatus";
+import AlertBanner from "../components/AlertBanner.jsx";
 
 function getXpLevel(totalXP) {
   let level = 0;
@@ -90,6 +92,26 @@ export default function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [streak] = useState(4);
   const { level, progress, xpToNext } = getXpLevel(xp);
+  const location = useLocation();
+  const [banner, setBanner] = useState(null);
+
+  useEffect(() => {
+    if (!location.state?.streakData) return;
+
+    const { loginStreak, alreadyLoggedInToday } = location.state.streakData;
+
+    if (!alreadyLoggedInToday) {
+      const streakMsg = loginStreak === 1
+          ? "Streak started! Come back tomorrow to keep it going. 📅"
+          : `🔥 ${loginStreak}-day login streak! Keep it up!`;
+      setBanner({ message: streakMsg, type: "success" });
+    } else {
+      setBanner({ message: "Welcome back! 👋", type: "info" });
+    }
+
+    // Clear nav state so banner doesn't reappear on refresh
+    window.history.replaceState({}, document.title);
+  }, []);
 
   const userRecord = Array.isArray(user) ? user[0] : user;
   const displayName =
@@ -217,6 +239,15 @@ export default function DashboardPage() {
 
   return (
   <div className="dash">
+
+    {banner && (
+        <AlertBanner
+            message={banner.message}
+            type={banner.type}
+            onClose={() => setBanner(null)}
+        />
+    )}
+
     <DashboardHero
       todayStr={todayStr}
       displayName={displayName}
