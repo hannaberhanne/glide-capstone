@@ -50,7 +50,15 @@ function GoalCard({ goal, onDelete, onEdit }) {
                   </span>
                   <span className="goal-task-name">{taskName}</span>
                 </label>
-                <span className="goal-task-xp">+{xp} XP</span>
+                <span 
+                  className="goal-task-xp"
+                  style={{
+                    background: `${goal.color}20`,
+                    color: goal.color
+                  }}
+                >
+                  +{xp} XP
+                </span>
               </li>
             ))}
           </ul>

@@ -167,11 +167,14 @@
 }
 
 .goal-task-xp {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--accent-color, #6B8E9F);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
   white-space: nowrap;
   flex-shrink: 0;
+  min-width: 72px;
+  text-align: center;
 }
 
 .goal-no-tasks {
