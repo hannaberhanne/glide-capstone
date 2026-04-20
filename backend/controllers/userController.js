@@ -53,7 +53,7 @@ const updateUser = async (req, res) => {
         const uid = req.user.uid;
         const {
             canvasToken, darkMode, email, firstName, fontScale, gradYear, lastName, longestStreak, major, notifications, photo,
-            timezone, totalXP, university
+            timezone, totalXP, university, hometown, year
         } = req.body;
 
         // Get the user document
@@ -133,6 +133,14 @@ const updateUser = async (req, res) => {
 
         if (university !== undefined) {
             updateData.university = university;
+        }
+
+        if (hometown !== undefined) {
+            updateData.hometown = hometown;
+        }
+
+        if (year !== undefined) {
+            updateData.year = year;
         }
 
         // Update Firebase Authentication email if provided
