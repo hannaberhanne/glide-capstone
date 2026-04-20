@@ -1,5 +1,5 @@
 import { admin, db } from '../config/firebase.js';
-const { FieldValue } = require('firebase-admin/firestore');
+
 
 // get requests to retrieve the User profile
 const getUser = async (req, res) => {
