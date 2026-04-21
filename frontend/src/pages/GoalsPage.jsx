@@ -11,6 +11,13 @@ const API_BASE_URL =
 function GoalCard({ goal, onDelete, onEdit }) {
   const taskEntries = Object.entries(goal.tasks || {});
 
+  // goal.taskDetails is the array of full task objects (with completedToday)
+  // We use it to look up completion status per task title
+  const taskDetailsMap = {};
+  (goal.taskDetails || []).forEach((t) => {
+    taskDetailsMap[t.title] = t;
+  });
+
   return (
     <div
       className="goal-card"
@@ -21,7 +28,7 @@ function GoalCard({ goal, onDelete, onEdit }) {
         type="button"
         className="goal-delete-btn"
         onClick={(e) => {
-          e.stopPropagation(); // prevent opening edit modal when deleting
+          e.stopPropagation();
           onDelete(goal.goalId);
         }}
         aria-label={`Delete ${goal.title}`}
@@ -39,28 +46,48 @@ function GoalCard({ goal, onDelete, onEdit }) {
           <p className="goal-no-tasks">No tasks yet.</p>
         ) : (
           <ul className="goal-task-list">
-            {taskEntries.map(([taskName, xp]) => (
-              <li key={taskName} className="goal-task-item">
-                <label className="goal-task-label">
-                  <span
-                    className="goal-task-bullet"
-                    style={{ color: goal.color }}
-                  >
-                    •
-                  </span>
-                  <span className="goal-task-name">{taskName}</span>
-                </label>
-                <span 
-                  className="goal-task-xp"
+            {taskEntries.map(([taskName, xp]) => {
+              const taskDetail = taskDetailsMap[taskName];
+              const isDone = taskDetail?.completedToday === true;
+
+              return (
+                <li
+                  key={taskName}
+                  className="goal-task-item"
                   style={{
-                    background: `${goal.color}20`,
-                    color: goal.color
+                    opacity: isDone ? 0.45 : 1,
+                    transition: "opacity 0.3s ease",
                   }}
                 >
-                  +{xp} XP
-                </span>
-              </li>
-            ))}
+                  <label className="goal-task-label">
+                    <span
+                      className="goal-task-bullet"
+                      style={{ color: goal.color }}
+                    >
+                      {isDone ? "✓" : "•"}
+                    </span>
+                    <span
+                      className="goal-task-name"
+                      style={{
+                        textDecoration: isDone ? "line-through" : "none",
+                        color: isDone ? "var(--text-muted, #888)" : undefined,
+                      }}
+                    >
+                      {taskName}
+                    </span>
+                  </label>
+                  <span
+                    className="goal-task-xp"
+                    style={{
+                      background: `${goal.color}20`,
+                      color: goal.color,
+                    }}
+                  >
+                    +{xp} XP
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -112,6 +139,7 @@ export default function GoalsPage() {
   const [banner, setBanner] = useState(null);
   const [earnedBadges] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [tasks, setTasks] = useState([]);   // all tasks for this user
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
   const [stats] = useState({
@@ -125,15 +153,10 @@ export default function GoalsPage() {
     const fetchQuote = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/quotes`);
-
         if (!res.ok) {
-          setBanner({
-            message: `Request failed with status ${res.status}`,
-            type: "error",
-          });
+          setBanner({ message: `Request failed with status ${res.status}`, type: "error" });
           return;
         }
-
         const data = await res.json();
         setQuote(data);
       } catch (err) {
@@ -141,7 +164,6 @@ export default function GoalsPage() {
         setBanner({ message: "Error fetching quote", type: "error" });
       }
     };
-
     fetchQuote();
   }, []);
 
@@ -152,23 +174,37 @@ export default function GoalsPage() {
       try {
         const token = await user.getIdToken();
 
-        const res = await fetch(`${API_BASE_URL}/api/goals`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        });
+        // Fetch goals and tasks in parallel
+        const [goalsRes, tasksRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/goals`, {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
+          }),
+          fetch(`${API_BASE_URL}/api/tasks`, {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
+          }),
+        ]);
 
-        const data = await res.json();
+        const goalsData = await goalsRes.json();
+        const tasksData = await tasksRes.json();
 
-        if (!res.ok) {
-          throw new Error(data.error || data.message || "Failed to fetch goals");
-        }
+        if (!goalsRes.ok) throw new Error(goalsData.error || "Failed to fetch goals");
+        if (!tasksRes.ok) throw new Error(tasksData.error || "Failed to fetch tasks");
 
-        setGoals(data);
+        setTasks(tasksData);
+
+        // Attach full task detail objects to each goal so GoalCard can read completedToday
+        const goalsWithDetails = goalsData.map((goal) => ({
+          ...goal,
+          taskDetails: tasksData.filter((t) => t.goalId === goal.goalId),
+        }));
+
+        setGoals(goalsWithDetails);
       } catch (err) {
-        console.error("Fetch goals error:", err);
+        console.error("Fetch error:", err);
         setBanner({ message: "Error loading goals", type: "error" });
       }
     });
@@ -176,15 +212,48 @@ export default function GoalsPage() {
     return () => unsubscribe();
   }, []);
 
+  // When a task is completed on the dashboard and this page is open,
+  // re-fetch tasks to sync the faded state
+  const refreshTasks = async () => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+
+      const res = await fetch(`${API_BASE_URL}/api/tasks`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+      });
+      const tasksData = await res.json();
+      if (!res.ok) return;
+
+      setTasks(tasksData);
+      setGoals((prev) =>
+        prev.map((goal) => ({
+          ...goal,
+          taskDetails: tasksData.filter((t) => t.goalId === goal.goalId),
+        }))
+      );
+    } catch (err) {
+      console.error("Refresh tasks error:", err);
+    }
+  };
+
   const handleGoalCreated = (newGoal) => {
-    setGoals((prev) => [...prev, newGoal]);
+    setGoals((prev) => [...prev, { ...newGoal, taskDetails: [] }]);
     setBanner({ message: "New Goal Created!" });
     setShowAddGoal(false);
   };
 
-  const handleGoalUpdated = (updatedGoal) => {
+  const handleGoalUpdated = async (updatedGoal) => {
+    // Re-fetch tasks so taskDetails are fresh after editing
+    await refreshTasks();
     setGoals((prev) =>
-      prev.map((g) => (g.goalId === updatedGoal.goalId ? updatedGoal : g))
+      prev.map((g) =>
+        g.goalId === updatedGoal.goalId
+          ? { ...updatedGoal, taskDetails: tasks.filter((t) => t.goalId === updatedGoal.goalId) }
+          : g
+      )
     );
     setBanner({ message: "Goal updated successfully!" });
     setEditingGoal(null);
@@ -196,9 +265,7 @@ export default function GoalsPage() {
 
       const res = await fetch(`${API_BASE_URL}/api/goals/${goalId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         credentials: "include",
       });
 
@@ -245,16 +312,8 @@ export default function GoalsPage() {
             <h2 className="achievements-title">Your Achievements</h2>
 
             <div className="stat-badges-grid">
-              <StatBadge
-                icon="🔥"
-                label="Current Streak"
-                value={`${stats.streak} days`}
-              />
-              <StatBadge
-                icon="🏆"
-                label="Longest Streak"
-                value={`${stats.longestStreak} days`}
-              />
+              <StatBadge icon="🔥" label="Current Streak" value={`${stats.streak} days`} />
+              <StatBadge icon="🏆" label="Longest Streak" value={`${stats.longestStreak} days`} />
               <StatBadge icon="⭐" label="Level" value={stats.level} />
               <StatBadge icon="✨" label="Total XP" value={stats.totalXP} />
             </div>

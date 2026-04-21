@@ -1,5 +1,4 @@
 import { admin, db } from '../config/firebase.js';
-import OpenAI from 'openai';
 
 
 function computeLevel(totalXP) {
@@ -12,21 +11,37 @@ function computeLevel(totalXP) {
   return level;
 }
 
+// Returns today's date as a YYYY-MM-DD string in local time
+function todayDateString() {
+  const now = new Date();
+  return now.toISOString().slice(0, 10); // "2025-04-21"
+}
+
+// A task counts as completed today if lastCompleted matches today's date string
+function isCompletedToday(task) {
+  return task.lastCompleted === todayDateString();
+}
+
 // get requests to retrieve all tasks for a user
 const getTasks = async (req, res) => {
     try {
         const uid = req.user.uid;
 
-        // this here it looks at the uix making that request and checks db makes sure they match (userId field in db for this task)
         const snapshot = await db.collection('tasks')
             .where('userId', '==', uid)
             .get();
 
-        // cleanup tasks and put them in a map
-        const tasks = snapshot.docs.map(doc => ({
-            taskId: doc.id,
-            ...doc.data()
-        }));
+        const today = todayDateString();
+
+        // Attach a virtual `completedToday` field so the frontend can use it
+        const tasks = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                taskId: doc.id,
+                ...data,
+                completedToday: data.lastCompleted === today,
+            };
+        });
 
         res.json(tasks);
 
@@ -43,7 +58,7 @@ const createTask = async (req, res) => {
         const { color, title, xpValue, goalId } = req.body;
         const uid = req.user.uid;
 
-        if (!title || title.trim() === '') {  // at least needs a title for a task
+        if (!title || title.trim() === '') {
             return res.status(400).json({
                 error: 'Title is required and cannot be empty'
             });
@@ -52,24 +67,23 @@ const createTask = async (req, res) => {
         const docRef = await db.collection('tasks').add({
             color: color || '#A58F1C',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            goalId: goalId,
-            lastCompleted: '',
+            goalId: goalId || null,
+            lastCompleted: '',   // empty string = never completed
             title: title.trim(),
             userId: uid,
             xpValue: xpValue || 5
         });
 
-        // if successful send back the new tasks created so it updates in real time
         res.status(201).json({
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            goalId: goalId,
+            createdAt: new Date().toISOString(),
+            goalId: goalId || null,
             lastCompleted: '',
+            completedToday: false,
             taskId: docRef.id,
             title: title.trim(),
             userId: uid,
             xpValue: xpValue || 5
         });
-
 
     } catch (err) {
         console.error('Create task error:', err);
@@ -88,30 +102,24 @@ const updateTask = async (req, res) => {
         const uid = req.user.uid;
         const { lastCompleted, title, xpValue } = req.body;
 
-        // Get the task document
         const docRef = db.collection('tasks').doc(taskId);
         const doc = await docRef.get();
 
-        // Check if task exists
         if (!doc.exists) {
             return res.status(404).json({ error: 'Task not found' });
         }
 
-        // Check if user owns this task
         if (doc.data().userId !== uid) {
             return res.status(403).json({
                 error: 'Not authorized to update this task'
             });
         }
 
-        // Build update object with only provided fields
         const updateData = {};
 
         if (title !== undefined) {
             if (title.trim() === '') {
-                return res.status(400).json({
-                    error: 'Title cannot be empty'
-                });
+                return res.status(400).json({ error: 'Title cannot be empty' });
             }
             updateData.title = title.trim();
         }
@@ -126,15 +134,15 @@ const updateTask = async (req, res) => {
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-        // Update the task in Firestore
         await docRef.update(updateData);
 
-        // Get the updated task to return
         const updatedDoc = await docRef.get();
+        const data = updatedDoc.data();
 
         res.json({
             taskId: updatedDoc.id,
-            ...updatedDoc.data(),
+            ...data,
+            completedToday: data.lastCompleted === todayDateString(),
             message: 'Task updated successfully'
         });
 
@@ -147,7 +155,8 @@ const updateTask = async (req, res) => {
     }
 };
 
-// Mark task complete and award XP (idempotent)
+
+// Mark task complete and award XP (idempotent — safe to call twice, won't double-award)
 const completeTask = async (req, res) => {
     const { taskId } = req.params;
     const uid = req.user.uid;
@@ -169,18 +178,21 @@ const completeTask = async (req, res) => {
 
             const task = taskSnap.data();
             const userData = userSnap.data();
+            const today = todayDateString();
 
-            // idempotent check — don't award XP twice
-            if (task.completedToday) {
+            // Idempotent: if already completed today, return current XP without changes
+            if (task.lastCompleted === today) {
                 return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
             }
 
-            const xpGained = await getXpFromAI(task);
+            const xpGained = task.xpValue || 5;
             const newTotalXP = (userData.totalXP || 0) + xpGained;
             const newLevel = computeLevel(newTotalXP);
 
+            // Store today's date string — this IS the daily reset mechanism.
+            // Tomorrow this won't match todayDateString() so the task resets automatically.
             t.update(taskRef, {
-                completedToday: true,
+                lastCompleted: today,
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
@@ -189,10 +201,9 @@ const completeTask = async (req, res) => {
                 level: newLevel,
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
-            
-            return { already: false, xpGained, newTotalXP, newLevel };
 
-             }); 
+            return { already: false, xpGained, newTotalXP, newLevel };
+        });
 
         if (result.already) {
             return res.json({
@@ -230,15 +241,13 @@ const deleteTask = async (req, res) => {
         const doc = await docRef.get();
 
         if (!doc.exists) {
-        return res.status(404).json({ error: 'Task not found' });
+            return res.status(404).json({ error: 'Task not found' });
         }
 
-        // Check if user owns this task
         if (doc.data().userId !== uid) {
             return res.status(403).json({ error: 'Not authorized to delete this task' });
         }
 
-        // Delete the task
         await docRef.delete();
 
         res.json({

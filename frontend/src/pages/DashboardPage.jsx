@@ -24,6 +24,27 @@ function getXpLevel(totalXP) {
   return { level, progress, xpToNext };
 }
 
+// Persist dismissed task IDs to sessionStorage keyed by today's date.
+// This means dismissals reset automatically the next day without any backend work.
+const TODAY_KEY = `dismissed_tasks_${new Date().toISOString().slice(0, 10)}`;
+
+function loadDismissed() {
+  try {
+    const raw = sessionStorage.getItem(TODAY_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDismissed(set) {
+  try {
+    sessionStorage.setItem(TODAY_KEY, JSON.stringify([...set]));
+  } catch {
+    // sessionStorage unavailable — dismissals just won't survive a refresh, that's fine
+  }
+}
+
 function MiniCalendar({ tasks, parseDueDate }) {
   const [offset, setOffset] = useState(0);
   const base = new Date();
@@ -84,7 +105,7 @@ function MiniCalendar({ tasks, parseDueDate }) {
 export default function DashboardPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const { user, xp, setXp, refreshUser } = useUser(API_URL);
-  const { tasks, fetchTasks, addTask, updateTask, deleteTask, completeTask } = useTasks(API_URL);
+  const { tasks, setTasks, fetchTasks, addTask, updateTask, deleteTask, completeTask } = useTasks(API_URL);
   const { canvasStatus, statusLoading } = useCanvasStatus(API_URL);
 
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -94,6 +115,10 @@ export default function DashboardPage() {
   const { level, progress, xpToNext } = getXpLevel(xp);
   const location = useLocation();
   const [banner, setBanner] = useState(null);
+
+  // Dismissed task IDs — persisted to sessionStorage so they survive a page refresh
+  // but reset the next day (because the key includes today's date).
+  const [dismissedTasks, setDismissedTasks] = useState(() => loadDismissed());
 
   useEffect(() => {
     if (!location.state?.streakData) return;
@@ -109,7 +134,6 @@ export default function DashboardPage() {
       setBanner({ message: "Welcome back! 👋", type: "info" });
     }
 
-    // Clear nav state so banner doesn't reappear on refresh
     window.history.replaceState({}, document.title);
   }, []);
 
@@ -161,6 +185,12 @@ export default function DashboardPage() {
       return d.toDateString() === today.toDateString();
     }).length;
   }, [tasks]);
+
+  // Tasks visible on the dashboard = all tasks minus ones dismissed today
+  const visibleTasks = useMemo(
+    () => tasks.filter((t) => !dismissedTasks.has(t.taskId)),
+    [tasks, dismissedTasks]
+  );
 
   const openCreateModal = () => {
     setEditingTask(null);
@@ -223,6 +253,15 @@ export default function DashboardPage() {
   };
 
   const handleCompleteTask = async (taskId) => {
+    // Optimistic update so strikethrough appears instantly
+    if (setTasks) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.taskId === taskId ? { ...t, completedToday: true } : t
+        )
+      );
+    }
+
     try {
       const data = await completeTask(taskId);
       if (data?.success) {
@@ -231,10 +270,23 @@ export default function DashboardPage() {
         }
         fetchTasks();
         refreshUser();
+      } else {
+        fetchTasks();
       }
     } catch (err) {
       console.error("Failed to complete task:", err);
+      fetchTasks();
     }
+  };
+
+  // Dismiss a completed goal task from today's dashboard view only.
+  // Does NOT delete the task — it will reappear tomorrow when the date key changes.
+  const handleDismissTask = (taskId) => {
+    setDismissedTasks((prev) => {
+      const next = new Set(prev).add(taskId);
+      saveDismissed(next);
+      return next;
+    });
   };
 
   return (
@@ -277,13 +329,14 @@ export default function DashboardPage() {
     <div className="dash-body">
       <div className="dash-body-left">
         <UpcomingPanel
-          tasks={tasks}
+          tasks={visibleTasks}
           activeFilter={activeFilter}
           setActiveFilter={setActiveFilter}
           onQuickAdd={handleQuickAdd}
           onComplete={handleCompleteTask}
           onEdit={openEditModal}
           onDelete={handleDeleteTask}
+          onDismiss={handleDismissTask}
           formatDue={formatDue}
           openCreateModal={openCreateModal}
         />

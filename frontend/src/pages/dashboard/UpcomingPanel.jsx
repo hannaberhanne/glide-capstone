@@ -9,6 +9,7 @@ export default function UpcomingPanel({
   onComplete,
   onEdit,
   onDelete,
+  onDismiss,
   formatDue,
   openCreateModal,
 }) {
@@ -155,6 +156,7 @@ export default function UpcomingPanel({
             onComplete={onComplete}
             onEdit={onEdit}
             onDelete={onDelete}
+            onDismiss={onDismiss}
             formatDue={formatDue}
           />
         )}
