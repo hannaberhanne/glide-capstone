@@ -7,6 +7,7 @@ import AuthLogo from "../components/AuthLogo";
 import AlertBanner from "../components/AlertBanner.jsx";
 
 export default function LoginPage() {
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +27,7 @@ export default function LoginPage() {
 
       let streakData = null;
       try {
-        const res = await fetch("/api/auth/login", {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
