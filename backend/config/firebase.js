@@ -15,7 +15,7 @@ try {
             }),
         });
     } else {
-        admin.initializeApp();  // for web hosting 
+        admin.initializeApp();  // for web hosting
     }
 } catch (err) {
     console.error("Firebase initialization error:", err.message);
