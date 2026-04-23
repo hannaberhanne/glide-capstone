@@ -35,7 +35,7 @@ app.use(cors({
 
 app.use(express.json());
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 8080;
 
 // Route imports
 import aiRoutes from './routes/aiRoutes.js';
