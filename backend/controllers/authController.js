@@ -98,6 +98,10 @@ const signUp = async (req, res) => {
 
 const login = async (req, res) => {
     try {
+        console.log('Login hit');
+        console.log('req.user:', req.user);
+        console.log('req.body:', req.body);
+
         const { email } = req.body;
         const uid = req.user.uid;
 
