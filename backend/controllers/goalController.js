@@ -239,18 +239,30 @@ const deleteGoal = async (req, res) => {
             return res.status(404).json({ error: 'Goal not found' });
         }
 
-        // Check if user owns this goal
         if (doc.data().userId !== uid) {
             return res.status(403).json({ error: 'Not authorized to delete this goal' });
         }
 
-        // Delete the event
-        await docRef.delete();
+        // Delete all tasks belonging to this goal
+        const tasksSnapshot = await db.collection('tasks')
+            .where('goalId', '==', goalId)
+            .get();
+
+        const batch = db.batch();
+
+        tasksSnapshot.docs.forEach(taskDoc => {
+            batch.delete(taskDoc.ref);
+        });
+
+        // Delete the goal itself in the same batch
+        batch.delete(docRef);
+
+        await batch.commit();
 
         res.json({
             goalId: goalId,
             deleted: true,
-            message: 'Goal deleted successfully'
+            message: 'Goal and associated tasks deleted successfully'
         });
     } catch (err) {
         console.error('Delete goal error:', err);
