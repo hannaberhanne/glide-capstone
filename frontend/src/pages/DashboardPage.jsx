@@ -99,7 +99,7 @@ export default function DashboardPage() {
     if (hour < 12) return `Good morning, ${displayName}!`;
     if (hour < 17) return `Good afternoon, ${displayName}!`;
     return `Good evening, ${displayName}!`;
-  }, [displayName]);
+  }, []);
 
   const formatDue = (task) =>
     formatDueForToday({ task, parseDueDate, today, todayKey });
