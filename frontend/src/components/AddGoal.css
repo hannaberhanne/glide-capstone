@@ -94,8 +94,8 @@
 }
 
 .add-goal-input:focus {
-  border-color: var(--highlight-color, #C630F4);
-  box-shadow: 0 0 0 3px var(--accent-soft, rgba(198, 48, 244, 0.10));
+  border-color: var(--highlight-color);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .add-goal-input::placeholder {
@@ -313,6 +313,6 @@
 }
 
 .add-goal-task-input:focus {
-  border-bottom-color: var(--highlight-color, #C630F4);
+  border-bottom-color: var(--highlight-color);
   box-shadow: none;
 }

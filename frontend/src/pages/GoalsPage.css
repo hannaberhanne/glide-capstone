@@ -205,7 +205,7 @@
   transform: translateY(-3px);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
   border-color: var(--highlight-color);
-  background: rgba(198, 48, 244, 0.04);
+  background: var(--accent-soft);
 }
 
 .goal-card-add-inner {
@@ -226,7 +226,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(198, 48, 244, 0.1);
+  background: var(--accent-soft);
   color: var(--highlight-color);
   font-size: 2rem;
   font-weight: 400;

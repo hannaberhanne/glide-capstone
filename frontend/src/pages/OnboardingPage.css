@@ -1,18 +1,11 @@
-body {
-  margin: 0;
-}
-
-:root {
-  --card-bg: #ffffff;
-  --card-border: rgba(148, 163, 184, 0.35);
-  --card-shadow: rgba(15, 23, 42, 0.1);
-  --ink: #0f172a;
-  --muted: #475569;
-  --accent: var(--highlight-color);
-  --brand-alt: #111827;
-}
-
 .onboarding-container {
+  --onboarding-card-bg: #ffffff;
+  --onboarding-card-border: rgba(148, 163, 184, 0.35);
+  --onboarding-card-shadow: rgba(15, 23, 42, 0.1);
+  --onboarding-ink: #0f172a;
+  --onboarding-muted: #475569;
+  --onboarding-accent: var(--highlight-color);
+  --onboarding-brand-alt: #111827;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -24,11 +17,11 @@ body {
 .onboarding-card {
   width: 100%;
   max-width: 500px;
-  background: var(--card-bg);
+  background: var(--onboarding-card-bg);
   border-radius: 24px;
   padding: 40px;
-  border: 1px solid var(--card-border);
-  box-shadow: 0 18px 40px var(--card-shadow);
+  border: 1px solid var(--onboarding-card-border);
+  box-shadow: 0 18px 40px var(--onboarding-card-shadow);
   animation: fadeUp 0.4s ease;
 }
 
@@ -51,19 +44,19 @@ body {
   margin: 0 0 6px;
   font-size: 28px;
   font-weight: 900;
-  color: var(--ink);
+  color: var(--onboarding-ink);
 }
 
 .onboarding-header p {
   margin: 0;
-  color: var(--muted);
+  color: var(--onboarding-muted);
   line-height: 1.5;
 }
 
 .onboarding-step {
   margin: 24px 0 12px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--onboarding-muted);
   font-size: 14px;
 }
 
@@ -71,12 +64,12 @@ body {
   margin: 0 0 18px;
   font-size: 22px;
   font-weight: 800;
-  color: var(--ink);
+  color: var(--onboarding-ink);
 }
 
 .onboarding-sub {
   margin: 0 0 24px;
-  color: var(--muted);
+  color: var(--onboarding-muted);
 }
 
 .onboarding-choices {
@@ -96,7 +89,7 @@ body {
   background: #f9fafb;
   font-size: 16px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--onboarding-ink);
   cursor: pointer;
   transition: border 0.2s ease, background 0.2s ease;
 }
@@ -115,7 +108,7 @@ body {
 }
 
 .onboarding-option:hover {
-  border-color: var(--accent);
+  border-color: var(--onboarding-accent);
   background: #fff5f0;
 }
 
@@ -152,7 +145,7 @@ body {
 
 .onboarding-backbtn {
   background: #e5e7eb;
-  color: #111827;
+  color: var(--onboarding-brand-alt);
 }
 
 .onboarding-backbtn:disabled {
@@ -161,8 +154,8 @@ body {
 }
 
 .onboarding-primary-btn {
-  background: var(--accent);
-  color: var(--brand-alt);
+  background: var(--onboarding-accent);
+  color: var(--onboarding-brand-alt);
   width: 150px;
 }
 
@@ -174,12 +167,12 @@ body {
 .onboarding-footer {
   margin-top: 26px;
   text-align: center;
-  color: var(--muted);
+  color: var(--onboarding-muted);
   font-size: 14px;
 }
 
 .onboarding-link {
-  color: var(--accent);
+  color: var(--onboarding-accent);
   font-weight: 700;
 }
 

@@ -1,7 +1,4 @@
-/* theme variables */
-
-/* LIGHT MODE OVERRIDES (unique to this page) */
-:root {
+.canvas-setup-container {
   --canvas-bg-gradient: linear-gradient(135deg, #eef2ff, #fafafa);
   --canvas-card-bg: #ffffff;
   --canvas-title: #0f172a;
@@ -12,10 +9,15 @@
   --canvas-btn-text: #ffffff;
   --canvas-return: #64748b;
   --canvas-return-hover: #334155;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--canvas-bg-gradient);
+  padding: 20px;
 }
 
-/* DARK MODE */
-html.dark-mode {
+html.dark-mode .canvas-setup-container {
   --canvas-bg-gradient: linear-gradient(135deg, #0a1220, #111827);
   --canvas-card-bg: #1e293b;
   --canvas-title: #f1f5f9;
@@ -28,8 +30,7 @@ html.dark-mode {
   --canvas-return-hover: #ffffff;
 }
 
-/* HIGH CONTRAST MODE */
-html.high-contrast {
+html.high-contrast .canvas-setup-container {
   --canvas-bg-gradient: black;
   --canvas-card-bg: black;
   --canvas-title: yellow;
@@ -40,19 +41,6 @@ html.high-contrast {
   --canvas-btn-text: black;
   --canvas-return: yellow;
   --canvas-return-hover: yellow;
-}
-
-/* =========================================
-   PAGE STYLES
-   ========================================= */
-
-.canvas-setup-container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: var(--canvas-bg-gradient);
-  padding: 20px;
 }
 
 .canvas-setup-card {
