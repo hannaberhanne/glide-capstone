@@ -4,6 +4,8 @@
 import { admin } from '../config/firebase.js';
 
 const verifyToken = async (req, res, next) => {
+    if (req.method === 'OPTIONS') return next();
+
     const token = req.headers.authorization?.split('Bearer ')[1];
 
     if (!token) return res.status(401).json({ error: 'No token' });

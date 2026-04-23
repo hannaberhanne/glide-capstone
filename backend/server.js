@@ -33,6 +33,7 @@ app.use(cors({
   credentials: true
 }));
 
+app.options('*', cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 8080;
