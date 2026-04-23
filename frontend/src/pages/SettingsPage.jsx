@@ -52,7 +52,7 @@ const getInitialProfileForm = (userRecord) => ({
   lastName: userRecord?.lastName || "",
   email: auth.currentUser?.email || "",
   password: "",
-  hometown: userRecord?.hometown || "",
+  homeTown: userRecord?.homeTown || "",
   university: userRecord?.university || "",
   year: userRecord?.year || "",
   major: userRecord?.major || "",
@@ -184,7 +184,7 @@ export default function SettingsPage() {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
-        hometown: form.hometown.trim(),
+        homeTown: form.homeTown.trim(),
         university: form.university.trim(),
         year: form.year.trim(),
         major: form.major.trim(),
@@ -274,8 +274,8 @@ export default function SettingsPage() {
             Home Town
             <input
               className="settings-input"
-              value={form.hometown}
-              onChange={(e) => updateFormField("hometown", e.target.value)}
+              value={form.homeTown}
+              onChange={(e) => updateFormField("homeTown", e.target.value)}
               placeholder="Home town"
             />
           </label>
