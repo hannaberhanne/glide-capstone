@@ -1,148 +1,68 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { auth } from "../config/firebase.js";
-import "./DashboardPage.css";
-import DashboardHero from "./dashboard/DashboardHero.jsx";
-import UpcomingPanel from "./dashboard/UpcomingPanel.jsx";
+import AlertBanner from "../components/AlertBanner.jsx";
 import TaskModal from "../components/TaskModal.jsx";
 import useTasks from "../hooks/useTasks";
 import useUser from "../hooks/useUser";
-import useCanvasStatus from "../hooks/useCanvasStatus";
-import AlertBanner from "../components/AlertBanner.jsx";
+import UpcomingPanel from "./dashboard/UpcomingPanel.jsx";
+import DashboardRail from "./dashboard/DashboardRail.jsx";
+import {
+  buildStreakCalendar,
+  formatDueForToday,
+  formatEstimate,
+  getDashboardTaskBuckets,
+  getXpLevel,
+  startOfDay,
+  toDayKey,
+} from "./dashboard/dashboardViewModel.js";
+import "./DashboardPage.css";
 
-function getXpLevel(totalXP) {
-  let level = 0;
-  let accumulated = 0;
-  while (totalXP >= accumulated + 100 * (level + 1)) {
-    accumulated += 100 * (level + 1);
-    level++;
-  }
-  const currentFloor = accumulated;
-  const xpForNext = 100 * (level + 1);
-  const progress = (totalXP - currentFloor) / xpForNext * 100;
-  const xpToNext = xpForNext - (totalXP - currentFloor);
-  return { level, progress, xpToNext };
-}
-
-// Persist dismissed task IDs to sessionStorage keyed by today's date.
-// This means dismissals reset automatically the next day without any backend work.
-const TODAY_KEY = `dismissed_tasks_${new Date().toISOString().slice(0, 10)}`;
-
-function loadDismissed() {
+function loadDismissedTaskIds(key) {
+  if (typeof window === "undefined") return new Set();
   try {
-    const raw = sessionStorage.getItem(TODAY_KEY);
+    const raw = window.sessionStorage.getItem(key);
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch {
     return new Set();
   }
 }
 
-function saveDismissed(set) {
+function saveDismissedTaskIds(key, ids) {
+  if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(TODAY_KEY, JSON.stringify([...set]));
+    window.sessionStorage.setItem(key, JSON.stringify([...ids]));
   } catch {
-    // sessionStorage unavailable — dismissals just won't survive a refresh, that's fine
+    // Ignore storage failures; dismissal can fall back to in-memory state.
   }
-}
-
-function MiniCalendar({ tasks, parseDueDate }) {
-  const [offset, setOffset] = useState(0);
-  const base = new Date();
-  base.setMonth(base.getMonth() + offset);
-  const year = base.getFullYear();
-  const month = base.getMonth();
-
-  const monthName = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(year, month, 1));
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const startPad = (firstDay + 6) % 7;
-
-  const taskDays = new Set(
-    tasks.map((t) => {
-      const d = parseDueDate(t);
-      if (!d) return null;
-      if (d.getFullYear() === year && d.getMonth() === month) return d.getDate();
-      return null;
-    }).filter(Boolean)
-  );
-
-  const today = new Date();
-  const isThisMonth = today.getFullYear() === year && today.getMonth() === month;
-
-  const cells = [];
-  for (let i = 0; i < startPad; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-  return (
-    <div className="panel mini-cal">
-      <div className="mini-cal-head">
-        <span className="mini-cal-title">{monthName}</span>
-        <div className="mini-cal-nav">
-          <button onClick={() => setOffset((o) => o - 1)}>‹</button>
-          <button onClick={() => setOffset((o) => o + 1)}>›</button>
-        </div>
-      </div>
-      <div className="mini-cal-grid">
-        {["Mo","Tu","We","Th","Fr","Sa","Su"].map((d) => (
-          <span key={d} className="mini-cal-dow">{d}</span>
-        ))}
-        {cells.map((day, i) => (
-          <span key={i} className={[
-            "mini-cal-day",
-            !day ? "mini-cal-empty" : "",
-            day && isThisMonth && day === today.getDate() ? "mini-cal-today" : "",
-            day && taskDays.has(day) ? "mini-cal-has-task" : "",
-          ].join(" ")}>
-            {day || ""}
-            {day && taskDays.has(day) && <span className="mini-cal-dot" />}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 export default function DashboardPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const { user, xp, setXp, refreshUser } = useUser(API_URL);
-  const { tasks, setTasks, fetchTasks, addTask, updateTask, deleteTask, completeTask } = useTasks(API_URL);
-  const { canvasStatus, statusLoading } = useCanvasStatus(API_URL);
+  const { tasks, fetchTasks, addTask, updateTask, deleteTask, completeTask } = useTasks(API_URL);
 
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [streak] = useState(4);
-  const { level, progress, xpToNext } = getXpLevel(xp);
-  const location = useLocation();
+  const [xpBursts, setXpBursts] = useState([]);
   const [banner, setBanner] = useState(null);
-
-  // Dismissed task IDs — persisted to sessionStorage so they survive a page refresh
-  // but reset the next day (because the key includes today's date).
-  const [dismissedTasks, setDismissedTasks] = useState(() => loadDismissed());
-
-  useEffect(() => {
-    if (!location.state?.streakData) return;
-
-    const { loginStreak, alreadyLoggedInToday } = location.state.streakData;
-
-    if (!alreadyLoggedInToday) {
-      const streakMsg = loginStreak === 1
-          ? "Streak started! Come back tomorrow to keep it going. 📅"
-          : `🔥 ${loginStreak}-day login streak! Keep it up!`;
-      setBanner({ message: streakMsg, type: "success" });
-    } else {
-      setBanner({ message: "Welcome back! 👋", type: "info" });
-    }
-
-    window.history.replaceState({}, document.title);
-  }, []);
+  const [railNote, setRailNote] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return window.localStorage.getItem("glide_today_rail_note") || "";
+  });
+  const xpAnchorRef = useRef(null);
+  const location = useLocation();
 
   const userRecord = Array.isArray(user) ? user[0] : user;
   const displayName =
-    userRecord?.firstName ||
-    auth.currentUser?.displayName?.split(" ")[0] ||
-    "User";
+    userRecord?.firstName || auth.currentUser?.displayName?.split(" ")[0] || "User";
 
+  const today = useMemo(() => startOfDay(new Date()), []);
+  const todayKey = useMemo(() => toDayKey(today), [today]);
+  const dismissedStorageKey = useMemo(() => `dismissed_tasks_${todayKey}`, [todayKey]);
+  const [dismissedTasks, setDismissedTasks] = useState(() =>
+    loadDismissedTaskIds(`dismissed_tasks_${toDayKey(startOfDay(new Date()))}`)
+  );
   const todayStr = useMemo(
     () =>
       new Intl.DateTimeFormat("en-US", {
@@ -153,44 +73,58 @@ export default function DashboardPage() {
     []
   );
 
-  const parseDueDate = (t) => {
-    if (!t.dueAt) return null;
-    if (typeof t.dueAt === "object" && t.dueAt.seconds) {
-      return new Date(t.dueAt.seconds * 1000);
-    }
-    const d = new Date(t.dueAt);
-    return isNaN(d.getTime()) ? null : d;
-  };
-
-  const formatDue = (t) => {
-    const d = parseDueDate(t);
-    if (!d) return "No due date";
-    return d.toLocaleString();
-  };
-
-  const canvasConnected = !!canvasStatus?.hasToken;
-  const canvasLabel = (() => {
-    if (statusLoading) return "Checking Canvas...";
-    if (!canvasConnected || !canvasStatus?.lastSync) return "Canvas not connected";
-    const raw = canvasStatus.lastSync;
-    const d = raw?.seconds ? new Date(raw.seconds * 1000) : new Date(raw);
-    return isNaN(d.getTime()) ? "Canvas synced" : `Canvas synced ${d.toLocaleDateString()}`;
-  })();
-
-  const todayTasks = useMemo(() => {
-    return tasks.filter((t) => {
-      const d = parseDueDate(t);
-      if (!d) return false;
-      const today = new Date();
-      return d.toDateString() === today.toDateString();
-    }).length;
-  }, [tasks]);
-
-  // Tasks visible on the dashboard = all tasks minus ones dismissed today
-  const visibleTasks = useMemo(
-    () => tasks.filter((t) => !dismissedTasks.has(t.taskId)),
-    [tasks, dismissedTasks]
+  const {
+    parseDueDate,
+    incompleteTasks,
+    todayTasks,
+    upcomingTasks,
+    completedTasks,
+  } = useMemo(
+    () =>
+      getDashboardTaskBuckets({
+        tasks: tasks.filter((task) => !dismissedTasks.has(task.taskId)),
+        today,
+      }),
+    [tasks, dismissedTasks, today]
   );
+
+  const xpModel = useMemo(() => getXpLevel(Number(xp) || 0), [xp]);
+  const streakCalendar = useMemo(
+    () => buildStreakCalendar({ completedTasks, today }),
+    [completedTasks, today]
+  );
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return `Good morning, ${displayName}!`;
+    if (hour < 17) return `Good afternoon, ${displayName}!`;
+    return `Good evening, ${displayName}!`;
+  }, [displayName]);
+
+  const formatDue = (task) =>
+    formatDueForToday({ task, parseDueDate, today, todayKey });
+
+  useEffect(() => {
+    if (!location.state?.streakData) return;
+
+    const { loginStreak, alreadyLoggedInToday } = location.state.streakData;
+    if (!alreadyLoggedInToday) {
+      const message =
+        loginStreak === 1
+          ? "Streak started. Come back tomorrow to keep it going."
+          : `${loginStreak}-day login streak. Keep it up.`;
+      setBanner({ message, type: "success" });
+    } else {
+      setBanner({ message: "Welcome back.", type: "info" });
+    }
+
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("glide_today_rail_note", railNote);
+  }, [railNote]);
 
   const openCreateModal = () => {
     setEditingTask(null);
@@ -202,44 +136,82 @@ export default function DashboardPage() {
     setShowTaskModal(true);
   };
 
+  const handleQuickAddTask = async (title, bucket = "today") => {
+    const draftTitle = title.trim();
+    if (!draftTitle) return;
+
+    await addTask({
+      title: draftTitle,
+      category: "academic",
+      priority: "medium",
+      description: "",
+      dueAt: bucket === "today" ? today.toISOString() : null,
+      estimatedMinutes: 0,
+      isComplete: false,
+    });
+    await fetchTasks();
+  };
+
   const handleSubmitTask = async (payload) => {
     try {
+      const estimatedMinutes =
+        payload.estimatedMinutes !== undefined
+          ? payload.estimatedMinutes
+          : payload.estimatedTime !== undefined
+            ? ((Number(payload.estimatedTime) <= 12
+                ? Number(payload.estimatedTime) * 60
+                : Number(payload.estimatedTime)) || 0)
+            : 0;
+
       if (editingTask?.taskId) {
-        await updateTask(editingTask.taskId, {
-          ...payload,
-          estimatedMinutes:
-            payload.estimatedMinutes !== undefined
-              ? payload.estimatedMinutes
-              : payload.estimatedTime !== undefined
-                ? ((Number(payload.estimatedTime) <= 12 ? Number(payload.estimatedTime) * 60 : Number(payload.estimatedTime)) || 0)
-                : 0,
-        });
+        await updateTask(editingTask.taskId, { ...payload, estimatedMinutes });
       } else {
-        await addTask({
-          ...payload,
-          isComplete: false,
-          estimatedMinutes:
-            payload.estimatedMinutes !== undefined
-              ? payload.estimatedMinutes
-              : payload.estimatedTime !== undefined
-                ? ((Number(payload.estimatedTime) <= 12 ? Number(payload.estimatedTime) * 60 : Number(payload.estimatedTime)) || 0)
-                : 0,
-        });
+        await addTask({ ...payload, isComplete: false, estimatedMinutes });
       }
+      await fetchTasks();
       setShowTaskModal(false);
       setEditingTask(null);
     } catch (err) {
       console.error("Failed to save task:", err);
-      alert("Failed to save task. Please try again.");
+      alert(err?.message || "Failed to save task. Please try again.");
     }
   };
 
-  const handleQuickAdd = async (payload) => {
+  const handleCompleteTask = async (taskId, sourceRect) => {
     try {
-      await addTask(payload);
+      const data = await completeTask(taskId);
+      if (!data?.success) return;
+
+      if (typeof data.newTotalXP === "number") {
+        setXp(data.newTotalXP);
+      }
+      if (
+        typeof window !== "undefined" &&
+        sourceRect &&
+        xpAnchorRef.current &&
+        Number(data.xpGained) > 0
+      ) {
+        const targetRect = xpAnchorRef.current.getBoundingClientRect();
+        const burstId = `${taskId}-${Date.now()}`;
+        setXpBursts((prev) => [
+          ...prev,
+          {
+            id: burstId,
+            label: `+${Math.round(data.xpGained)} XP`,
+            startX: sourceRect.left + sourceRect.width / 2,
+            startY: sourceRect.top + sourceRect.height / 2,
+            endX: targetRect.left + targetRect.width * 0.7,
+            endY: targetRect.top + targetRect.height / 2,
+          },
+        ]);
+        window.setTimeout(() => {
+          setXpBursts((prev) => prev.filter((burst) => burst.id !== burstId));
+        }, 950);
+      }
+      fetchTasks();
+      refreshUser();
     } catch (err) {
-      console.error("Failed to add task:", err);
-      alert("Failed to add task. Please try again.");
+      console.error("Failed to complete task:", err);
     }
   };
 
@@ -248,131 +220,120 @@ export default function DashboardPage() {
       await deleteTask(taskId);
     } catch (err) {
       console.error("Failed to delete task:", err);
-      alert("Failed to delete task. Please try again.");
+      alert(err?.message || "Failed to delete task. Please try again.");
     }
   };
 
-  const handleCompleteTask = async (taskId) => {
-    // Optimistic update so strikethrough appears instantly
-    if (setTasks) {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.taskId === taskId ? { ...t, completedToday: true } : t
-        )
-      );
-    }
-
-    try {
-      const data = await completeTask(taskId);
-      if (data?.success) {
-        if (typeof data.newTotalXP === "number") {
-          setXp(data.newTotalXP);
-        }
-        fetchTasks();
-        refreshUser();
-      } else {
-        fetchTasks();
-      }
-    } catch (err) {
-      console.error("Failed to complete task:", err);
-      fetchTasks();
-    }
-  };
-
-  // Dismiss a completed goal task from today's dashboard view only.
-  // Does NOT delete the task — it will reappear tomorrow when the date key changes.
   const handleDismissTask = (taskId) => {
     setDismissedTasks((prev) => {
-      const next = new Set(prev).add(taskId);
-      saveDismissed(next);
+      const next = new Set(prev);
+      next.add(taskId);
+      saveDismissedTaskIds(dismissedStorageKey, next);
       return next;
     });
   };
 
   return (
-  <div className="dash">
-
-    {banner && (
+    <div className="dash">
+      {banner && (
         <AlertBanner
-            message={banner.message}
-            type={banner.type}
-            onClose={() => setBanner(null)}
+          message={banner.message}
+          type={banner.type}
+          onClose={() => setBanner(null)}
         />
-    )}
+      )}
 
-    <DashboardHero
-      todayStr={todayStr}
-      displayName={displayName}
-      canvasLabel={canvasLabel}
-      canvasConnected={canvasConnected}
-      statusLoading={statusLoading}
-    />
-
-    <section className="xp-wide-panel">
-      <div className="panel xp-panel xp-panel-slim">
-        <div className="xp-header-row">
-          <div className="xp-header-left">
-            <h2 className="xp-header">XP &amp; Progress</h2>
-            <span className="xp-level-badge">Lv. {level}</span>
-          </div>
-          <span className="xp-slim-value">
-            {xp.toLocaleString()} XP
-            {xpToNext > 0 && <span className="xp-to-next"> · {xpToNext} to next</span>}
-          </span>
-        </div>
-        <div className="xp-bar xp-bar-wide" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
-          <div className="xp-fill" style={{ width: `${progress}%` }} />
-        </div>
-      </div>
-    </section>
-
-    <div className="dash-body">
-      <div className="dash-body-left">
-        <UpcomingPanel
-          tasks={visibleTasks}
-          activeFilter={activeFilter}
-          setActiveFilter={setActiveFilter}
-          onQuickAdd={handleQuickAdd}
-          onComplete={handleCompleteTask}
-          onEdit={openEditModal}
-          onDelete={handleDeleteTask}
-          onDismiss={handleDismissTask}
-          formatDue={formatDue}
-          openCreateModal={openCreateModal}
-        />
-      </div>
-
-      <div className="dash-body-right">
-        <div className="panel streak-panel">
-          <div className="streak-label">CURRENT STREAK</div>
-          <div className="streak-gauge-wrap">
-            <svg viewBox="0 0 120 70" className="streak-svg">
-              <path d="M10,65 A50,50 0 0,1 110,65" fill="none" stroke="var(--card-border)" strokeWidth="10" strokeLinecap="round"/>
+      <header className="today-page-head" aria-labelledby="today-heading">
+        <h1 className="today-sheet-title" id="today-heading">
+          {greeting}
+        </h1>
+        <p className="today-sheet-date" aria-label="Today date">
+          {todayStr}
+        </p>
+        <div className="today-page-icons" aria-hidden>
+          <span className="today-page-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.4" />
               <path
-                d="M10,65 A50,50 0 0,1 110,65"
-                fill="none"
-                stroke="var(--highlight-color)"
-                strokeWidth="10"
+                d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.3 3.3l1.4 1.4M11.3 11.3l1.4 1.4M12.7 3.3l-1.4 1.4M4.7 11.3l-1.4 1.4"
+                stroke="currentColor"
+                strokeWidth="1.4"
                 strokeLinecap="round"
-                strokeDasharray="157"
-                strokeDashoffset={157 - (Math.min(streak, 30) / 30) * 157}
               />
             </svg>
-            <div className="streak-number">{streak}</div>
-          </div>
-          <div className="streak-sublabel">days active</div>
+          </span>
+          <span className="today-page-icon">
+            <svg width="18" height="16" viewBox="0 0 18 16" fill="none">
+              <path
+                d="M4.2 11.8h7.5a3.1 3.1 0 0 0 .2-6.2 4 4 0 0 0-7.7 1.1A2.7 2.7 0 0 0 4.2 11.8Z"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
         </div>
+      </header>
 
-        <MiniCalendar tasks={tasks} parseDueDate={parseDueDate} />
+      <div className="today-surface">
+        <div className="today-layout">
+          <section className="today-sheet" aria-label="Today tasks">
+            <UpcomingPanel
+              todayTasks={todayTasks}
+              upcomingTasks={upcomingTasks}
+              hasAnyTasks={incompleteTasks.length > 0}
+              onComplete={handleCompleteTask}
+              onEdit={openEditModal}
+              onDelete={handleDeleteTask}
+              onDismiss={handleDismissTask}
+              formatDue={formatDue}
+              formatEstimate={formatEstimate}
+              parseDueDate={parseDueDate}
+              openCreateModal={openCreateModal}
+              onQuickAdd={handleQuickAddTask}
+            />
+          </section>
+
+          <DashboardRail
+            level={xpModel.level}
+            nextLevel={xpModel.level + 1}
+            currentLevelXP={xpModel.currentLevelXP}
+            xpProgressPct={xpModel.progress}
+            streakCalendar={streakCalendar}
+            railNote={railNote}
+            onRailNoteChange={setRailNote}
+            xpAnchorRef={xpAnchorRef}
+          />
+        </div>
       </div>
-    </div>
 
-    <TaskModal
-      open={showTaskModal}
-      onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
-      onSubmit={handleSubmitTask}
-      initialTask={editingTask}
-    />
-  </div>
-);
+      <div className="today-xp-bursts" aria-hidden>
+        {xpBursts.map((burst) => (
+          <span
+            key={burst.id}
+            className="today-xp-burst"
+            style={{
+              "--xp-start-x": `${burst.startX}px`,
+              "--xp-start-y": `${burst.startY}px`,
+              "--xp-end-x": `${burst.endX}px`,
+              "--xp-end-y": `${burst.endY}px`,
+            }}
+          >
+            {burst.label}
+          </span>
+        ))}
+      </div>
+
+      <TaskModal
+        open={showTaskModal}
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
+        onSubmit={handleSubmitTask}
+        initialTask={editingTask}
+      />
+    </div>
+  );
 }

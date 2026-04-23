@@ -1,166 +1,210 @@
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import TaskListGroup from "./TaskListGroup.jsx";
 
-export default function UpcomingPanel({
-  tasks,
-  activeFilter,
-  setActiveFilter,
+function EmptyPlannerRows({
+  note,
+  onCreate,
   onQuickAdd,
+  bucket = "today",
+}) {
+  const [drafts, setDrafts] = useState(() => Array.from({ length: 5 }, () => ""));
+  const [savingIndex, setSavingIndex] = useState(null);
+  const inputRefs = useRef([]);
+
+  useEffect(() => {
+    if (inputRefs.current[0] && note) {
+      inputRefs.current[0].setAttribute("placeholder", note);
+    }
+  }, [note]);
+
+  const submitDraft = async (index) => {
+    const value = (drafts[index] || "").trim();
+    if (!value || !onQuickAdd) {
+      setDrafts((prev) => {
+        const next = [...prev];
+        next[index] = "";
+        return next;
+      });
+      return;
+    }
+
+    setSavingIndex(index);
+    try {
+      await onQuickAdd(value, bucket);
+      setDrafts((prev) => {
+        const next = [...prev];
+        next[index] = "";
+        return next;
+      });
+    } finally {
+      setSavingIndex(null);
+    }
+  };
+
+  const handleKeyDown = async (event, index) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      await submitDraft(index);
+    }
+    if (event.key === "Escape") {
+      setDrafts((prev) => {
+        const next = [...prev];
+        next[index] = "";
+        return next;
+      });
+    }
+  };
+
+  return (
+    <div className="today-empty today-empty-sheet" role="status">
+      <ul className="today-task-list today-task-list-empty" aria-hidden>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <li key={index} className="today-task-row is-empty">
+            <span className="today-task-check today-task-check-empty" />
+
+            <div className="today-task-main">
+              <input
+                ref={(node) => {
+                  inputRefs.current[index] = node;
+                }}
+                type="text"
+                className="today-inline-input"
+                value={drafts[index]}
+                onChange={(event) =>
+                  setDrafts((prev) => {
+                    const next = [...prev];
+                    next[index] = event.target.value;
+                    return next;
+                  })
+                }
+                onKeyDown={(event) => handleKeyDown(event, index)}
+                onBlur={() => {
+                  if (savingIndex === index) return;
+                  if ((drafts[index] || "").trim()) {
+                    submitDraft(index);
+                  }
+                }}
+                placeholder={index === 0 ? note || "" : ""}
+                aria-label={index === 0 && note ? note : `Planner line ${index + 1}`}
+                disabled={savingIndex === index}
+              />
+            </div>
+
+            <div className="today-task-side">
+              <span className="today-task-time today-task-time-empty" />
+              <button
+                type="button"
+                className="today-task-edit today-task-edit-empty"
+                onClick={onCreate}
+                aria-label="Open task editor"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path
+                    d="M12.7 2.3a1.4 1.4 0 1 1 2 2L7.2 11.8 4 12.5l.7-3.2 8-7Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M11.8 3.2 14.8 6.2"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SectionHead({ label, count }) {
+  return (
+    <div className="today-section-head">
+      <span className="today-section-label">{label}</span>
+      {typeof count === "number" ? <span className="today-section-count">{count}</span> : null}
+    </div>
+  );
+}
+
+export default function UpcomingPanel({
+  todayTasks,
+  upcomingTasks,
+  hasAnyTasks,
   onComplete,
   onEdit,
   onDelete,
   onDismiss,
   formatDue,
+  formatEstimate,
+  parseDueDate,
   openCreateModal,
+  onQuickAdd,
 }) {
-  const [newTask, setNewTask] = useState("");
-  const [newTaskCategory, setNewTaskCategory] = useState("academic");
-
-  const groupedTasks = useMemo(() => {
-    const groupDefs = [
-      ["overdue", "Overdue"],
-      ["today", "Today"],
-      ["tomorrow", "Tomorrow"],
-      ["this-week", "This week"],
-      ["next-week", "Next week"],
-      ["later", "Later"],
-      ["no-date", "No due date"],
-    ];
-    const groupsMap = new Map(groupDefs.map(([key, label]) => [key, { key, label, items: [] }]));
-    const filtered = tasks.filter((t) => {
-      const cat = (t.category || "academic").toLowerCase();
-      if (activeFilter === "all") return true;
-      return cat === activeFilter;
-    });
-
-    const parseDueDate = (t) => {
-      if (!t.dueAt) return null;
-      if (typeof t.dueAt === "object" && t.dueAt.seconds) {
-        return new Date(t.dueAt.seconds * 1000);
-      }
-      const d = new Date(t.dueAt);
-      return isNaN(d.getTime()) ? null : d;
-    };
-
-    const sorted = filtered.slice().sort((a, b) => {
-      const da = parseDueDate(a);
-      const db = parseDueDate(b);
-      if (da && db) return da - db;
-      if (da && !db) return -1;
-      if (!da && db) return 1;
-      return 0;
-    });
-
-    sorted.forEach((task) => {
-      const d = parseDueDate(task);
-      let key = "no-date";
-      if (d) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const diffDays = Math.floor((d - today) / (1000 * 60 * 60 * 24));
-        if (diffDays < 0) {
-          key = "overdue";
-        } else if (diffDays === 0) {
-          key = "today";
-        } else if (diffDays === 1) {
-          key = "tomorrow";
-        } else if (diffDays <= 6) {
-          key = "this-week";
-        } else if (diffDays <= 13) {
-          key = "next-week";
-        } else {
-          key = "later";
-        }
-      }
-
-      groupsMap.get(key)?.items.push(task);
-    });
-
-    return groupDefs
-      .map(([key]) => groupsMap.get(key))
-      .filter((group) => group?.items.length)
-      .map((group) => ({ key: group.key, label: group.label, items: group.items }));
-  }, [tasks, activeFilter]);
-
-  const handleQuickAdd = async () => {
-    if (!newTask.trim()) return;
-    await onQuickAdd({
-      title: newTask.trim(),
-      isComplete: false,
-      dueAt: new Date().toISOString(),
-      category: newTaskCategory,
-    });
-    setNewTask("");
-  };
+  const plannerHandoff = todayTasks.length > 8;
 
   return (
-    <section className="dash-main">
-      <div className="panel">
-        <div className="panel-head">
-          <h2>Upcoming</h2>
-          <button className="add-task-btn" onClick={openCreateModal}>+ Add Task</button>
-        </div>
-
-        <div className="task-input-row">
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
-            placeholder="Add a new task..."
-            className="taskquick-input"
-          />
-          <select
-            value={newTaskCategory}
-            onChange={(e) => setNewTaskCategory(e.target.value)}
-            className="taskquick-select"
-          >
-            <option value="academic">Academic</option>
-            <option value="work">Work</option>
-            <option value="personal">Personal</option>
-          </select>
-        </div>
-
-        <div className="task-filters">
-          {["all", "academic", "work", "personal"].map((f) => (
-            <button
-              key={f}
-              className={`filter-pill ${activeFilter === f ? "active" : ""}`}
-              onClick={() => setActiveFilter(f)}
-            >
-              {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {tasks.length === 0 ? (
-          <ul className="task-list">
-            <li className="task-item">
-              <div className="task-body">
-                <div className="task-empty">
-                  <span aria-hidden>📝</span>
-                  <div>
-                    <div className="task-text">Ready to add your first task?</div>
-                    <div className="task-meta">Stay sharp—add one quick win.</div>
-                  </div>
-                  <button className="add-task-btn" onClick={openCreateModal} style={{ marginLeft: "auto" }}>
-                    Add task
-                  </button>
-                </div>
-              </div>
-            </li>
-          </ul>
-        ) : (
+    <div className="today-sheet-body">
+      <section className="today-section today-section-primary" aria-labelledby="today-today-heading">
+        <SectionHead label="Today" count={todayTasks.length || undefined} />
+        <h2 className="sr-only" id="today-today-heading">
+          Today
+        </h2>
+        {todayTasks.length > 0 ? (
           <TaskListGroup
-            groups={groupedTasks}
+            tasks={todayTasks}
+            variant="lead"
             onComplete={onComplete}
             onEdit={onEdit}
             onDelete={onDelete}
             onDismiss={onDismiss}
             formatDue={formatDue}
+            formatEstimate={formatEstimate}
+            parseDueDate={parseDueDate}
+          />
+        ) : (
+          <EmptyPlannerRows
+            note={hasAnyTasks ? "Add a task" : "Add your first task"}
+            onCreate={openCreateModal}
+            onQuickAdd={onQuickAdd}
+            bucket="today"
           />
         )}
-      </div>
-    </section>
+        {plannerHandoff ? (
+          <div className="today-planner-handoff">
+            <Link to="/planner" className="today-planner-handoff-link">
+              View full day in Planner
+            </Link>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="today-section today-section-upcoming" aria-labelledby="today-upcoming-heading">
+        <SectionHead label="Upcoming" count={upcomingTasks.length || undefined} />
+        <h2 className="sr-only" id="today-upcoming-heading">
+          Upcoming
+        </h2>
+        {upcomingTasks.length > 0 ? (
+          <TaskListGroup
+            tasks={upcomingTasks}
+            onComplete={onComplete}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onDismiss={onDismiss}
+            formatDue={formatDue}
+            formatEstimate={formatEstimate}
+            parseDueDate={parseDueDate}
+          />
+        ) : (
+          <EmptyPlannerRows onCreate={openCreateModal} onQuickAdd={onQuickAdd} bucket="upcoming" />
+        )}
+      </section>
+    </div>
   );
 }

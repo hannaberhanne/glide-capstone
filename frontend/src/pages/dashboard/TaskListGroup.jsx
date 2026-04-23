@@ -1,144 +1,191 @@
 import { useState } from "react";
 
-export default function TaskListGroup({ groups, onComplete, onEdit, onDelete, onDismiss, formatDue }) {
+const capitalize = (value) => {
+  if (!value) return null;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
+const startOfDay = (value) => {
+  const date = new Date(value);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
+export default function TaskListGroup({
+  tasks,
+  onComplete,
+  onEdit,
+  onDelete,
+  onDismiss,
+  formatDue,
+  formatEstimate,
+  parseDueDate,
+  variant = "standard",
+}) {
   const [completing, setCompleting] = useState(new Set());
+  const [recentlyCompleted, setRecentlyCompleted] = useState(new Set());
 
-  const handleComplete = async (taskId, isAlreadyComplete) => {
-    if (completing.has(taskId) || isAlreadyComplete) return;
+  const isTaskDone = (task) =>
+    task.completedToday === true || task.isComplete === true || recentlyCompleted.has(task.taskId);
 
+  const handleComplete = async (taskId, event) => {
+    if (completing.has(taskId)) return;
     setCompleting((prev) => new Set(prev).add(taskId));
+    setRecentlyCompleted((prev) => new Set(prev).add(taskId));
+
     try {
-      await onComplete(taskId);
+      await onComplete(taskId, event?.currentTarget?.getBoundingClientRect?.() || null);
     } catch (err) {
       setCompleting((prev) => {
-        const s = new Set(prev);
-        s.delete(taskId);
-        return s;
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
       });
+      setRecentlyCompleted((prev) => {
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+      return;
     }
+
     setTimeout(() => {
       setCompleting((prev) => {
-        const s = new Set(prev);
-        s.delete(taskId);
-        return s;
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
       });
-    }, 600);
+      setRecentlyCompleted((prev) => {
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+    }, 800);
   };
 
   return (
-    <>
-      {groups.map((group) => (
-        <div className="task-group" key={group.key}>
-          <div className="task-group-head">
-            <span className="task-group-label">{group.label}</span>
-            <span className="task-group-count">{group.items.length}</span>
-          </div>
-          <ul className="task-list">
-            {group.items.slice(0, 5).map((t) => {
-              const isDone = t.completedToday || completing.has(t.taskId);
-              // Goal-linked tasks are recurring habits — they should never be permanently
-              // deleted from the dashboard X button. One-off tasks (no goalId) can be deleted.
-              const isGoalTask = !!t.goalId;
+    <ul className={`today-task-list ${variant === "lead" ? "today-task-list-lead" : ""}`.trim()}>
+      {tasks.map((task) => {
+        const taskId = task.taskId;
+        const done = isTaskDone(task);
+        const busy = completing.has(taskId);
+        const justCompleted = recentlyCompleted.has(taskId);
+        const due = parseDueDate?.(task);
+        const dueState = due ? Math.sign(startOfDay(due) - startOfDay(new Date())) : null;
+        const metaParts = [capitalize(task.category), formatEstimate?.(task.estimatedMinutes) || null];
+        const isCanvasTask =
+          task.source === "canvas" || task.syncedFromCanvas === true || Boolean(task.canvasAssignmentId);
+        const isGoalTask = Boolean(task.goalId);
 
-              return (
-                <li
-                  key={t.taskId}
-                  className="task-item"
-                  style={{
-                    opacity: isDone ? 0.5 : 1,
-                    transition: "opacity 0.4s ease",
-                  }}
-                >
-                  <button
-                    className={`task-check ${isDone ? "checked" : ""}`}
-                    onClick={() => handleComplete(t.taskId, t.completedToday)}
-                    aria-label={isDone ? "Completed" : "Mark complete"}
-                    disabled={isDone}
-                    style={{ cursor: isDone ? "default" : "pointer" }}
-                  >
-                    {isDone ? "✓" : ""}
-                  </button>
+        if (dueState !== null && dueState < 0) {
+          metaParts.push("Overdue");
+        }
 
-                  <div className="task-body">
-                    <button
-                      className="task-text-btn"
-                      onClick={() => !isDone && onEdit(t)}
-                      style={{
-                        textDecoration: isDone ? "line-through" : "none",
-                        color: isDone ? "var(--text-muted, #888)" : undefined,
-                        transition: "color 0.3s ease",
-                        cursor: isDone ? "default" : "pointer",
-                      }}
-                    >
-                      {t.title || t.text}
-                    </button>
-                    <div className="task-meta">{formatDue(t)}</div>
-                  </div>
+        return (
+          <li
+            key={taskId}
+            className={`today-task-row ${done ? "is-done" : ""} ${justCompleted ? "just-completed" : ""} ${variant === "lead" ? "is-lead" : ""}`.trim()}
+          >
+            <button
+              type="button"
+              className={`today-task-check ${done ? "checked" : ""} ${justCompleted ? "just-completed" : ""} ${busy ? "spinning" : ""}`.trim()}
+              onClick={(event) => !done && handleComplete(taskId, event)}
+              disabled={busy || done}
+              aria-label={done ? "Completed" : `Mark ${task.title || task.text || "task"} complete`}
+            >
+              {busy ? (
+                <span className="today-check-spinner" aria-hidden />
+              ) : done ? (
+                <span className="today-check-mark">✓</span>
+              ) : null}
+            </button>
 
-                  {isGoalTask ? (
-                    // Goal task: X only appears once completed, and only dismisses from today's view
-                    isDone ? (
-                      <button
-                        className="delete-task-btn"
-                        onClick={() => onDismiss(t.taskId)}
-                        aria-label="Dismiss from today's view"
-                        title="Remove from today's view"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: "4px",
-                          marginLeft: "auto",
-                        }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path
-                            d="M12 4L4 12M4 4L12 12"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
-                    ) : (
-                      // Placeholder so layout doesn't shift when X appears
-                      <span style={{ width: "24px", marginLeft: "auto" }} />
-                    )
-                  ) : (
-                    // One-off task: X always shown, permanently deletes
-                    <button
-                      className="delete-task-btn"
-                      onClick={() => onDelete(t.taskId)}
-                      aria-label="Delete task"
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: "4px",
-                        marginLeft: "auto",
-                      }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path
-                          d="M12 4L4 12M4 4L12 12"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-          {group.items.length > 5 && (
-            <div className="task-group-more">
-              {group.items.length - 5} more tasks · <a href="/planner">Open Planner</a>
+            <div className="today-task-main">
+              <div className={`today-task-title ${done ? "has-strike" : ""} ${justCompleted ? "strike-in" : ""}`.trim()}>
+                {task.title || task.text}
+                {isCanvasTask ? (
+                  <span className="today-task-source" aria-label="Imported from Canvas" title="Imported from Canvas">
+                    C
+                  </span>
+                ) : null}
+              </div>
+              {metaParts.filter(Boolean).length > 0 ? (
+                <div className="today-task-meta">
+                  {metaParts.filter(Boolean).map((part) => (
+                    <span key={`${taskId}-${part}`} className="today-task-meta-item">
+                      {part}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
-          )}
-        </div>
-      ))}
-    </>
+
+            <div className="today-task-side">
+              <span className="today-task-time">{formatDue?.(task) || "Anytime"}</span>
+              <button
+                type="button"
+                className="today-task-edit"
+                onClick={() => onEdit(task)}
+                aria-label={`Edit ${(task.title || task.text || "task").slice(0, 80)}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+                  <path
+                    d="M12.7 2.3a1.4 1.4 0 1 1 2 2L7.2 11.8 4 12.5l.7-3.2 8-7Z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M11.8 3.2 14.8 6.2"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {isGoalTask ? (
+                done && onDismiss ? (
+                  <button
+                    type="button"
+                    className="today-task-remove"
+                    onClick={() => onDismiss(taskId)}
+                    aria-label={`Dismiss ${(task.title || task.text || "task").slice(0, 80)} from today`}
+                    title="Remove from today's view"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path
+                        d="M12 4 4 12M4 4l8 8"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </button>
+                ) : (
+                  <span className="today-task-remove today-task-remove-placeholder" aria-hidden />
+                )
+              ) : onDelete ? (
+                <button
+                  type="button"
+                  className="today-task-remove"
+                  onClick={() => onDelete(taskId)}
+                  aria-label={`Delete ${(task.title || task.text || "task").slice(0, 80)}`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <path
+                      d="M12 4 4 12M4 4l8 8"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              ) : null}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

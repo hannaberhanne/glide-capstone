@@ -5,6 +5,17 @@ export default function useTasks(API_URL) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const buildApiError = async (res) => {
+    let detail = "";
+    try {
+      const body = await res.json();
+      detail = body?.error || body?.message || "";
+    } catch (_) {
+      detail = "";
+    }
+    return new Error(detail ? `HTTP ${res.status}: ${detail}` : `HTTP ${res.status}`);
+  };
+
   const fetchTasks = async () => {
     if (!auth.currentUser) {
       setTasks([]);
@@ -17,7 +28,7 @@ export default function useTasks(API_URL) {
       const res = await fetch(`${API_URL}/api/tasks`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw await buildApiError(res);
       const data = await res.json();
       setTasks(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -43,7 +54,7 @@ export default function useTasks(API_URL) {
       },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw await buildApiError(res);
     const data = await res.json();
     setTasks((prev) => [...prev, data]);
     return data;
@@ -60,7 +71,7 @@ export default function useTasks(API_URL) {
       },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw await buildApiError(res);
     const data = await res.json();
     setTasks((prev) =>
       prev.map((t) => (t.taskId === taskId ? { ...t, ...payload } : t))
@@ -75,7 +86,7 @@ export default function useTasks(API_URL) {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw await buildApiError(res);
     setTasks((prev) => prev.filter((t) => t.taskId !== taskId));
   };
 
@@ -90,10 +101,13 @@ export default function useTasks(API_URL) {
       },
     });
     const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to complete task");
+    }
     if (res.ok && data.success) {
       setTasks((prev) =>
         prev.map((t) =>
-          t.taskId === taskId ? { ...t, isComplete: true } : t
+          t.taskId === taskId ? { ...t, completedToday: true } : t
         )
       );
     }
