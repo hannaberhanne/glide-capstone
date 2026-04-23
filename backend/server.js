@@ -5,6 +5,19 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import dotenv from 'dotenv';
 
+import aiRoutes from './routes/aiRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import canvasRoutes from './routes/canvasRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
+import scheduleRoutes from './routes/scheduleRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import habitRoutes from './routes/habitRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import quoteRoutes from './routes/quoteRoutes.js';
+import goalRoutes from './routes/goalRoutes.js';
+
 // Load .env variables
 dotenv.config();
 
@@ -37,20 +50,6 @@ app.options('*', cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 8080;
-
-// Route imports
-import aiRoutes from './routes/aiRoutes.js';
-import assignmentRoutes from './routes/assignmentRoutes.js';
-import authRoutes from './routes/authRoutes.js';
-import canvasRoutes from './routes/canvasRoutes.js';
-import courseRoutes from './routes/courseRoutes.js';
-import eventRoutes from './routes/eventRoutes.js';
-import scheduleRoutes from './routes/scheduleRoutes.js';
-import taskRoutes from './routes/taskRoutes.js';
-import habitRoutes from './routes/habitRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import quoteRoutes from './routes/quoteRoutes.js';
-import goalRoutes from './routes/goalRoutes.js';
 
 // Routes
 app.use('/api/assignments', assignmentRoutes);
