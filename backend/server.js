@@ -110,7 +110,7 @@ if (process.env.NODE_ENV === 'production') {
     });
   });
 }
-
+/*
 // Errors
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found', message: `Cannot ${req.method} ${req.path}` });
@@ -119,6 +119,7 @@ app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal Server Error', message: err.message || 'Something went wrong!' });
 });
+*/
 
 // Start
 app.listen(PORT, () => {
