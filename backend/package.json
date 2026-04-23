@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:backend": "node --test tests/habitController.test.js",
+    "test": "npm run test:backend",
+    "test:backend": "node --test tests/*.test.js",
     "dev": "node server.js",
     "start": "NODE_ENV=production node server.js"
   },

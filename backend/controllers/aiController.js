@@ -17,7 +17,8 @@ export async function replan(req, res) {
     const uid = req.user.uid;
     const snap = await db.collection('tasks').where('userId', '==', uid).get();
     const tasks = snap.docs.map(d => ({ taskId: d.id, ...d.data() }));
-    const planned = replanTasks(tasks, req.body || {});
+    const result = replanTasks(tasks, req.body || {});
+    const planned = Array.isArray(result) ? result : result.items || [];
 
     if (req.body?.apply) {
       const batch = db.batch();
@@ -32,7 +33,10 @@ export async function replan(req, res) {
       await batch.commit();
     }
 
-    res.json(planned);
+    res.json({
+      suggestions: planned,
+      summary: Array.isArray(result) ? "" : result.summary || "",
+    });
   } catch (err) {
     console.error('AI replan error:', err);
     res.status(500).json({ error: 'Failed to replan tasks' });

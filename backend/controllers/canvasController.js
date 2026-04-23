@@ -1,5 +1,10 @@
 import CanvasService from '../services/canvasService.js';
 import { db, admin } from '../config/firebase.js';
+import {
+  deleteCanvasTasksForUser,
+  getCanvasTaskCount,
+  upsertCanvasTaskFromAssignment
+} from '../services/canvasTaskSyncService.js';
 
 // Sync courses and assignments from Canvas to Firestore
 const syncCanvas = async (req, res) => {
@@ -47,6 +52,8 @@ const syncCanvas = async (req, res) => {
     let coursesUpdated = 0;
     let assignmentsAdded = 0;
     let assignmentsUpdated = 0;
+    let tasksAdded = 0;
+    let tasksUpdated = 0;
 
     for (const courseData of coursesWithAssignments) {
       // upsert course by canvasId for this user
@@ -95,9 +102,10 @@ const syncCanvas = async (req, res) => {
           .get();
 
         const xpValue = Math.floor(assignmentData.totalPoints || 0);
+        let assignmentRef;
 
         if (!existingAssignmentQuery.empty) {
-          const assignmentRef = existingAssignmentQuery.docs[0].ref;
+          assignmentRef = existingAssignmentQuery.docs[0].ref;
           await assignmentRef.update({
             canvasUrl: assignmentData.canvasUrl || '',
             description: assignmentData.description || '',
@@ -109,7 +117,7 @@ const syncCanvas = async (req, res) => {
           });
           assignmentsUpdated++;
         } else {
-          await db.collection('assignments').add({
+          assignmentRef = await db.collection('assignments').add({
             canvasId: assignmentData.canvasId || '',
             canvasUrl: assignmentData.canvasUrl || '',
             completed: assignmentData.completed || false,
@@ -127,6 +135,19 @@ const syncCanvas = async (req, res) => {
           assignmentsAdded++;
         }
 
+        const taskResult = await upsertCanvasTaskFromAssignment({
+          uid,
+          courseId: courseRef.id,
+          courseCode: courseData.courseCode,
+          assignmentId: assignmentRef.id,
+          assignmentData
+        });
+
+        if (taskResult.action === 'added') {
+          tasksAdded++;
+        } else {
+          tasksUpdated++;
+        }
       }
     }
 
@@ -138,8 +159,11 @@ const syncCanvas = async (req, res) => {
         coursesUpdated,
         assignmentsAdded,
         assignmentsUpdated,
+        tasksAdded,
+        tasksUpdated,
         totalCourses: coursesAdded + coursesUpdated,
         totalAssignments: assignmentsAdded + assignmentsUpdated,
+        totalTasks: tasksAdded + tasksUpdated,
         tokenSource: canvasToken ? 'provided' : (userData?.canvasToken ? 'stored' : 'env')
       }
     });
@@ -181,7 +205,8 @@ const getCanvasSyncStatus = async (req, res) => {
           tokenSource: 'none',
           lastSync: null,
           coursesCount: 0,
-          assignmentsCount: 0
+          assignmentsCount: 0,
+          linkedTasksCount: 0
         }
       });
     }
@@ -193,6 +218,7 @@ const getCanvasSyncStatus = async (req, res) => {
     const assignmentsSnapshot = await db.collection('assignments')
       .where('userId', '==', uid)
       .get();
+    const linkedTasksCount = await getCanvasTaskCount(uid);
 
     let lastSync = null;
     coursesSnapshot.forEach(doc => {
@@ -209,7 +235,8 @@ const getCanvasSyncStatus = async (req, res) => {
         tokenSource: hasStoredToken ? 'user' : 'env',
         lastSync: lastSync,
         coursesCount: coursesSnapshot.size,
-        assignmentsCount: assignmentsSnapshot.size
+        assignmentsCount: assignmentsSnapshot.size,
+        linkedTasksCount
       }
     });
 
@@ -253,6 +280,7 @@ const disconnectCanvas = async (req, res) => {
         }
       });
       await batch.commit();
+      await deleteCanvasTasksForUser(uid);
     }
 
     res.json({

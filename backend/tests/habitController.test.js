@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
-import { evaluateStreakBadge } from "../controllers/habitController.js";
+import { evaluateStreakBadge } from "../domain/habitBadges.js";
 
 test("awards badge when streak hits 7 and user doesn't already have it", () => {
   const badge = evaluateStreakBadge(7, []);

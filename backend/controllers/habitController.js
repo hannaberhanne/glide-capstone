@@ -1,21 +1,7 @@
 import { admin, db } from '../config/firebase.js';
+import { evaluateStreakBadge } from '../domain/habitBadges.js';
 
 const dateKey = (d = new Date()) => d.toISOString().slice(0, 10); // yyyy-mm-dd
-
-const STREAK_BADGE = {
-  id: 'habit-7-day-streak',
-  title: '7-Day Habit Mastery',
-  description: 'Maintain a week-long streak on this habit',
-  icon: '🏅',
-};
-
-const evaluateStreakBadge = (currentStreak = 0, userBadges = []) => {
-  const alreadyHas = Array.isArray(userBadges) && userBadges.some((b) => b?.id === STREAK_BADGE.id);
-  if (currentStreak >= 7 && !alreadyHas) {
-    return { ...STREAK_BADGE };
-  }
-  return null;
-};
 
 const createHabit = async (req, res) => {
   try {
