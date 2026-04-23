@@ -1,0 +1,3 @@
+runConfig:
+  runtime: nodejs20
+  startCommand: node server.js
