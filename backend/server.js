@@ -18,14 +18,21 @@ const __dirname = path.dirname(__filename);
 const allowlist = new Set([
   'http://localhost:5173',  // frontend dev server
   'http://localhost:8080',  // backend serving frontend
-  // add Vercel URL here when deployed or whatever we use
-  // 'https://glide-plus.vercel.app',
+  'https://glide-topaz.vercel.app'
 ]);
 
+// had to change this to a function since allowlist is a set
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowlist.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 80;
@@ -110,7 +117,7 @@ if (process.env.NODE_ENV === 'production') {
     });
   });
 }
-/*
+
 // Errors
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found', message: `Cannot ${req.method} ${req.path}` });
@@ -119,7 +126,7 @@ app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal Server Error', message: err.message || 'Something went wrong!' });
 });
-*/
+
 
 // Start
 app.listen(PORT, () => {
