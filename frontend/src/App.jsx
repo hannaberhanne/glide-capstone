@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
@@ -22,6 +22,11 @@ function NotFound() {
   );
 }
 
+function LegacyProfileRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/settings${location.search || ""}`} replace />;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -42,8 +47,8 @@ export default function App() {
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/goals" element={<GoalsPage />} />
 
-        {/* Settings/Profile */}
-        <Route path="/profile" element={<SettingsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile" element={<LegacyProfileRedirect />} />
 
       </Route>
 

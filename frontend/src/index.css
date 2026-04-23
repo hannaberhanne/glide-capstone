@@ -1,22 +1,39 @@
-/* === GLOBAL RESET === */
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  font-family: "Libre Baskerville", serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
+  min-height: 100%;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* === SMOOTH SCROLL + CLEAN LOOK === */
 html {
   scroll-behavior: smooth;
   --font-scale: 100%;
   font-size: var(--font-scale);
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
 }

@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { auth } from "../config/firebase";
 import useCanvasStatus from "../hooks/useCanvasStatus";
 import useUser from "../hooks/useUser";
+import useAccessibilityPrefs, {
+  getStoredAccessibilityPrefs,
+} from "../hooks/useAccessibilityPrefs";
 import PixelIcon from "../components/PixelIcon.jsx";
 import "./SettingsPage.css";
 
@@ -12,9 +15,12 @@ const OVERRIDE_PATTERNS = {
   personal: "personal",
 };
 
-const DEFAULT_FONT_SCALE = 100;
-const MIN_FONT_SCALE = 80;
-const MAX_FONT_SCALE = 140;
+const TABS = [
+  { id: "general", label: "General" },
+  { id: "progress", label: "Progress" },
+  { id: "preferences", label: "Preferences" },
+  { id: "student", label: "Student" },
+];
 
 const resolvePattern = (major, canvasCategory) => {
   const guess = (text) => {
@@ -35,51 +41,58 @@ const resolvePattern = (major, canvasCategory) => {
   return guess(major) || OVERRIDE_PATTERNS[canvasCategory] || "default";
 };
 
+const getStoredVisualPrefs = () => ({
+  taskColor: localStorage.getItem("taskColor") || "purple",
+  goalColor: localStorage.getItem("goalColor") || "blue",
+  defaultPriority: localStorage.getItem("defaultPriority") || "medium",
+});
+
+const getInitialProfileForm = (userRecord) => ({
+  firstName: userRecord?.firstName || "",
+  lastName: userRecord?.lastName || "",
+  email: auth.currentUser?.email || "",
+  password: "",
+  hometown: userRecord?.hometown || "",
+  university: userRecord?.university || "",
+  year: userRecord?.year || "",
+  major: userRecord?.major || "",
+  timezone: userRecord?.timezone || "",
+});
+
+const getInitialVisualPrefs = (userRecord) => ({
+  notifications: userRecord?.notification || false,
+  weeklySummary: userRecord?.weeklySummary || false,
+  ...getStoredVisualPrefs(),
+});
+
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
   const { user, xp, refreshUser } = useUser(API_URL);
   const { canvasStatus } = useCanvasStatus(API_URL);
+  const {
+    prefs: accessibilityPrefs,
+    updatePref: updateAccessibilityPref,
+    increaseFontScale,
+    decreaseFontScale,
+    setPrefs: setAccessibilityPrefs,
+  } = useAccessibilityPrefs();
 
   const userRecord = Array.isArray(user) ? user[0] : user;
-
+  const canvasConnected = Boolean(canvasStatus?.hasToken);
   const displayName =
-    [userRecord?.firstName, userRecord?.lastName]
-      .filter(Boolean)
-      .join(" ") ||
+    [userRecord?.firstName, userRecord?.lastName].filter(Boolean).join(" ") ||
     auth.currentUser?.displayName ||
     "User";
 
-  const canvasConnected = !!canvasStatus?.hasToken;
-
-  const [activeTab, setActiveTab] = useState("general");
-  const [form, setForm] = useState({
-    firstName: userRecord?.firstName || "",
-    lastName: userRecord?.lastName || "",
-    email: auth.currentUser?.email || "",
-    password: "",
-    hometown: userRecord?.hometown || "",
-    university: userRecord?.university || "",
-    year: userRecord?.year || "",
-    major: userRecord?.major || "",
-    timezone: userRecord?.timezone || "",
-  });
-
-  const [prefs, setPrefs] = useState({
-    notifications: userRecord?.notification || false,
-    weeklySummary: userRecord?.weeklySummary || false,
-    theme: localStorage.getItem("darkMode") === "true" ? "dark" : "light",
-    taskColor: localStorage.getItem("taskColor") || "purple",
-    goalColor: localStorage.getItem("goalColor") || "blue",
-    defaultPriority: localStorage.getItem("defaultPriority") || "medium",
-    fontScale:
-      parseInt(localStorage.getItem("fontScale"), 10) || DEFAULT_FONT_SCALE,
-    highContrast: localStorage.getItem("highContrast") === "true",
-    highlightLinks: localStorage.getItem("highlightLinks") === "true",
-    reduceMotion: localStorage.getItem("reduceMotion") === "true",
-  });
-
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    TABS.some((tab) => tab.id === requestedTab) ? requestedTab : "general"
+  );
+  const [form, setForm] = useState(() => getInitialProfileForm(userRecord));
+  const [prefs, setPrefs] = useState(() => getInitialVisualPrefs(userRecord));
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -89,70 +102,26 @@ export default function SettingsPage() {
   );
 
   useEffect(() => {
-    setForm({
-      firstName: userRecord?.firstName || "",
-      lastName: userRecord?.lastName || "",
-      email: auth.currentUser?.email || "",
-      password: "",
-      hometown: userRecord?.hometown || "",
-      university: userRecord?.university || "",
-      year: userRecord?.year || "",
-      major: userRecord?.major || "",
-      timezone: userRecord?.timezone || "",
-    });
-
-    setPrefs({
-      notifications: userRecord?.notification || false,
-      weeklySummary: userRecord?.weeklySummary || false,
-      theme: localStorage.getItem("darkMode") === "true" ? "dark" : "light",
-      taskColor: localStorage.getItem("taskColor") || "purple",
-      goalColor: localStorage.getItem("goalColor") || "blue",
-      defaultPriority: localStorage.getItem("defaultPriority") || "medium",
-      fontScale:
-        parseInt(localStorage.getItem("fontScale"), 10) || DEFAULT_FONT_SCALE,
-      highContrast: localStorage.getItem("highContrast") === "true",
-      highlightLinks: localStorage.getItem("highlightLinks") === "true",
-      reduceMotion: localStorage.getItem("reduceMotion") === "true",
-    });
+    setForm(getInitialProfileForm(userRecord));
+    setPrefs(getInitialVisualPrefs(userRecord));
   }, [userRecord]);
 
   useEffect(() => {
-    const isDark = prefs.theme === "dark";
-    document.documentElement.classList.toggle("dark-mode", isDark);
-    localStorage.setItem("darkMode", isDark);
-  }, [prefs.theme]);
+    if (TABS.some((tab) => tab.id === requestedTab)) {
+      if (requestedTab !== activeTab) {
+        setActiveTab(requestedTab);
+      }
+      return;
+    }
 
-  useEffect(() => {
-    document.documentElement.classList.toggle(
-      "high-contrast",
-      prefs.highContrast
-    );
-    localStorage.setItem("highContrast", prefs.highContrast);
-  }, [prefs.highContrast]);
+    if (requestedTab !== null) {
+      setSearchParams({}, { replace: true });
+    }
 
-  useEffect(() => {
-    document.documentElement.classList.toggle(
-      "highlight-links",
-      prefs.highlightLinks
-    );
-    localStorage.setItem("highlightLinks", prefs.highlightLinks);
-  }, [prefs.highlightLinks]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle(
-      "reduce-motion",
-      prefs.reduceMotion
-    );
-    localStorage.setItem("reduceMotion", prefs.reduceMotion);
-  }, [prefs.reduceMotion]);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--font-scale",
-      `${prefs.fontScale}%`
-    );
-    localStorage.setItem("fontScale", prefs.fontScale);
-  }, [prefs.fontScale]);
+    if (activeTab !== "general") {
+      setActiveTab("general");
+    }
+  }, [activeTab, requestedTab, setSearchParams]);
 
   useEffect(() => {
     localStorage.setItem("taskColor", prefs.taskColor);
@@ -165,6 +134,15 @@ export default function SettingsPage() {
   useEffect(() => {
     localStorage.setItem("defaultPriority", prefs.defaultPriority);
   }, [prefs.defaultPriority]);
+
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    if (tab === "general") {
+      setSearchParams({}, { replace: true });
+      return;
+    }
+    setSearchParams({ tab }, { replace: true });
+  };
 
   const handleLogout = async () => {
     try {
@@ -187,47 +165,10 @@ export default function SettingsPage() {
     setPrefs((prev) => ({ ...prev, [field]: value }));
   };
 
-  const increaseFontScale = () => {
-    setPrefs((prev) => ({
-      ...prev,
-      fontScale: Math.min(prev.fontScale + 10, MAX_FONT_SCALE),
-    }));
-  };
-
-  const decreaseFontScale = () => {
-    setPrefs((prev) => ({
-      ...prev,
-      fontScale: Math.max(prev.fontScale - 10, MIN_FONT_SCALE),
-    }));
-  };
-
   const resetForm = () => {
-    setForm({
-      firstName: userRecord?.firstName || "",
-      lastName: userRecord?.lastName || "",
-      email: auth.currentUser?.email || "",
-      password: "",
-      hometown: userRecord?.hometown || "",
-      university: userRecord?.university || "",
-      year: userRecord?.year || "",
-      major: userRecord?.major || "",
-      timezone: userRecord?.timezone || "",
-    });
-
-    setPrefs({
-      notifications: userRecord?.notification || false,
-      weeklySummary: userRecord?.weeklySummary || false,
-      theme: localStorage.getItem("darkMode") === "true" ? "dark" : "light",
-      taskColor: localStorage.getItem("taskColor") || "purple",
-      goalColor: localStorage.getItem("goalColor") || "blue",
-      defaultPriority: localStorage.getItem("defaultPriority") || "medium",
-      fontScale:
-        parseInt(localStorage.getItem("fontScale"), 10) || DEFAULT_FONT_SCALE,
-      highContrast: localStorage.getItem("highContrast") === "true",
-      highlightLinks: localStorage.getItem("highlightLinks") === "true",
-      reduceMotion: localStorage.getItem("reduceMotion") === "true",
-    });
-
+    setForm(getInitialProfileForm(userRecord));
+    setPrefs(getInitialVisualPrefs(userRecord));
+    setAccessibilityPrefs(getStoredAccessibilityPrefs());
     setStatusMessage("");
   };
 
@@ -248,11 +189,13 @@ export default function SettingsPage() {
         year: form.year.trim(),
         major: form.major.trim(),
         timezone: form.timezone.trim(),
-        preferences: { ...prefs },
+        preferences: {
+          ...prefs,
+          ...accessibilityPrefs,
+        },
       };
 
       const token = await auth.currentUser.getIdToken();
-
       const res = await fetch(`${API_URL}/api/users/${auth.currentUser.uid}`, {
         method: "PATCH",
         headers: {
@@ -274,493 +217,434 @@ export default function SettingsPage() {
     }
   };
 
-  const renderTabContent = () => {
-    if (activeTab === "general") {
-      return (
-        <section className="settings-panel">
-          <div className="settings-panel-header">
-            <div className="settings-panel-avatar">
-              <PixelIcon pattern={avatarPattern} />
-            </div>
-            <div>
-              <h1 className="settings-panel-title">{displayName}</h1>
-              <p className="settings-panel-subtitle">
-                Manage your core profile information.
-              </p>
-            </div>
+  const renderGeneralTab = () => (
+    <section className="settings-panel">
+      <div className="settings-panel-header">
+        <div>
+          <h2 className="settings-panel-title">Profile</h2>
+          <p className="settings-panel-subtitle">Manage your core profile information.</p>
+        </div>
+      </div>
+
+      <form className="settings-form" onSubmit={handleProfileSave}>
+        <div className="settings-form-grid">
+          <label>
+            First Name
+            <input
+              className="settings-input"
+              value={form.firstName}
+              onChange={(e) => updateFormField("firstName", e.target.value)}
+              placeholder="First name"
+            />
+          </label>
+
+          <label>
+            Last Name
+            <input
+              className="settings-input"
+              value={form.lastName}
+              onChange={(e) => updateFormField("lastName", e.target.value)}
+              placeholder="Last name"
+            />
+          </label>
+
+          <label className="settings-field-full">
+            Email
+            <input
+              className="settings-input"
+              value={form.email}
+              onChange={(e) => updateFormField("email", e.target.value)}
+              placeholder="Email"
+              type="email"
+            />
+          </label>
+
+          <label className="settings-field-full">
+            Password
+            <input
+              className="settings-input"
+              value={form.password}
+              onChange={(e) => updateFormField("password", e.target.value)}
+              placeholder="Enter new password"
+              type="password"
+            />
+          </label>
+
+          <label className="settings-field-full">
+            Home Town
+            <input
+              className="settings-input"
+              value={form.hometown}
+              onChange={(e) => updateFormField("hometown", e.target.value)}
+              placeholder="Home town"
+            />
+          </label>
+        </div>
+
+        <div className="settings-form-actions">
+          <button className="settings-btn" type="submit" disabled={saving}>
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+          <button className="settings-link" type="button" onClick={resetForm}>
+            Reset
+          </button>
+        </div>
+
+        {statusMessage ? <p className="settings-status">{statusMessage}</p> : null}
+      </form>
+    </section>
+  );
+
+  const renderProgressTab = () => (
+    <section className="settings-panel">
+      <div className="settings-panel-header">
+        <div>
+          <h2 className="settings-panel-title">Progress</h2>
+          <p className="settings-panel-subtitle">Track your performance and achievements.</p>
+        </div>
+      </div>
+
+      <div className="progress-grid">
+        <article className="settings-stat-card">
+          <p className="settings-stat-label">Current XP</p>
+          <p className="settings-stat-value">{xp?.toLocaleString() ?? 0}</p>
+        </article>
+
+        <article className="settings-stat-card">
+          <p className="settings-stat-label">Level</p>
+          <p className="settings-stat-value">{userRecord?.level ?? 1}</p>
+        </article>
+
+        <article className="settings-stat-card">
+          <p className="settings-stat-label">Longest Streak</p>
+          <p className="settings-stat-value">{userRecord?.longestStreak ?? 0} days</p>
+        </article>
+
+        <article className="settings-stat-card">
+          <p className="settings-stat-label">Tasks Completed</p>
+          <p className="settings-stat-value">{userRecord?.tasksCompleted ?? 0}</p>
+        </article>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Badges</h3>
+        <div className="badge-grid">
+          {(userRecord?.badges?.length ? userRecord.badges : ["No badges unlocked yet"]).map(
+            (badge, index) => (
+              <div className="badge-card" key={index}>
+                {badge}
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderPreferencesTab = () => (
+    <section className="settings-panel">
+      <div className="settings-panel-header">
+        <div>
+          <h2 className="settings-panel-title">Preferences</h2>
+          <p className="settings-panel-subtitle">Customize how Glide+ feels day to day.</p>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Notifications</h3>
+        <div className="settings-preference-list">
+          <label className="settings-preference-row checkbox-row">
+            <span className="settings-preference-label">Receive task reminders</span>
+            <input
+              type="checkbox"
+              checked={prefs.notifications}
+              onChange={() => togglePref("notifications")}
+            />
+          </label>
+
+          <label className="settings-preference-row checkbox-row">
+            <span className="settings-preference-label">Weekly progress summary</span>
+            <input
+              type="checkbox"
+              checked={prefs.weeklySummary}
+              onChange={() => togglePref("weeklySummary")}
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3 className="settings-section-title">Appearance</h3>
+        <div className="settings-preference-list">
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">Theme</span>
+            <select
+              className="settings-select"
+              value={accessibilityPrefs.theme}
+              onChange={(e) => updateAccessibilityPref("theme", e.target.value)}
+            >
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
           </div>
 
-          <form className="settings-form" onSubmit={handleProfileSave}>
-            <div className="settings-form-grid">
-              <label>
-                First Name
-                <input
-                  className="settings-input"
-                  value={form.firstName}
-                  onChange={(e) => updateFormField("firstName", e.target.value)}
-                  placeholder="First name"
-                />
-              </label>
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">Task color</span>
+            <select
+              className="settings-select"
+              value={prefs.taskColor}
+              onChange={(e) => updatePref("taskColor", e.target.value)}
+            >
+              <option value="purple">Purple</option>
+              <option value="blue">Blue</option>
+              <option value="green">Green</option>
+              <option value="orange">Orange</option>
+            </select>
+          </div>
 
-              <label>
-                Last Name
-                <input
-                  className="settings-input"
-                  value={form.lastName}
-                  onChange={(e) => updateFormField("lastName", e.target.value)}
-                  placeholder="Last name"
-                />
-              </label>
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">Goal color</span>
+            <select
+              className="settings-select"
+              value={prefs.goalColor}
+              onChange={(e) => updatePref("goalColor", e.target.value)}
+            >
+              <option value="blue">Blue</option>
+              <option value="purple">Purple</option>
+              <option value="green">Green</option>
+              <option value="orange">Orange</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-              <label className="settings-field-full">
-                Email
-                <input
-                  className="settings-input"
-                  value={form.email}
-                  onChange={(e) => updateFormField("email", e.target.value)}
-                  placeholder="Email"
-                  type="email"
-                />
-              </label>
+      <div className="settings-section">
+        <h3 className="settings-section-title">Task Defaults</h3>
+        <div className="settings-preference-list">
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">Default priority</span>
+            <select
+              className="settings-select"
+              value={prefs.defaultPriority}
+              onChange={(e) => updatePref("defaultPriority", e.target.value)}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-              <label className="settings-field-full">
-                Password
-                <input
-                  className="settings-input"
-                  value={form.password}
-                  onChange={(e) => updateFormField("password", e.target.value)}
-                  placeholder="Enter new password"
-                  type="password"
-                />
-              </label>
-
-              <label className="settings-field-full">
-                Home Town
-                <input
-                  className="settings-input"
-                  value={form.hometown}
-                  onChange={(e) => updateFormField("hometown", e.target.value)}
-                  placeholder="Home town"
-                />
-              </label>
-            </div>
-
-            <div className="settings-form-actions">
-              <button className="settings-btn" type="submit" disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+      <div className="settings-section">
+        <h3 className="settings-section-title">Accessibility</h3>
+        <div className="settings-preference-list">
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">Font scale</span>
+            <div className="settings-font-scale">
+              <button type="button" className="settings-font-btn" onClick={decreaseFontScale}>
+                −
               </button>
-
-              <button
-                className="settings-link"
-                type="button"
-                onClick={resetForm}
-              >
-                {/* Reset */}
+              <span className="settings-font-value">{accessibilityPrefs.fontScale}%</span>
+              <button type="button" className="settings-font-btn" onClick={increaseFontScale}>
+                +
               </button>
             </div>
-
-            {statusMessage && <p className="settings-status">{statusMessage}</p>}
-          </form>
-        </section>
-      );
-    }
-
-    if (activeTab === "progress") {
-      return (
-        <section className="settings-panel">
-          <div className="settings-panel-header">
-            <div>
-              <h1 className="settings-panel-title">Progress</h1>
-              <p className="settings-panel-subtitle">
-                Track your performance and achievements.
-              </p>
-            </div>
           </div>
 
-          <div className="progress-grid">
-            <article className="settings-stat-card">
-              <p className="settings-stat-label">Current XP</p>
-              <p className="settings-stat-value">{xp?.toLocaleString() ?? 0}</p>
-            </article>
-
-            <article className="settings-stat-card">
-              <p className="settings-stat-label">Level</p>
-              <p className="settings-stat-value">{userRecord?.level ?? 1}</p>
-            </article>
-
-            <article className="settings-stat-card">
-              <p className="settings-stat-label">Longest Streak</p>
-              <p className="settings-stat-value">
-                {userRecord?.longestStreak ?? 0} days
-              </p>
-            </article>
-
-            <article className="settings-stat-card">
-              <p className="settings-stat-label">Tasks Completed</p>
-              <p className="settings-stat-value">
-                {userRecord?.tasksCompleted ?? 0}
-              </p>
-            </article>
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">High contrast</span>
+            <select
+              className="settings-select"
+              value={accessibilityPrefs.highContrast ? "on" : "off"}
+              onChange={(e) =>
+                updateAccessibilityPref("highContrast", e.target.value === "on")
+              }
+            >
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
           </div>
 
-          <div className="settings-section">
-            <h2 className="settings-section-title">Badges</h2>
-            <div className="badge-grid">
-              {(userRecord?.badges?.length
-                ? userRecord.badges
-                : ["No badges unlocked yet"]
-              ).map((badge, index) => (
-                <div className="badge-card" key={index}>
-                  {badge}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    if (activeTab === "preferences") {
-      return (
-        <section className="settings-panel">
-          <div className="settings-panel-header">
-            <div>
-              <h1 className="settings-panel-title">Preferences</h1>
-              <p className="settings-panel-subtitle">
-                Customize how Glide+ feels day to day.
-              </p>
-            </div>
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">Highlight links</span>
+            <select
+              className="settings-select"
+              value={accessibilityPrefs.highlightLinks ? "on" : "off"}
+              onChange={(e) =>
+                updateAccessibilityPref("highlightLinks", e.target.value === "on")
+              }
+            >
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
           </div>
 
-          <div className="settings-section">
-            <h2 className="settings-section-title">Notifications</h2>
-
-            <div className="settings-preference-list">
-              <label className="settings-preference-row checkbox-row">
-                <span className="settings-preference-label">
-                  Receive task reminders
-                </span>
-                <input
-                  type="checkbox"
-                  checked={prefs.notifications}
-                  onChange={() => togglePref("notifications")}
-                />
-              </label>
-
-              <label className="settings-preference-row checkbox-row">
-                <span className="settings-preference-label">
-                  Weekly progress summary
-                </span>
-                <input
-                  type="checkbox"
-                  checked={prefs.weeklySummary}
-                  onChange={() => togglePref("weeklySummary")}
-                />
-              </label>
-            </div>
+          <div className="settings-preference-row">
+            <span className="settings-preference-label">Reduce motion</span>
+            <select
+              className="settings-select"
+              value={accessibilityPrefs.reduceMotion ? "on" : "off"}
+              onChange={(e) =>
+                updateAccessibilityPref("reduceMotion", e.target.value === "on")
+              }
+            >
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
           </div>
+        </div>
+      </div>
+    </section>
+  );
 
-          <div className="settings-section">
-            <h2 className="settings-section-title">Appearance</h2>
-
-            <div className="settings-preference-list">
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">Theme</span>
-                <select
-                  className="settings-select"
-                  value={prefs.theme}
-                  onChange={(e) => updatePref("theme", e.target.value)}
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                </select>
-              </div>
-
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">Task color</span>
-                <select
-                  className="settings-select"
-                  value={prefs.taskColor}
-                  onChange={(e) => updatePref("taskColor", e.target.value)}
-                >
-                  <option value="purple">Purple</option>
-                  <option value="blue">Blue</option>
-                  <option value="green">Green</option>
-                  <option value="orange">Orange</option>
-                </select>
-              </div>
-
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">Goal color</span>
-                <select
-                  className="settings-select"
-                  value={prefs.goalColor}
-                  onChange={(e) => updatePref("goalColor", e.target.value)}
-                >
-                  <option value="blue">Blue</option>
-                  <option value="purple">Purple</option>
-                  <option value="green">Green</option>
-                  <option value="orange">Orange</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="settings-section">
-            <h2 className="settings-section-title">Task Defaults</h2>
-
-            <div className="settings-preference-list">
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">
-                  Default priority
-                </span>
-                <select
-                  className="settings-select"
-                  value={prefs.defaultPriority}
-                  onChange={(e) => updatePref("defaultPriority", e.target.value)}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="settings-section">
-            <h2 className="settings-section-title">Accessibility</h2>
-
-            <div className="settings-preference-list">
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">Font scale</span>
-                <div className="settings-font-scale">
-                  <button
-                    type="button"
-                    className="settings-font-btn"
-                    onClick={decreaseFontScale}
-                  >
-                    −
-                  </button>
-                  <span className="settings-font-value">{prefs.fontScale}%</span>
-                  <button
-                    type="button"
-                    className="settings-font-btn"
-                    onClick={increaseFontScale}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">High contrast</span>
-                <select
-                  className="settings-select"
-                  value={prefs.highContrast ? "on" : "off"}
-                  onChange={(e) =>
-                    updatePref("highContrast", e.target.value === "on")
-                  }
-                >
-                  <option value="off">Off</option>
-                  <option value="on">On</option>
-                </select>
-              </div>
-
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">Highlight links</span>
-                <select
-                  className="settings-select"
-                  value={prefs.highlightLinks ? "on" : "off"}
-                  onChange={(e) =>
-                    updatePref("highlightLinks", e.target.value === "on")
-                  }
-                >
-                  <option value="off">Off</option>
-                  <option value="on">On</option>
-                </select>
-              </div>
-
-              <div className="settings-preference-row">
-                <span className="settings-preference-label">Reduce motion</span>
-                <select
-                  className="settings-select"
-                  value={prefs.reduceMotion ? "on" : "off"}
-                  onChange={(e) =>
-                    updatePref("reduceMotion", e.target.value === "on")
-                  }
-                >
-                  <option value="off">Off</option>
-                  <option value="on">On</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    if (activeTab === "student") {
-      return (
-        <section className="settings-panel">
-          <div className="settings-panel-header student-header">
-            <h1 className="settings-panel-title">Student</h1>
-
-            <div className="student-meta">
-              <span>{form.university || "University not set"}</span>
-              <span>·</span>
-              <span>{form.year || "Year not set"}</span>
-              <span>·</span>
-              <span>{form.major || "Major not set"}</span>
-            </div>
-          </div>
-
+  const renderStudentTab = () => (
+    <section className="settings-panel">
+      <div className="settings-panel-header student-header">
+        <div>
+          <h2 className="settings-panel-title">Student</h2>
           <p className="settings-panel-subtitle">
             Manage your academic profile and Canvas connection.
           </p>
+        </div>
+        <div className="student-meta">
+          <span>{form.university || "University not set"}</span>
+          <span>·</span>
+          <span>{form.year || "Year not set"}</span>
+          <span>·</span>
+          <span>{form.major || "Major not set"}</span>
+        </div>
+      </div>
 
-          <form className="settings-form" onSubmit={handleProfileSave}>
-            <div className="student-grid">
-              <article className="settings-info-card">
-                <h2 className="settings-section-title">Academic Info</h2>
+      <form className="settings-form" onSubmit={handleProfileSave}>
+        <div className="student-grid">
+          <article className="settings-info-card">
+            <h3 className="settings-section-title">Academic Info</h3>
+            <div className="settings-form-grid">
+              <label className="settings-field-full">
+                University
+                <input
+                  className="settings-input"
+                  value={form.university}
+                  onChange={(e) => updateFormField("university", e.target.value)}
+                  placeholder="University"
+                />
+              </label>
 
-                <div className="settings-form-grid">
-                  <label className="settings-field-full">
-                    University
-                    <input
-                      className="settings-input"
-                      value={form.university}
-                      onChange={(e) =>
-                        updateFormField("university", e.target.value)
-                      }
-                      placeholder="University"
-                    />
-                  </label>
+              <label>
+                Year
+                <input
+                  className="settings-input"
+                  value={form.year}
+                  onChange={(e) => updateFormField("year", e.target.value)}
+                  placeholder="Senior, Junior, etc."
+                />
+              </label>
 
-                  <label>
-                    Year
-                    <input
-                      className="settings-input"
-                      value={form.year}
-                      onChange={(e) => updateFormField("year", e.target.value)}
-                      placeholder="Senior, Junior, etc."
-                    />
-                  </label>
+              <label>
+                Major
+                <input
+                  className="settings-input"
+                  value={form.major}
+                  onChange={(e) => updateFormField("major", e.target.value)}
+                  placeholder="Major"
+                />
+              </label>
+            </div>
+          </article>
 
-                  <label>
-                    Major
-                    <input
-                      className="settings-input"
-                      value={form.major}
-                      onChange={(e) => updateFormField("major", e.target.value)}
-                      placeholder="Major"
-                    />
-                  </label>
-                </div>
-              </article>
+          <article className="settings-info-card">
+            <h3 className="settings-section-title">Canvas Sync</h3>
+            <div className="settings-info-list">
+              <div>
+                <span className="settings-info-label">Status</span>
+                <p>{canvasConnected ? "Connected" : "Offline"}</p>
+              </div>
 
-              <article className="settings-info-card">
-                <h2 className="settings-section-title">Canvas Sync</h2>
-
-                <div className="settings-info-list">
-                  <div>
-                    <span className="settings-info-label">Status</span>
-                    <p>{canvasConnected ? "Connected" : "Offline"}</p>
-                  </div>
-
-                  <div>
-                    <span className="settings-info-label">Connection</span>
-                    <p>
-                      {canvasConnected
-                        ? "Your Canvas account is linked."
-                        : "Connect Canvas to import assignments and deadlines."}
-                    </p>
-                  </div>
-                </div>
-
-                <Link to="/canvas-setup" className="settings-btn inline-btn">
-                  {canvasConnected ? "Manage Connection" : "Connect Canvas"}
-                </Link>
-              </article>
+              <div>
+                <span className="settings-info-label">Connection</span>
+                <p>
+                  {canvasConnected
+                    ? "Your Canvas account is linked."
+                    : "Connect Canvas to import assignments and deadlines."}
+                </p>
+              </div>
             </div>
 
-            <div className="settings-form-actions">
-              <button className="settings-btn" type="submit" disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
-              </button>
+            <Link to="/canvas-setup" className="settings-btn inline-btn">
+              {canvasConnected ? "Manage Connection" : "Connect Canvas"}
+            </Link>
+          </article>
+        </div>
 
-              <button
-                className="settings-link"
-                type="button"
-                onClick={resetForm}
-              >
-                {/* Reset */}
-              </button>
-            </div>
+        <div className="settings-form-actions">
+          <button className="settings-btn" type="submit" disabled={saving}>
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+          <button className="settings-link" type="button" onClick={resetForm}>
+            Reset
+          </button>
+        </div>
 
-            {statusMessage && <p className="settings-status">{statusMessage}</p>}
-          </form>
-        </section>
-      );
+        {statusMessage ? <p className="settings-status">{statusMessage}</p> : null}
+      </form>
+    </section>
+  );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "progress":
+        return renderProgressTab();
+      case "preferences":
+        return renderPreferencesTab();
+      case "student":
+        return renderStudentTab();
+      case "general":
+      default:
+        return renderGeneralTab();
     }
-
-    return null;
   };
 
   return (
     <div className="settings-layout">
-      <aside className="settings-sidebar">
-        <p className="settings-sidebar-title">Settings</p>
+      <header className="settings-page-head">
+        <div className="settings-page-identity">
+          <div className="settings-page-avatar" aria-hidden>
+            <PixelIcon pattern={avatarPattern} />
+          </div>
+          <div>
+            <p className="settings-page-kicker">Settings</p>
+            <h1 className="settings-page-title">{displayName}</h1>
+            <p className="settings-page-subtitle">
+              Profile, progress, preferences, and student setup.
+            </p>
+          </div>
+        </div>
 
-        <button
-          className={`settings-sidebar-item ${
-            activeTab === "general" ? "active" : ""
-          }`}
-          onClick={() => setActiveTab("general")}
-          type="button"
-        >
-          General
-        </button>
-
-        <button
-          className={`settings-sidebar-item ${
-            activeTab === "progress" ? "active" : ""
-          }`}
-          onClick={() => setActiveTab("progress")}
-          type="button"
-        >
-          Progress
-        </button>
-
-        <button
-          className={`settings-sidebar-item ${
-            activeTab === "preferences" ? "active" : ""
-          }`}
-          onClick={() => setActiveTab("preferences")}
-          type="button"
-        >
-          Preferences
-        </button>
-
-        <button
-          className={`settings-sidebar-item ${
-            activeTab === "student" ? "active" : ""
-          }`}
-          onClick={() => setActiveTab("student")}
-          type="button"
-        >
-          Student
-        </button>
-
-        <div className="settings-sidebar-bottom">
-          <button
-            className="settings-sidebar-item logout"
-            onClick={handleLogout}
-            type="button"
-          >
+        <div className="settings-page-actions">
+          <button className="settings-link settings-link-reset" onClick={resetForm} type="button">
+            Reset
+          </button>
+          <button className="settings-logout-link" onClick={handleLogout} type="button">
             Log Out
           </button>
         </div>
-      </aside>
+      </header>
+
+      <div className="settings-tabbar" role="tablist" aria-label="Settings sections">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            className={`settings-tab ${activeTab === tab.id ? "active" : ""}`.trim()}
+            onClick={() => selectTab(tab.id)}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       <main className="settings-content">{renderTabContent()}</main>
     </div>

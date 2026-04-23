@@ -1,80 +1,59 @@
-/* === GLOBAL CLEANUP RESET === */
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  background: none;
-  box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* ===== LIGHT MODE ===== */
 :root {
-  --bg-color: #F5F1E8;
-  --text-color: #3E3731;
-  --highlight-color: #9CAF88;
-  --accent-color: #F1F1F1;
-  --achievement-color: #A58F1C;
+  --bg-color: #f5f1e8;
+  --text-color: #3e3731;
+  --highlight-color: #9caf88;
+  --accent-color: #f1f1f1;
+  --achievement-color: #a58f1c;
 
-  /* Extended palette for interior pages */
-  --card-bg:         #FAF7F2;
-  --card-border:     #E0D8CD;
-  --text-muted:      #7A6E65;
-  --accent:          #8B6B5A;
-  --accent-soft:     rgba(156, 175, 136, 0.15);
-  --bg-secondary:    #EDE8DF;
-  --color-green:     #4CAF50;
-  --color-red:       #E53935;
-  --color-gold:      #A58F1C;
-  --shadow-soft:     0 2px 12px rgba(62, 55, 49, 0.08);
+  --card-bg: #faf7f2;
+  --card-border: #e0d8cd;
+  --text-muted: #7a6e65;
+  --accent: #8b6b5a;
+  --accent-soft: rgba(156, 175, 136, 0.15);
+  --bg-secondary: #ede8df;
+  --color-green: #4caf50;
+  --color-red: #e53935;
+  --color-gold: #a58f1c;
+  --shadow-soft: 0 2px 12px rgba(62, 55, 49, 0.08);
 }
 
-html.dark-mode  {
-  --bg-color: #3E3731;
-  --text-color: #F5F1E8;
-  --highlight-color: #9CAF88;
+html.dark-mode {
+  --bg-color: #3e3731;
+  --text-color: #f5f1e8;
+  --highlight-color: #9caf88;
   --accent-color: #313131;
-  --achievement-color: #D4A574;
+  --achievement-color: #d4a574;
 
-  --card-bg:         #352B24;
-  --card-border:     #4A3C32;
-  --text-muted:      #B0A090;
-  --accent:          #8B6B5A;
-  --accent-soft:     rgba(156, 175, 136, 0.15);
-  --bg-secondary:    #3D3028;
-  --color-green:     #66BB6A;
-  --color-red:       #EF5350;
-  --color-gold:      #D4A574;
-  --shadow-soft:     0 2px 12px rgba(0, 0, 0, 0.3);
+  --card-bg: #352b24;
+  --card-border: #4a3c32;
+  --text-muted: #b0a090;
+  --accent: #8b6b5a;
+  --accent-soft: rgba(156, 175, 136, 0.15);
+  --bg-secondary: #3d3028;
+  --color-green: #66bb6a;
+  --color-red: #ef5350;
+  --color-gold: #d4a574;
+  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* ===== HIGH CONTRAST ===== */
 html.high-contrast {
-  --bg-color:        #000000;
-  --text-color:      #ffffff;
-  --highlight-color: #ffff00;
-  --achievement-color: #ffff00;
+  --bg-color: #000;
+  --text-color: #fff;
+  --highlight-color: #ff0;
+  --achievement-color: #ff0;
 
-  --card-bg:         #000000;
-  --card-border:     #ffffff;
-  --text-muted:      #ffffff;
-  --accent:          #ffff00;
-  --accent-soft:     rgba(255,255,0,0.15);
-  --bg-secondary:    #000000;
-  --color-green:     #00ff00;
-  --color-red:       #ff0000;
-  --color-gold:      #ffff00;
-  --shadow-soft:     none;
+  --card-bg: #000;
+  --card-border: #fff;
+  --text-muted: #fff;
+  --accent: #ff0;
+  --accent-soft: rgba(255, 255, 0, 0.15);
+  --bg-secondary: #000;
+  --color-green: #0f0;
+  --color-red: #f00;
+  --color-gold: #ff0;
+  --shadow-soft: none;
 }
 
-body {
-  font-family: "Libre Baskerville", serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
-
-error {
-  color: #E53935;
+.error {
+  color: #e53935;
 }

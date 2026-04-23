@@ -1,14 +1,33 @@
 .app-footer {
-  width: 100%; padding: 20px 24px;
-  display: flex; align-items: center; justify-content: center;
-  gap: 18px; flex-wrap: wrap;
-  border-top: 1px solid var(--card-border);
-  background: var(--card-bg);
+  padding: 10px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid rgba(46, 38, 31, 0.08);
+  background: transparent;
 }
-.footer-text { margin: 0; font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; }
-.footer-links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-.footer-link { font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600; transition: color 0.15s ease; }
-.footer-link:hover { color: var(--highlight-color); }
-html.high-contrast .app-footer { background: #000; border-color: #fff; }
-html.high-contrast .footer-text, html.high-contrast .footer-link { color: #fff; }
-html.high-contrast .footer-link:hover { color: yellow; }
+
+.footer-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+html.high-contrast .app-footer {
+  background: transparent;
+  border-color: #fff;
+}
+
+html.high-contrast .footer-text {
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .app-footer {
+    padding: 10px 0 14px;
+  }
+}

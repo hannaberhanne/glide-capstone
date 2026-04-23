@@ -1,101 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./AccessibilityMenu.css";
-
-// DELETE THIS AND LOOK AT THE USER'S DATA
-const DEFAULT_SCALE = 100;
-const MIN_SCALE = 80;
-const MAX_SCALE = 140;
+import useAccessibilityPrefs from "../hooks/useAccessibilityPrefs";
 
 export default function AccessibilityMenu() {
   const [open, setOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [highContrast, setHighContrast] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const [highlightLinks, setHighlightLinks] = useState(false);
-  const [fontScale, setFontScale] = useState(DEFAULT_SCALE);
+  const {
+    prefs,
+    updatePref,
+    togglePref,
+    increaseFontScale,
+    decreaseFontScale,
+    resetAccessibilityPrefs,
+  } = useAccessibilityPrefs();
 
-
-  useEffect(() => {
-    const savedDark = localStorage.getItem("darkMode") === "true";
-    const savedHigh = localStorage.getItem("highContrast") === "true";
-    const savedMotion = localStorage.getItem("reduceMotion") === "true";
-    const savedHighlight = localStorage.getItem("highlightLinks") === "true";
-    const savedFont = parseInt(localStorage.getItem("fontScale"), 10);
-
-    if (savedDark) {
-      setDarkMode(true);
-      document.documentElement.classList.add("dark-mode");
-    }
-
-    if (savedHigh) {
-      setHighContrast(true);
-      document.documentElement.classList.add("high-contrast");
-    }
-
-    if (savedMotion) {
-      setReduceMotion(true);
-      document.documentElement.classList.add("reduce-motion");
-    }
-
-    if (savedHighlight) {
-      setHighlightLinks(true);
-      document.documentElement.classList.add("highlight-links");
-    }
-
-    if (!isNaN(savedFont)) {
-      setFontScale(savedFont);
-      document.documentElement.style.setProperty("--font-scale", `${savedFont}%`);
-    }
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark-mode", darkMode);
-    localStorage.setItem("darkMode", darkMode);
-  }, [darkMode]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("high-contrast", highContrast);
-    localStorage.setItem("highContrast", highContrast);
-  }, [highContrast]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("reduce-motion", reduceMotion);
-    localStorage.setItem("reduceMotion", reduceMotion);
-  }, [reduceMotion]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("highlight-links", highlightLinks);
-    localStorage.setItem("highlightLinks", highlightLinks);
-  }, [highlightLinks]);
-
-  useEffect(() => {
-    document.documentElement.style.setProperty("--font-scale", `${fontScale}%`);
-    localStorage.setItem("fontScale", fontScale);
-  }, [fontScale]);
-
-  const increaseFont = () =>
-    setFontScale((prev) => Math.min(prev + 10, MAX_SCALE));
-
-  const decreaseFont = () =>
-    setFontScale((prev) => Math.max(prev - 10, MIN_SCALE));
-
-  // CHANGE THE USER MODE STUFF we might not store high contrast etc.
   const resetDefaults = () => {
-    setDarkMode(false);
-    setHighContrast(false);
-    setReduceMotion(false);
-    setHighlightLinks(false);
-    setFontScale(DEFAULT_SCALE);
-    localStorage.removeItem("darkMode");
-    localStorage.removeItem("highContrast");
-    localStorage.removeItem("reduceMotion");
-    localStorage.removeItem("highlightLinks");
-    localStorage.removeItem("fontScale");
-    document.documentElement.classList.remove("dark-mode");
-    document.documentElement.classList.remove("high-contrast");
-    document.documentElement.classList.remove("reduce-motion");
-    document.documentElement.classList.remove("highlight-links");
-    document.documentElement.style.setProperty("--font-scale", "100%");
+    resetAccessibilityPrefs();
   };
 
   return (
@@ -107,7 +26,15 @@ export default function AccessibilityMenu() {
         aria-haspopup="true"
         aria-label="Accessibility options"
       >
-        <span aria-hidden>⚙️</span>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+          <path
+            d="M7.4 2.1h3.2l.5 1.7c.4.1.8.3 1.2.5l1.6-.8 2.2 2.2-.8 1.6c.2.4.4.8.5 1.2l1.7.5v3.2l-1.7.5c-.1.4-.3.8-.5 1.2l.8 1.6-2.2 2.2-1.6-.8c-.4.2-.8.4-1.2.5l-.5 1.7H7.4l-.5-1.7a5.5 5.5 0 0 1-1.2-.5l-1.6.8-2.2-2.2.8-1.6a5.5 5.5 0 0 1-.5-1.2L.5 12.3V9.1l1.7-.5c.1-.4.3-.8.5-1.2l-.8-1.6 2.2-2.2 1.6.8c.4-.2.8-.4 1.2-.5l.5-1.7Z"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+          />
+          <circle cx="9" cy="10.7" r="2.3" stroke="currentColor" strokeWidth="1.2" />
+        </svg>
       </button>
 
       {open && (
@@ -126,49 +53,49 @@ export default function AccessibilityMenu() {
           <div className="accessibility-row">
             <span>Dark mode</span>
             <button
-              className={`accessibility-pill ${darkMode ? "active" : ""}`}
-              onClick={() => setDarkMode((prev) => !prev)}
+              className={`accessibility-pill ${prefs.theme === "dark" ? "active" : ""}`}
+              onClick={() => updatePref("theme", prefs.theme === "dark" ? "light" : "dark")}
             >
-              {darkMode ? "On" : "Off"}
+              {prefs.theme === "dark" ? "On" : "Off"}
             </button>
           </div>
 
           <div className="accessibility-row">
             <span>High contrast</span>
             <button
-              className={`accessibility-pill ${highContrast ? "active" : ""}`}
-              onClick={() => setHighContrast((prev) => !prev)}
+              className={`accessibility-pill ${prefs.highContrast ? "active" : ""}`}
+              onClick={() => togglePref("highContrast")}
             >
-              {highContrast ? "On" : "Off"}
+              {prefs.highContrast ? "On" : "Off"}
             </button>
           </div>
 
           <div className="accessibility-row">
             <span>Highlight links</span>
             <button
-              className={`accessibility-pill ${highlightLinks ? "active" : ""}`}
-              onClick={() => setHighlightLinks((prev) => !prev)}
+              className={`accessibility-pill ${prefs.highlightLinks ? "active" : ""}`}
+              onClick={() => togglePref("highlightLinks")}
             >
-              {highlightLinks ? "On" : "Off"}
+              {prefs.highlightLinks ? "On" : "Off"}
             </button>
           </div>
 
           <div className="accessibility-row">
             <span>Font scale</span>
             <div className="font-controls">
-              <button onClick={decreaseFont}>−</button>
-              <span>{fontScale}%</span>
-              <button onClick={increaseFont}>+</button>
+              <button onClick={decreaseFontScale}>−</button>
+              <span>{prefs.fontScale}%</span>
+              <button onClick={increaseFontScale}>+</button>
             </div>
           </div>
 
           <div className="accessibility-row">
             <span>Reduce motion</span>
             <button
-              className={`accessibility-pill ${reduceMotion ? "active" : ""}`}
-              onClick={() => setReduceMotion((prev) => !prev)}
+              className={`accessibility-pill ${prefs.reduceMotion ? "active" : ""}`}
+              onClick={() => togglePref("reduceMotion")}
             >
-              {reduceMotion ? "On" : "Off"}
+              {prefs.reduceMotion ? "On" : "Off"}
             </button>
           </div>
 
