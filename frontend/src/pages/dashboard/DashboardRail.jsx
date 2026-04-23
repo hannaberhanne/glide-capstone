@@ -51,8 +51,8 @@ export default function DashboardRail({
             <span className="rail-calendar-month">{streakCalendar.monthLabel}</span>
           </div>
           <div className="rail-calendar-weekdays" aria-hidden>
-            {streakCalendar.weekdays.map((label) => (
-              <span key={label}>{label}</span>
+            {streakCalendar.weekdays.map((label, index) => (
+              <span key={`${label}-${index}`}>{label}</span>
             ))}
           </div>
           <div className="rail-calendar-grid">
