@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { auth } from "../config/firebase";
 
 export default function useTasks(API_URL) {
@@ -16,7 +16,7 @@ export default function useTasks(API_URL) {
     return new Error(detail ? `HTTP ${res.status}: ${detail}` : `HTTP ${res.status}`);
   };
 
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     if (!auth.currentUser) {
       setTasks([]);
       setLoading(false);
@@ -37,11 +37,19 @@ export default function useTasks(API_URL) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
-    fetchTasks();
-  }, [API_URL]);
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        fetchTasks();
+      } else {
+        setTasks([]);
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [fetchTasks]);
 
   const addTask = async (payload) => {
     if (!auth.currentUser) return null;

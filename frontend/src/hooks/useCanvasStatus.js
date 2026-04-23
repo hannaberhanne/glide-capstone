@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { auth } from "../config/firebase";
 
 export default function useCanvasStatus(API_URL) {
   const [canvasStatus, setCanvasStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
-  const fetchCanvasStatus = async () => {
+  const fetchCanvasStatus = useCallback(async () => {
     if (!auth.currentUser) return;
     setStatusLoading(true);
     try {
@@ -22,11 +22,19 @@ export default function useCanvasStatus(API_URL) {
     } finally {
       setStatusLoading(false);
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
-    fetchCanvasStatus();
-  }, [API_URL]);
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        fetchCanvasStatus();
+      } else {
+        setCanvasStatus(null);
+        setStatusLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [fetchCanvasStatus]);
 
   return { canvasStatus, statusLoading, refetchCanvasStatus: fetchCanvasStatus };
 }
