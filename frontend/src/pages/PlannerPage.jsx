@@ -1,132 +1,93 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { auth } from "../config/firebase.js";
 import TaskModal from "../components/TaskModal.jsx";
+import useTasks from "../hooks/useTasks";
+import PlannerHud from "./planner/PlannerHud.jsx";
+import PlannerSidebar from "./planner/PlannerSidebar.jsx";
+import PlannerGrid from "./planner/PlannerGrid.jsx";
+import AssistOverlay from "./planner/AssistOverlay.jsx";
+import {
+  addMonths,
+  buildPlannerViewModel,
+  dayKey,
+  monthKey,
+  parseMaybeDate,
+  isTaskCompleteForToday,
+  startOfDay,
+  startOfMonth,
+} from "./planner/plannerViewModel.js";
+import {
+  createPlannerEvent,
+  createPlannerMachineState,
+  getInteractionLocks,
+  PLANNER_EVENT_TYPES,
+  plannerReducer,
+} from "./planner/plannerStateMachine.js";
 import "./PlannerPage.css";
 
-const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
-const addMonths = (d, n) => new Date(d.getFullYear(), d.getMonth() + n, 1);
-const isSameDay = (a, b) =>
-  a.getFullYear() === b.getFullYear() &&
-  a.getMonth() === b.getMonth() &&
-  a.getDate() === b.getDate();
-const toKey = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
+function mergeDateWithExistingTime(targetDate, currentDueAt) {
+  const next = startOfDay(targetDate);
+  const existing = parseMaybeDate(currentDueAt);
+  if (existing) {
+    next.setHours(existing.getHours(), existing.getMinutes(), 0, 0);
+  } else {
+    next.setHours(12, 0, 0, 0);
+  }
+  return next.toISOString();
+}
 
 export default function PlannerPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const today = useMemo(() => new Date(), []);
-  const [cursor, setCursor] = useState(startOfMonth(today));
-  const [selected, setSelected] = useState(today);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [replanSuggestions, setReplanSuggestions] = useState([]);
-  const [replanLoading, setReplanLoading] = useState(false);
+  const today = useMemo(() => startOfDay(new Date()), []);
+  const [cursor, setCursor] = useState(() => startOfMonth(today));
+  const [assistSuggestions, setAssistSuggestions] = useState([]);
+  const [assistSummary, setAssistSummary] = useState("");
+  const [assistLoading, setAssistLoading] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [dragHoverDayKey, setDragHoverDayKey] = useState(null);
+  const [overflowBusy, setOverflowBusy] = useState(false);
+  const [overflowToast, setOverflowToast] = useState("");
+  const { tasks, loading, fetchTasks, addTask, updateTask, completeTask } = useTasks(API_URL);
 
-  const monthLabel = new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    year: "numeric",
-  }).format(cursor);
+  const [plannerState, dispatch] = useReducer(
+    plannerReducer,
+    createPlannerMachineState({
+      monthKey: monthKey(cursor),
+      selectedDayKey: dayKey(today),
+      selectedDayOverflowCount: 0,
+    })
+  );
 
-  const selectedLabel = (() => {
-    const s = new Date(selected);
-    const t = new Date(today);
-    s.setHours(0, 0, 0, 0);
-    t.setHours(0, 0, 0, 0);
-    const diff = s.getTime() - t.getTime();
-    const oneDay = 86400000;
-    if (diff === 0) return "Today";
-    if (diff === -oneDay) return "Yesterday";
-    if (diff === oneDay) return "Tomorrow";
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }).format(selected);
-  })();
+  const viewModel = useMemo(
+    () =>
+      buildPlannerViewModel({
+        tasks,
+        cursor,
+        today,
+        selectedDayKey: plannerState.selectedDayKey || dayKey(today),
+        assistSuggestions,
+      }),
+    [tasks, cursor, today, plannerState.selectedDayKey, assistSuggestions]
+  );
+
+  const interactionLocks = useMemo(() => getInteractionLocks(plannerState), [plannerState]);
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      if (!auth.currentUser) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const token = await auth.currentUser.getIdToken();
-        const res = await fetch(`${API_URL}/api/tasks`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setTasks(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch tasks:", err);
-      }
-      setLoading(false);
-    };
-    fetchTasks();
-  }, [API_URL]);
+    dispatch(
+      createPlannerEvent(PLANNER_EVENT_TYPES.HYDRATE_MONTH, {
+        monthKey: viewModel.monthKey,
+        selectedDayKey: viewModel.selectedDay.key,
+        selectedDayOverflowCount: viewModel.selectedDay.overflowTasks.length,
+      })
+    );
+  }, [viewModel.monthKey, viewModel.selectedDay.key, viewModel.selectedDay.overflowTasks.length]);
 
-  const handleReplan = async () => {
-    if (!auth.currentUser) return;
-    setReplanLoading(true);
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/ai/replan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          perDay: 3,
-          apply: false,
-          selectedDate: selected.toISOString(),
-        }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setReplanSuggestions(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Replan failed:", err);
-    } finally {
-      setReplanLoading(false);
-    }
-  };
-
-  const grid = useMemo(() => {
-    const start = startOfMonth(cursor);
-    const firstVisible = new Date(start);
-    firstVisible.setDate(firstVisible.getDate() - firstVisible.getDay());
-    const cells = [];
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(firstVisible);
-      d.setDate(d.getDate() + i);
-      cells.push(d);
-    }
-    return { cells };
-  }, [cursor]);
-
-  const dayTasks = (d) => {
-    const key = toKey(d);
-    return tasks.filter((t) => {
-      if (!t.dueAt) return false;
-      const dt = typeof t.dueAt === "object" && t.dueAt.seconds
-        ? new Date(t.dueAt.seconds * 1000)
-        : new Date(t.dueAt);
-      return toKey(dt) === key;
-    });
-  };
-
-  const formatSuggested = (value) => {
-    if (!value) return "n/a";
-    const d = typeof value === "string" ? new Date(value) : new Date(value.seconds * 1000);
-    return isNaN(d.getTime()) ? "n/a" : d.toLocaleString();
-  };
+  useEffect(() => {
+    if (!overflowToast) return undefined;
+    const timeout = window.setTimeout(() => setOverflowToast(""), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [overflowToast]);
 
   const openCreateModal = () => {
     setEditingTask(null);
@@ -139,8 +100,6 @@ export default function PlannerPage() {
   };
 
   const handleSubmitTask = async (payload) => {
-    if (!auth.currentUser) return;
-    const token = await auth.currentUser.getIdToken();
     const baseBody = {
       title: payload.title,
       description: payload.description || "",
@@ -149,208 +108,313 @@ export default function PlannerPage() {
         payload.estimatedMinutes !== undefined
           ? payload.estimatedMinutes
           : payload.estimatedTime !== undefined
-            ? ((Number(payload.estimatedTime) <= 12 ? Number(payload.estimatedTime) * 60 : Number(payload.estimatedTime)) || 0)
+            ? ((Number(payload.estimatedTime) <= 12
+                ? Number(payload.estimatedTime) * 60
+                : Number(payload.estimatedTime)) || 0)
             : 0,
       priority: payload.priority || "medium",
       category: payload.category || "academic",
     };
+
     try {
       if (editingTask?.taskId) {
-        const res = await fetch(`${API_URL}/api/tasks/${editingTask.taskId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(baseBody),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await updateTask(editingTask.taskId, baseBody);
       } else {
-        const res = await fetch(`${API_URL}/api/tasks`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(baseBody),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await addTask({ ...baseBody, isComplete: false });
       }
       setShowTaskModal(false);
       setEditingTask(null);
-      // refresh tasks
-      const res = await fetch(`${API_URL}/api/tasks`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) setTasks(data);
-      }
+      await fetchTasks();
     } catch (err) {
       console.error("Failed to save task:", err);
+      alert(err?.message || "Failed to save task. Please try again.");
     }
   };
 
   const handleCompleteTask = async (taskId) => {
-    if (!auth.currentUser) return;
     try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/tasks/${taskId}/complete`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        // refresh tasks
-        const refresh = await fetch(`${API_URL}/api/tasks`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (refresh.ok) {
-          const list = await refresh.json();
-          if (Array.isArray(list)) setTasks(list);
-        }
+      const data = await completeTask(taskId);
+      if (data?.success) {
+        await fetchTasks();
       }
     } catch (err) {
       console.error("Failed to complete task:", err);
+      alert(err?.message || "Failed to complete task. Please try again.");
     }
   };
 
-  if (loading) return <div className="loading">Loading calendar...</div>;
+  const handleDragStart = (event, task, from) => {
+    if (interactionLocks.dragDisabled || isTaskCompleteForToday(task)) {
+      event.preventDefault();
+      return;
+    }
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", task.taskId);
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.START_DRAG, { taskId: task.taskId, from }));
+  };
+
+  const handleDragEnd = () => {
+    setDragHoverDayKey(null);
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.CANCEL_DRAG));
+  };
+
+  const handleDragOverDay = (event, day) => {
+    if (interactionLocks.dragDisabled) return;
+    event.preventDefault();
+    setDragHoverDayKey(day.key);
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.HOVER_DROP_TARGET, { dayKey: day.key }));
+  };
+
+  const handleDropOnDay = async (event, day) => {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData("text/plain") || plannerState.drag.taskId;
+    setDragHoverDayKey(null);
+    if (!taskId) return;
+
+    const task = tasks.find((item) => item.taskId === taskId);
+    if (!task) return;
+
+    try {
+      await updateTask(taskId, { dueAt: mergeDateWithExistingTime(day.date, task.dueAt) });
+      dispatch(
+        createPlannerEvent(PLANNER_EVENT_TYPES.DROP_ON_DAY, {
+          dayKey: day.key,
+          overflowCount: day.key === viewModel.selectedDay.key ? Math.max(0, viewModel.selectedDay.tasks.length - 4) : 0,
+        })
+      );
+      if (plannerState.assist.active) {
+        setAssistSuggestions((prev) => prev.filter((item) => item.taskId !== taskId));
+      }
+    } catch (err) {
+      console.error("Failed to move task onto day:", err);
+    }
+  };
+
+  const handleDropToBacklog = async (event) => {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData("text/plain") || plannerState.drag.taskId;
+    setDragHoverDayKey(null);
+    if (!taskId) return;
+    try {
+      await updateTask(taskId, { dueAt: null });
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.DROP_TO_BACKLOG));
+    } catch (err) {
+      console.error("Failed to return task to backlog:", err);
+    }
+  };
+
+  const handleDragOverBacklog = (event) => {
+    if (interactionLocks.dragDisabled) return;
+    event.preventDefault();
+  };
+
+  const handleSelectDay = (day) => {
+    dispatch(
+      createPlannerEvent(PLANNER_EVENT_TYPES.SELECT_DAY, {
+        dayKey: day.key,
+        overflowCount: day.overflowTasks.length,
+      })
+    );
+  };
+
+  const toggleAssist = async () => {
+    if (assistLoading) return;
+
+    if (plannerState.assist.active) {
+      setAssistSuggestions([]);
+      setAssistSummary("");
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: false }));
+      return;
+    }
+
+    if (!auth.currentUser) return;
+
+    const openTasks = tasks.filter((task) => !isTaskCompleteForToday(task));
+    if (!openTasks.length) {
+      setAssistSummary("Add at least one open task before asking Assist to place work.");
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: true }));
+      return;
+    }
+
+    setAssistLoading(true);
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: true }));
+
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/ai/replan`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          perDay: 3,
+          apply: false,
+          selectedDate: viewModel.selectedDay.date.toISOString(),
+          instruction: "Create calm, balanced placements for this week.",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      const suggestions = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.suggestions)
+          ? data.suggestions
+          : [];
+      setAssistSuggestions(suggestions);
+      setAssistSummary(
+        data?.summary ||
+          (suggestions.length
+            ? "Ghost placements are visible across the month. Tap one to accept it."
+            : "No useful assist placements came back for the current workload.")
+      );
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.LOAD_ASSIST_SUGGESTIONS, { suggestions }));
+    } catch (err) {
+      console.error("Assist failed:", err);
+      setAssistSuggestions([]);
+      setAssistSummary(err?.message || "Unable to generate assist suggestions right now.");
+    } finally {
+      setAssistLoading(false);
+    }
+  };
+
+  const handleAcceptSuggestion = async (suggestion) => {
+    if (!suggestion?.taskId) return;
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.ACCEPT_ASSIST_SUGGESTION, { taskId: suggestion.taskId }));
+    try {
+      await updateTask(suggestion.taskId, {
+        dueAt: suggestion.suggestedDate || suggestion.date || viewModel.selectedDay.date.toISOString(),
+        priority: suggestion.priority || undefined,
+      });
+      setAssistSuggestions((prev) => prev.filter((item) => item.taskId !== suggestion.taskId));
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.LOAD_ASSIST_SUGGESTIONS, {
+        suggestions: assistSuggestions.filter((item) => item.taskId !== suggestion.taskId),
+      }));
+    } catch (err) {
+      console.error("Failed to accept assist suggestion:", err);
+    }
+  };
+
+  const handleRejectSuggestion = (suggestion) => {
+    setAssistSuggestions((prev) => prev.filter((item) => item.taskId !== suggestion.taskId));
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.REJECT_ASSIST_SUGGESTION, { taskId: suggestion.taskId }));
+  };
+
+  const handleReturnOverflow = async () => {
+    const overflowTasks = viewModel.selectedDay.overflowTasks;
+    if (!overflowTasks.length) return;
+
+    setOverflowBusy(true);
+    dispatch(
+      createPlannerEvent(PLANNER_EVENT_TYPES.REDISTRIBUTE_OVERFLOW_REQUEST, {
+        dayKey: viewModel.selectedDay.key,
+        taskIds: overflowTasks.map((task) => task.taskId),
+      })
+    );
+
+    try {
+      for (const task of overflowTasks) {
+        await updateTask(task.taskId, { dueAt: null });
+        await new Promise((resolve) => window.setTimeout(resolve, 90));
+      }
+      await fetchTasks();
+      setOverflowToast("Spillway emptied. Tasks returned to backlog.");
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.REDISTRIBUTE_OVERFLOW_COMPLETE));
+    } catch (err) {
+      console.error("Failed to return overflow to backlog:", err);
+    } finally {
+      setOverflowBusy(false);
+    }
+  };
+
+  const handlePrevMonth = () => {
+    const next = addMonths(cursor, -1);
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.NAVIGATE_MONTH, { monthKey: monthKey(next) }));
+    setCursor(next);
+    setAssistSuggestions([]);
+    setAssistSummary("");
+    setDragHoverDayKey(null);
+    window.setTimeout(() => {
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.MONTH_TRANSITION_COMPLETE));
+    }, 180);
+  };
+
+  const handleNextMonth = () => {
+    const next = addMonths(cursor, 1);
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.NAVIGATE_MONTH, { monthKey: monthKey(next) }));
+    setCursor(next);
+    setAssistSuggestions([]);
+    setAssistSummary("");
+    setDragHoverDayKey(null);
+    window.setTimeout(() => {
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.MONTH_TRANSITION_COMPLETE));
+    }, 180);
+  };
+
+  if (loading) {
+    return <div className="planner-loading">Building planner…</div>;
+  }
 
   return (
-    <div className="planner">
-      <header className="planner-header">
-        <button className="month-arrow" onClick={() => setCursor(addMonths(cursor, -1))}>
-          ◀
-        </button>
-        <h1 className="month-label">{monthLabel}</h1>
-        <button className="month-arrow" onClick={() => setCursor(addMonths(cursor, 1))}>
-          ▶
-        </button>
-      </header>
+    <div className={`planner-page ${plannerState.assist.active ? "is-assist-active" : ""}`.trim()}>
+      <div className="planner-shell">
+        <PlannerSidebar
+          tasks={viewModel.backlogTasks}
+          draggingTaskId={plannerState.drag.taskId}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDropToBacklog={handleDropToBacklog}
+          onDragOverBacklog={handleDragOverBacklog}
+          onEdit={openEditModal}
+          onAddTask={openCreateModal}
+        />
 
-      <section className="calendar">
-        <div className="weekdays">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div className="weekday" key={d}>{d}</div>
-          ))}
-        </div>
+        <section className="planner-stage">
+          <PlannerHud
+            monthLabel={viewModel.monthLabel}
+            assistActive={plannerState.assist.active}
+            assistBusy={assistLoading || interactionLocks.assistDisabled}
+            onPrev={handlePrevMonth}
+            onNext={handleNextMonth}
+            onToggleAssist={toggleAssist}
+          />
 
-        <div className="month-grid">
-          {grid.cells.map((d) => {
-            const isToday = isSameDay(d, today);
-            const isSelected = isSameDay(d, selected);
-            const tasksForDay = dayTasks(d);
-            const dotCount = Math.min(tasksForDay.length, 3);
-            return (
-              <button
-                key={d.toISOString()}
-                className={["day", isToday ? "today" : "", isSelected ? "selected" : "", tasksForDay.length ? "has-tasks" : ""].join(" ")}
-                onClick={() => setSelected(d)}
-              >
-                <div className="date-num">{d.getDate()}</div>
-                {tasksForDay.length > 0 && (
-                  <div className="day-dots" aria-label={`${tasksForDay.length} tasks`}>
-                    {Array.from({ length: dotCount }).map((_, idx) => (
-                      <span key={idx} />
-                    ))}
-                    {tasksForDay.length > dotCount && (
-                      <span className="dot-more">+{Math.min(tasksForDay.length - dotCount, 9)}</span>
-                    )}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        {tasks.length === 0 && (
-          <div className="planner-empty">
-            <div className="planner-empty-icon" aria-hidden>📝</div>
-            <div>
-              <div className="planner-empty-title">No tasks yet</div>
-              <div className="planner-empty-sub">Add a task to start filling your calendar.</div>
-            </div>
-          </div>
-        )}
-      </section>
+          <PlannerGrid
+            weekdays={viewModel.weekdays}
+            days={viewModel.days}
+            selectedDay={viewModel.selectedDay}
+            dragHoverDayKey={dragHoverDayKey}
+            assistActive={plannerState.assist.active}
+            draggingDisabled={interactionLocks.dragDisabled}
+            overflowBusy={overflowBusy}
+            onSelectDay={handleSelectDay}
+            onDragStartTask={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragOverDay={handleDragOverDay}
+            onDropOnDay={handleDropOnDay}
+            onEditTask={openEditModal}
+            onCompleteTask={handleCompleteTask}
+            onAcceptSuggestion={handleAcceptSuggestion}
+            onRejectSuggestion={handleRejectSuggestion}
+            onReturnOverflow={handleReturnOverflow}
+            onAddTask={openCreateModal}
+          />
+        </section>
+      </div>
 
-      <aside className="day-details">
-        <div className="day-header">
-          <h2 className="day-title">{selectedLabel}</h2>
-          <button className="ai-btn" onClick={openCreateModal}>+ Add Task</button>
-        </div>
+      <AssistOverlay
+        active={plannerState.assist.active}
+        loading={assistLoading}
+        onExit={() => {
+          setAssistSuggestions([]);
+          setAssistSummary("");
+          dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: false }));
+        }}
+        summary={assistSummary}
+      />
 
-        {dayTasks(selected).length === 0 ? (
-          <div className="no-events">No tasks for this day.</div>
-        ) : (
-          <ul className="event-list">
-            {dayTasks(selected).map((t) => (
-              <li key={t.taskId} className="event-row">
-                <button
-                  className={`event-check ${t.isComplete ? "checked" : ""}`}
-                  onClick={() => handleCompleteTask(t.taskId)}
-                  aria-label={t.isComplete ? "Completed" : "Mark complete"}
-                >
-                  {t.isComplete ? "✓" : ""}
-                </button>
-                <div>
-                  <div className="event-text-row">
-                    <span className="event-time">{t.priority || "task"}</span>
-                    <button className="event-text-btn" onClick={() => openEditModal(t)}>
-                      {t.title}
-                    </button>
-                  </div>
-                  <div className="event-meta">
-                    {t.dueAt
-                      ? (typeof t.dueAt === "object" && t.dueAt.seconds
-                        ? new Date(t.dueAt.seconds * 1000).toLocaleString()
-                        : new Date(t.dueAt).toLocaleString())
-                      : "No due date"}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+      {overflowToast ? <div className="planner-toast">{overflowToast}</div> : null}
 
-        <div className="planner-ai">
-          <div className="planner-ai-head">
-            <div>
-              <p className="ai-kicker">Focus assist</p>
-              <h3 className="ai-title">Smart scheduling</h3>
-              <p className="ai-sub">
-                Let AI propose an order for the selected day using due dates, priority, overdue items, and effort. Apply from the suggestions.
-              </p>
-            </div>
-            <button className="ai-btn" onClick={handleReplan} disabled={replanLoading}>
-              {replanLoading ? "Thinking..." : "Suggest schedule"}
-            </button>
-          </div>
-          {replanSuggestions.length === 0 ? (
-            <div className="ai-empty">No suggestions yet. Run a suggestion to get a plan.</div>
-          ) : (
-            <ul className="ai-list">
-              {replanSuggestions.slice(0, 3).map((t, idx) => (
-                <li key={t.taskId || idx} className="ai-item">
-                  <div className="ai-item-head">
-                    <span className="ai-pill">{t.priority || "task"}</span>
-                    <span className="ai-meta">{formatSuggested(t.suggestedDate)}</span>
-                  </div>
-                  <div className="ai-text">{t.title}</div>
-                  <div className="ai-meta">Score: {t._score ?? "n/a"} {t._missed ? "• Missed" : ""}</div>
-                  {t._explanation && <div className="ai-meta">{t._explanation}</div>}
-                </li>
-              ))}
-              {replanSuggestions.length > 3 && (
-                <div className="ai-meta">More suggestions available—open Today to generate a full plan.</div>
-              )}
-            </ul>
-          )}
-        </div>
-      </aside>
       <TaskModal
         open={showTaskModal}
         onClose={() => {
@@ -360,7 +424,7 @@ export default function PlannerPage() {
         onSubmit={handleSubmitTask}
         initialTask={
           editingTask || {
-            dueAt: selected,
+            dueAt: viewModel.selectedDay.date,
             category: "academic",
           }
         }
