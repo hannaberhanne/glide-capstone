@@ -89,34 +89,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Glide API+ running',
+    environment: process.env.NODE_ENV || 'development'
   });
-} else {
-  app.get('/', (req, res) => {
-    res.json({
-      message: 'Glide API+ running in DEVELOPMENT mode',
-      note: 'Frontend dev server should run separately on http://localhost:5173',
-      endpoints: {
-        assignments: '/api/assignments',
-        canvas: '/api/canvas',
-        courses: '/api/courses',
-        events: '/api/events',
-        schedule: '/api/schedule',
-        habits: '/api/habits',
-        tasks: '/api/tasks',
-        users: '/api/users',
-        auth: '/api/auth',
-        health: '/api/health',
-        ai: '/api/ai',
-        quote: '/api/quote',
-      }
-    });
-  });
-}
+});
 
 // Errors
 app.use((req, res) => {
