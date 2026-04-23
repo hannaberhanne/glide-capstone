@@ -1,5 +1,9 @@
 import { admin, db } from '../config/firebase.js';
+import OpenAI from 'openai';
 
+const openai = process.env.OPENAI_API_KEY
+    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    : null;
 
 function computeLevel(totalXP) {
   let level = 0;
@@ -11,15 +15,73 @@ function computeLevel(totalXP) {
   return level;
 }
 
-// Returns today's date as a YYYY-MM-DD string in local time
 function todayDateString() {
   const now = new Date();
-  return now.toISOString().slice(0, 10); // "2025-04-21"
+  return now.toISOString().slice(0, 10);
 }
 
-// A task counts as completed today if lastCompleted matches today's date string
 function isCompletedToday(task) {
   return task.lastCompleted === todayDateString();
+}
+
+function normalizeDueAt(dueAt) {
+    if (dueAt === undefined) {
+        return { provided: false };
+    }
+    if (!dueAt) {
+        return { provided: true, value: null };
+    }
+    const parsed = new Date(dueAt);
+    if (Number.isNaN(parsed.getTime())) {
+        return { provided: true, error: 'Invalid due date/time' };
+    }
+    return { provided: true, value: parsed.toISOString() };
+}
+
+function normalizeEstimatedMinutes({ estimatedMinutes, estimatedTime }) {
+    if (estimatedMinutes !== undefined && estimatedMinutes !== null && estimatedMinutes !== '') {
+        return Math.max(0, Number(estimatedMinutes) || 0);
+    }
+    if (estimatedTime !== undefined && estimatedTime !== null && estimatedTime !== '') {
+        const val = Number(estimatedTime) || 0;
+        return val <= 12 ? val * 60 : val;
+    }
+    return 0;
+}
+
+function normalizeXpValue(value) {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+    const xp = Number(value);
+    if (!Number.isFinite(xp)) {
+        return null;
+    }
+    return Math.max(0, Math.round(xp));
+}
+
+async function getXpFromAI(task) {
+  try {
+    if (!openai) return 50;
+    const resp = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{
+        role: 'user',
+        content: `Assign an XP reward for this student productivity task.
+Task: "${task.title}"
+Category: ${task.category || 'general'}
+Estimated minutes: ${task.estimatedMinutes || 0}
+
+Return only one number from 10 to 150.`
+      }],
+      max_tokens: 5,
+    });
+    const xp = parseInt(resp.choices[0]?.message?.content?.trim(), 10);
+    return Number.isNaN(xp) ? 50 : Math.min(Math.max(xp, 10), 150);
+  } catch (err) {
+    console.error('AI XP error, fallback to 50:', err.message);
+    return 50;
+  }
 }
 
 // get requests to retrieve all tasks for a user
@@ -33,7 +95,6 @@ const getTasks = async (req, res) => {
 
         const today = todayDateString();
 
-        // Attach a virtual `completedToday` field so the frontend can use it
         const tasks = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
@@ -55,7 +116,18 @@ const getTasks = async (req, res) => {
 // post request to create a new task
 const createTask = async (req, res) => {
     try {
-        const { color, title, xpValue, goalId } = req.body;
+        const {
+            color,
+            title,
+            xpValue,
+            goalId,
+            category,
+            priority,
+            dueAt,
+            description,
+            estimatedMinutes,
+            estimatedTime
+        } = req.body;
         const uid = req.user.uid;
 
         if (!title || title.trim() === '') {
@@ -64,25 +136,52 @@ const createTask = async (req, res) => {
             });
         }
 
-        const docRef = await db.collection('tasks').add({
+        const normalizedEstimatedMinutes = normalizeEstimatedMinutes({ estimatedMinutes, estimatedTime });
+
+        const taskData = {
             color: color || '#A58F1C',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            goalId: goalId || null,
-            lastCompleted: '',   // empty string = never completed
+            isComplete: false,
+            lastCompleted: '',
             title: title.trim(),
             userId: uid,
-            xpValue: xpValue || 5
-        });
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (goalId !== undefined && goalId !== null && goalId !== '') {
+            taskData.goalId = goalId;
+        }
+        if (category !== undefined && category !== null && category !== '') {
+            taskData.category = String(category).toLowerCase();
+        }
+        if (priority !== undefined && priority !== null && priority !== '') {
+            taskData.priority = String(priority).toLowerCase();
+        }
+        if (description !== undefined && description !== null) {
+            taskData.description = String(description);
+        }
+        if (dueAt !== undefined) {
+            const normalizedDueAt = normalizeDueAt(dueAt);
+            if (normalizedDueAt.error) {
+                return res.status(400).json({ error: normalizedDueAt.error });
+            }
+            taskData.dueAt = normalizedDueAt.value;
+        }
+        if (normalizedEstimatedMinutes > 0) {
+            taskData.estimatedMinutes = normalizedEstimatedMinutes;
+        }
+
+        const explicitXp = normalizeXpValue(xpValue);
+        taskData.xpValue = explicitXp ?? await getXpFromAI(taskData);
+
+        const docRef = await db.collection('tasks').add(taskData);
+        const createdDoc = await docRef.get();
+        const data = createdDoc.data();
 
         res.status(201).json({
-            createdAt: new Date().toISOString(),
-            goalId: goalId || null,
-            lastCompleted: '',
-            completedToday: false,
             taskId: docRef.id,
-            title: title.trim(),
-            userId: uid,
-            xpValue: xpValue || 5
+            ...data,
+            completedToday: false
         });
 
     } catch (err) {
@@ -100,7 +199,19 @@ const updateTask = async (req, res) => {
     try {
         const { taskId } = req.params;
         const uid = req.user.uid;
-        const { lastCompleted, title, xpValue } = req.body;
+        const {
+            completedToday,
+            isComplete,
+            lastCompleted,
+            title,
+            xpValue,
+            category,
+            priority,
+            dueAt,
+            description,
+            estimatedMinutes,
+            estimatedTime
+        } = req.body;
 
         const docRef = db.collection('tasks').doc(taskId);
         const doc = await docRef.get();
@@ -125,11 +236,43 @@ const updateTask = async (req, res) => {
         }
 
         if (xpValue !== undefined) {
-            updateData.xpValue = xpValue;
+            const normalizedXp = normalizeXpValue(xpValue);
+            updateData.xpValue = normalizedXp ?? 0;
         }
 
         if (lastCompleted !== undefined) {
             updateData.lastCompleted = lastCompleted;
+        }
+
+        if (completedToday !== undefined) {
+            updateData.lastCompleted = completedToday ? todayDateString() : '';
+        }
+
+        if (isComplete !== undefined) {
+            updateData.isComplete = Boolean(isComplete);
+        }
+
+        if (category !== undefined && category !== null) {
+            updateData.category = category === '' ? null : String(category).toLowerCase();
+        }
+        if (priority !== undefined && priority !== null) {
+            updateData.priority = priority === '' ? null : String(priority).toLowerCase();
+        }
+        if (description !== undefined) {
+            updateData.description = description === null ? null : String(description);
+        }
+        if (dueAt !== undefined) {
+            const normalizedDueAt = normalizeDueAt(dueAt);
+            if (normalizedDueAt.error) {
+                return res.status(400).json({ error: normalizedDueAt.error });
+            }
+            updateData.dueAt = normalizedDueAt.value;
+        }
+        if (
+            estimatedMinutes !== undefined ||
+            estimatedTime !== undefined
+        ) {
+            updateData.estimatedMinutes = normalizeEstimatedMinutes({ estimatedMinutes, estimatedTime });
         }
 
         updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
@@ -142,7 +285,7 @@ const updateTask = async (req, res) => {
         res.json({
             taskId: updatedDoc.id,
             ...data,
-            completedToday: data.lastCompleted === todayDateString(),
+            completedToday: isCompletedToday(data),
             message: 'Task updated successfully'
         });
 
@@ -156,14 +299,24 @@ const updateTask = async (req, res) => {
 };
 
 
-// Mark task complete and award XP (idempotent — safe to call twice, won't double-award)
+// Mark task complete and award XP once per day.
 const completeTask = async (req, res) => {
     const { taskId } = req.params;
     const uid = req.user.uid;
 
     try {
+        const taskRef = db.collection('tasks').doc(taskId);
+        const taskPreview = await taskRef.get();
+
+        if (!taskPreview.exists || taskPreview.data().userId !== uid) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        const previewData = taskPreview.data();
+        const previewXp = normalizeXpValue(previewData.xpValue);
+        const generatedXp = previewXp === null ? await getXpFromAI(previewData) : null;
+
         const result = await db.runTransaction(async (t) => {
-            const taskRef = db.collection('tasks').doc(taskId);
             const userRef = db.collection('users').doc(uid);
 
             const taskSnap = await t.get(taskRef);
@@ -180,21 +333,24 @@ const completeTask = async (req, res) => {
             const userData = userSnap.data();
             const today = todayDateString();
 
-            // Idempotent: if already completed today, return current XP without changes
             if (task.lastCompleted === today) {
                 return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
             }
 
-            const xpGained = task.xpValue || 5;
+            const storedXp = normalizeXpValue(task.xpValue);
+            const xpGained = storedXp ?? generatedXp ?? 50;
             const newTotalXP = (userData.totalXP || 0) + xpGained;
             const newLevel = computeLevel(newTotalXP);
 
-            // Store today's date string — this IS the daily reset mechanism.
-            // Tomorrow this won't match todayDateString() so the task resets automatically.
-            t.update(taskRef, {
+            const taskUpdate = {
                 lastCompleted: today,
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
+            };
+            if (storedXp === null) {
+                taskUpdate.xpValue = xpGained;
+            }
+
+            t.update(taskRef, taskUpdate);
 
             t.update(userRef, {
                 totalXP: newTotalXP,
