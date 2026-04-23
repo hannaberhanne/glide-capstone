@@ -26,7 +26,6 @@ export default function AddGoal({ onClose, onGoalCreated }) {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const handleSubmit = async () => {
-    console.log("suggestedTasks at submit:", suggestedTasks);
     if (!title.trim()) {
       setBanner({ message: "Goal title is required.", type: "error" });
       return;
@@ -67,7 +66,7 @@ export default function AddGoal({ onClose, onGoalCreated }) {
                 title: task.title,
                 goalId: goalData.goalId,
                 color: color || '#A58F1C',
-                xpValue: task.xp,
+                xpValue: task.xpValue ?? task.xp ?? 5,
               }),
             });
 
@@ -80,7 +79,7 @@ export default function AddGoal({ onClose, onGoalCreated }) {
 
       const tasksMap = {};
       suggestedTasks.forEach((task) => {
-        tasksMap[task.title] = task.xp;
+        tasksMap[task.title] = task.xpValue ?? task.xp ?? 5;
       });
 
       onGoalCreated({ ...goalData, tasks: tasksMap });
@@ -100,6 +99,8 @@ export default function AddGoal({ onClose, onGoalCreated }) {
     }
 
     try {
+      setLoadingSuggestions(true);
+      setBanner(null);
       const res = await fetch(`${API_BASE_URL}/api/goals/suggest-tasks`, {
         method: "POST",
         headers: {
@@ -115,7 +116,12 @@ export default function AddGoal({ onClose, onGoalCreated }) {
         throw new Error(data.error || "Failed to get suggestions");
       }
 
-      setSuggestedTasks(data.tasks);
+      setSuggestedTasks(
+          (data.tasks || []).map((task) => ({
+            ...task,
+            xpValue: task.xpValue ?? task.xp ?? 5,
+          }))
+      );
     } catch (err) {
       console.error("Suggest tasks error:", err);
       setBanner({ message: err.message, type: "error" });
