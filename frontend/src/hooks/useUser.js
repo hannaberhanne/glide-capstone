@@ -61,7 +61,7 @@ export default function useUser(API_URL) {
     } catch (err) {
       console.error("Failed to fetch user:", err);
     }
-  }, [API_URL]);
+  }, [API_URL, fillProfileGaps]);
 
   useEffect(() => {
     refreshUser();

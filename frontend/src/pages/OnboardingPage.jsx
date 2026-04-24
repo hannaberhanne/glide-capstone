@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../config/firebase.js";
 import "./OnboardingPage.css";
+
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const questions = [
   {
     id: 1,
-    question: "What’s your main reason for using Glide+?",
+    question: "What's your main reason for using Glide+?",
     type: "multiple",
     options: [
       "Stay organized and manage my time better",
@@ -53,7 +56,7 @@ const questions = [
   },
   {
     id: 5,
-    question: "What’s one big goal you’d like to accomplish?",
+    question: "What's one big goal you'd like to accomplish?",
     type: "text",
   },
 ];
@@ -61,9 +64,11 @@ const questions = [
 const totalSteps = questions.length;
 
 export default function OnboardingPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState({});
   const [finished, setFinished] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const current = questions[step - 1];
 
@@ -74,12 +79,58 @@ export default function OnboardingPage() {
     return false;
   };
 
+  const handleFinish = async () => {
+    if (!hasSelection()) return;
+    if (!auth.currentUser) {
+      setFinished(true);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const uid = auth.currentUser.uid;
+      const token = await auth.currentUser.getIdToken();
+
+      await fetch(`${API_URL}/api/users/${uid}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          onboardingAnswers: answers,
+        }),
+      });
+
+      const goalTitle = typeof answers[5] === "string" ? answers[5].trim() : "";
+      if (goalTitle) {
+        await fetch(`${API_URL}/api/goals`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: goalTitle,
+            type: "project",
+            color: "#9caf88",
+          }),
+        });
+      }
+    } catch (err) {
+      console.error("Onboarding save error:", err);
+    } finally {
+      setSaving(false);
+      setFinished(true);
+    }
+  };
+
   const handleNext = () => {
     if (!hasSelection()) return;
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      setFinished(true);
+      handleFinish();
     }
   };
 
@@ -101,17 +152,14 @@ export default function OnboardingPage() {
             <Link to="/canvas-setup" className="onboarding-primary-btn">
               Yes, sync Canvas →
             </Link>
-            <Link to="/dashboard" className="onboarding-backbtn">
+            <button
+              type="button"
+              className="onboarding-backbtn"
+              onClick={() => navigate("/dashboard")}
+            >
               No thanks
-            </Link>
+            </button>
           </div>
-
-          <p className="onboarding-footer">
-            Need an account?{" "}
-            <Link to="/signup" className="onboarding-link">
-              Sign up here
-            </Link>
-          </p>
         </div>
       </div>
     );
@@ -145,9 +193,7 @@ export default function OnboardingPage() {
                     checked={selected}
                     onChange={() => {
                       setAnswers((prev) => {
-                        const existing = Array.isArray(prev[step])
-                          ? prev[step]
-                          : [];
+                        const existing = Array.isArray(prev[step]) ? prev[step] : [];
                         const next = existing.includes(opt)
                           ? existing.filter((item) => item !== opt)
                           : [...existing, opt];
@@ -184,10 +230,10 @@ export default function OnboardingPage() {
           <button
             className="onboarding-primary-btn"
             type="button"
-            disabled={!hasSelection()}
+            disabled={!hasSelection() || saving}
             onClick={handleNext}
           >
-            {step === totalSteps ? "Finish" : "Next →"}
+            {saving ? "Saving…" : step === totalSteps ? "Finish" : "Next →"}
           </button>
         </div>
       </div>

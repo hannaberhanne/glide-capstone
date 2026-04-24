@@ -10,7 +10,7 @@ export default function useTasks(API_URL) {
     try {
       const body = await res.json();
       detail = body?.error || body?.message || "";
-    } catch (_) {
+    } catch {
       detail = "";
     }
     return new Error(detail ? `HTTP ${res.status}: ${detail}` : `HTTP ${res.status}`);

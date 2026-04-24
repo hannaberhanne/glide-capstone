@@ -17,6 +17,27 @@ const XP_MAP = {
     expert: 20,
 };
 
+function normalizeXpValue(value) {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+    const xp = Number(value);
+    if (!Number.isFinite(xp)) {
+        return null;
+    }
+    return Math.max(0, Math.round(xp));
+}
+
+function dateKey(d = new Date()) {
+    return d.toISOString().slice(0, 10);
+}
+
+function streakBonus(streak) {
+    if (streak === 21) return 15;
+    if (streak === 7) return 5;
+    return 0;
+}
+
 const suggestTasks = async (req, res) => {
     const { title } = req.body;
 
@@ -274,6 +295,12 @@ const deleteGoal = async (req, res) => {
 const completeGoal = async (req, res) => {
   const { goalId } = req.params;
   const uid = req.user.uid;
+  const today = dateKey();
+  const yesterday = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return dateKey(d);
+  })();
 
   try {
     const result = await db.runTransaction(async (t) => {
@@ -292,24 +319,48 @@ const completeGoal = async (req, res) => {
 
       const goal = goalSnap.data();
       const userData = userSnap.data();
+      const isRoutineGoal = goal.type === 'routine';
 
-      // don't award XP twice
-      if (goal.completedToday) {
+      if (!isRoutineGoal && goal.completedToday) {
         return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
       }
 
-      const xpGained = 0;
+      let xpGained = 0;
+      let goalUpdate = {
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+
+      if (isRoutineGoal) {
+        const history = Array.isArray(goal.completionHistory) ? goal.completionHistory : [];
+        if (history.includes(today)) {
+          return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
+        }
+
+        const nextStreak = history.includes(yesterday) ? (goal.streak || 0) + 1 : 1;
+        const nextLongest = Math.max(nextStreak, goal.longestStreak || 0);
+        const baseXp = normalizeXpValue(goal.xpValue) ?? 10;
+        const bonusXp = streakBonus(nextStreak);
+
+        xpGained = baseXp + bonusXp;
+        goalUpdate = {
+          ...goalUpdate,
+          completedToday: true,
+          streak: nextStreak,
+          longestStreak: nextLongest,
+          completionHistory: admin.firestore.FieldValue.arrayUnion(today),
+        };
+      } else {
+        xpGained = normalizeXpValue(goal.xpValue) ?? 25;
+        goalUpdate = {
+          ...goalUpdate,
+          completedToday: true,
+        };
+      }
+
       const newTotalXP = (userData.totalXP || 0) + xpGained;
       const newLevel = computeLevel(newTotalXP);
-      const newStreak = (goal.streak || 0) + 1;
-      const newLongest = Math.max(newStreak, goal.longestStreak || 0);
 
-      t.update(goalRef, {
-        completedToday: true,
-        streak: newStreak,
-        longestStreak: newLongest,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      t.update(goalRef, goalUpdate);
 
       t.update(userRef, {
         totalXP: newTotalXP,
@@ -317,7 +368,13 @@ const completeGoal = async (req, res) => {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      return { already: false, xpGained, newTotalXP, newLevel, newStreak };
+      return {
+        already: false,
+        xpGained,
+        newTotalXP,
+        newLevel,
+        newStreak: goalUpdate.streak ?? goal.streak ?? 0,
+      };
     });
 
     if (result.already) {
