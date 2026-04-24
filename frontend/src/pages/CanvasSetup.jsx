@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../config/firebase";
-import { apiClient } from "../lib/apiClient.js";
 import "./CanvasSetup.css";
 
 export default function CanvasSetup() {
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
   const [token, setToken] = useState("");
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -25,8 +26,19 @@ export default function CanvasSetup() {
     setMessage("");
 
     try {
+      const idToken = await auth.currentUser.getIdToken();
       const uid = auth.currentUser.uid;
-      await apiClient.patch(`/api/users/${uid}`, { canvasToken: token.trim() });
+
+      const res = await fetch(`${API_URL}/api/users/${uid}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ canvasToken: token.trim() }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
 
       setMessage("Canvas token saved successfully!");
     } catch (err) {
@@ -45,10 +57,19 @@ export default function CanvasSetup() {
     setSyncing(true);
     setMessage("");
     try {
-      const data = await apiClient.post("/api/canvas/sync", {
-        canvasToken: token.trim() || undefined,
+      const idToken = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/canvas/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ canvasToken: token.trim() || undefined }),
       });
-      if (data.success === false) throw new Error(data.error || "Sync failed");
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
       setMessage(data.message || "Canvas synced successfully!");
     } catch (err) {
       console.error("Sync failed:", err);

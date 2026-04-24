@@ -34,7 +34,7 @@ export default function TaskListGroup({
 
     try {
       await onComplete(taskId, event?.currentTarget?.getBoundingClientRect?.() || null);
-    } catch {
+    } catch (err) {
       setCompleting((prev) => {
         const next = new Set(prev);
         next.delete(taskId);

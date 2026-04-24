@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { auth } from "../config/firebase";
-import { apiClient } from "../lib/apiClient.js";
 
-export default function useTasks() {
+export default function useTasks(API_URL) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const buildApiError = async (res) => {
+    let detail = "";
+    try {
+      const body = await res.json();
+      detail = body?.error || body?.message || "";
+    } catch (_) {
+      detail = "";
+    }
+    return new Error(detail ? `HTTP ${res.status}: ${detail}` : `HTTP ${res.status}`);
+  };
 
   const fetchTasks = useCallback(async () => {
     if (!auth.currentUser) {
@@ -14,7 +24,12 @@ export default function useTasks() {
     }
     setLoading(true);
     try {
-      const data = await apiClient.get("/api/tasks");
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/tasks`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw await buildApiError(res);
+      const data = await res.json();
       setTasks(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
@@ -22,7 +37,7 @@ export default function useTasks() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [API_URL]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -37,13 +52,35 @@ export default function useTasks() {
   }, [fetchTasks]);
 
   const addTask = async (payload) => {
-    const data = await apiClient.post("/api/tasks", payload);
+    if (!auth.currentUser) return null;
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${API_URL}/api/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw await buildApiError(res);
+    const data = await res.json();
     setTasks((prev) => [...prev, data]);
     return data;
   };
 
   const updateTask = async (taskId, payload) => {
-    const data = await apiClient.patch(`/api/tasks/${taskId}`, payload);
+    if (!auth.currentUser) return null;
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${API_URL}/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw await buildApiError(res);
+    const data = await res.json();
     setTasks((prev) =>
       prev.map((t) => (t.taskId === taskId ? { ...t, ...payload } : t))
     );
@@ -51,13 +88,31 @@ export default function useTasks() {
   };
 
   const deleteTask = async (taskId) => {
-    await apiClient.delete(`/api/tasks/${taskId}`);
+    if (!auth.currentUser) return;
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${API_URL}/api/tasks/${taskId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw await buildApiError(res);
     setTasks((prev) => prev.filter((t) => t.taskId !== taskId));
   };
 
   const completeTask = async (taskId) => {
-    const data = await apiClient.patch(`/api/tasks/${taskId}/complete`, {});
-    if (data.success) {
+    if (!auth.currentUser) return null;
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${API_URL}/api/tasks/${taskId}/complete`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to complete task");
+    }
+    if (res.ok && data.success) {
       setTasks((prev) =>
         prev.map((t) =>
           t.taskId === taskId ? { ...t, completedToday: true } : t
@@ -67,5 +122,14 @@ export default function useTasks() {
     return data;
   };
 
-  return { tasks, setTasks, loading, fetchTasks, addTask, updateTask, deleteTask, completeTask };
+  return {
+    tasks,
+    setTasks,
+    loading,
+    fetchTasks,
+    addTask,
+    updateTask,
+    deleteTask,
+    completeTask,
+  };
 }

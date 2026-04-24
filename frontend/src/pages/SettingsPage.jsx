@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { auth } from "../config/firebase";
-import { apiClient } from "../lib/apiClient.js";
 import useCanvasStatus from "../hooks/useCanvasStatus";
 import useUser from "../hooks/useUser";
 import useAccessibilityPrefs, {
@@ -61,31 +60,18 @@ const getInitialProfileForm = (userRecord) => ({
 });
 
 const getInitialVisualPrefs = (userRecord) => ({
+  notifications: userRecord?.notification || false,
+  weeklySummary: userRecord?.weeklySummary || false,
   ...getStoredVisualPrefs(),
-  notifications:
-    userRecord?.notifications ?? userRecord?.preferences?.notifications ?? false,
-  weeklySummary:
-    userRecord?.weeklySummary ?? userRecord?.preferences?.weeklySummary ?? false,
-  taskColor:
-    userRecord?.taskColor ??
-    userRecord?.preferences?.taskColor ??
-    getStoredVisualPrefs().taskColor,
-  goalColor:
-    userRecord?.goalColor ??
-    userRecord?.preferences?.goalColor ??
-    getStoredVisualPrefs().goalColor,
-  defaultPriority:
-    userRecord?.defaultPriority ??
-    userRecord?.preferences?.defaultPriority ??
-    getStoredVisualPrefs().defaultPriority,
 });
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-  const { user, xp, refreshUser } = useUser();
-  const { canvasStatus } = useCanvasStatus();
+  const { user, xp, refreshUser } = useUser(API_URL);
+  const { canvasStatus } = useCanvasStatus(API_URL);
   const {
     prefs: accessibilityPrefs,
     updatePref: updateAccessibilityPref,
@@ -209,9 +195,20 @@ export default function SettingsPage() {
         },
       };
 
-      await apiClient.patch(`/api/users/${auth.currentUser.uid}`, payload);
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/users/${auth.currentUser.uid}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to update profile");
+
       setStatusMessage("Profile updated");
-      await refreshUser();
+      refreshUser();
     } catch (err) {
       console.error("Profile update failed:", err);
       setStatusMessage("Unable to save changes right now.");

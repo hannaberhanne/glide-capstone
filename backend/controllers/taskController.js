@@ -1,10 +1,19 @@
 import { admin, db } from '../config/firebase.js';
 import OpenAI from 'openai';
-import { computeLevel } from '../domain/xp.js';
 
 const openai = process.env.OPENAI_API_KEY
     ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     : null;
+
+function computeLevel(totalXP) {
+  let level = 0;
+  let accumulated = 0;
+  while (totalXP >= accumulated + 100 * (level + 1)) {
+    accumulated += 100 * (level + 1);
+    level++;
+  }
+  return level;
+}
 
 function todayDateString() {
   const now = new Date();
@@ -75,7 +84,7 @@ Return only one number from 10 to 150.`
   }
 }
 
-// get all tasks for the current user.
+// get requests to retrieve all tasks for a user
 const getTasks = async (req, res) => {
     try {
         const uid = req.user.uid;
@@ -104,7 +113,7 @@ const getTasks = async (req, res) => {
 };
 
 
-// create a task.
+// post request to create a new task
 const createTask = async (req, res) => {
     try {
         const {
@@ -185,7 +194,7 @@ const createTask = async (req, res) => {
 };
 
 
-// update task fields that are not the completion flow.
+// patch to update an existing task (non-completion fields)
 const updateTask = async (req, res) => {
     try {
         const { taskId } = req.params;
@@ -290,7 +299,7 @@ const updateTask = async (req, res) => {
 };
 
 
-// complete a task and only pay xp once per day.
+// Mark task complete and award XP once per day.
 const completeTask = async (req, res) => {
     const { taskId } = req.params;
     const uid = req.user.uid;
@@ -378,7 +387,7 @@ const completeTask = async (req, res) => {
 };
 
 
-// delete a task.
+// remove a task from db
 const deleteTask = async (req, res) => {
     try {
         const { taskId } = req.params;

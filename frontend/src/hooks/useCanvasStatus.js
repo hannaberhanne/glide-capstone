@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { auth } from "../config/firebase";
-import { apiClient } from "../lib/apiClient.js";
 
-export default function useCanvasStatus() {
+export default function useCanvasStatus(API_URL) {
   const [canvasStatus, setCanvasStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
@@ -10,14 +9,20 @@ export default function useCanvasStatus() {
     if (!auth.currentUser) return;
     setStatusLoading(true);
     try {
-      const data = await apiClient.get("/api/canvas/status");
-      setCanvasStatus(data?.data || null);
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/canvas/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCanvasStatus(data?.data || null);
+      }
     } catch (err) {
       console.error("Failed to fetch canvas status:", err);
     } finally {
       setStatusLoading(false);
     }
-  }, []);
+  }, [API_URL]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {

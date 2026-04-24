@@ -139,8 +139,7 @@ export default function GoalsPage() {
   const [banner, setBanner] = useState(null);
   const [earnedBadges] = useState([]);
   const [goals, setGoals] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState([]);   // all tasks for this user
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
   const [stats] = useState({
@@ -207,8 +206,6 @@ export default function GoalsPage() {
       } catch (err) {
         console.error("Fetch error:", err);
         setBanner({ message: "Error loading goals", type: "error" });
-      } finally {
-        setLoading(false);
       }
     });
 
@@ -286,19 +283,6 @@ export default function GoalsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="goals goals--loading" aria-label="Loading goals">
-        <div className="dash-skeleton">
-          <div className="skel skel-title" />
-          <div className="skel skel-card" />
-          <div className="skel skel-card" />
-          <div className="skel skel-card skel-card--short" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="goals">
@@ -314,12 +298,7 @@ export default function GoalsPage() {
         <div className="goals-primary">
           <div className="goals-left">
             <AddGoalCard onClick={() => setShowAddGoal(true)} />
-            {goals.length === 0 ? (
-              <div className="goals-empty">
-                <p className="goals-empty-text">No goals yet.</p>
-                <p className="goals-empty-sub">Create one above to start earning XP.</p>
-              </div>
-            ) : goals.map((goal) => (
+            {goals.map((goal) => (
               <GoalCard
                 key={goal.goalId}
                 goal={goal}
