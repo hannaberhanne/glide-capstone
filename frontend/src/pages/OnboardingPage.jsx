@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../config/firebase.js";
+import { apiClient } from "../lib/apiClient.js";
 import "./OnboardingPage.css";
 
 const questions = [
   {
     id: 1,
-    question: "What’s your main reason for using Glide+?",
+    question: "What's your main reason for using Glide+?",
     type: "multiple",
     options: [
       "Stay organized and manage my time better",
@@ -53,7 +55,7 @@ const questions = [
   },
   {
     id: 5,
-    question: "What’s one big goal you’d like to accomplish?",
+    question: "What's one big goal you'd like to accomplish?",
     type: "text",
   },
 ];
@@ -61,9 +63,10 @@ const questions = [
 const totalSteps = questions.length;
 
 export default function OnboardingPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState({});
-  const [finished, setFinished] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const current = questions[step - 1];
 
@@ -74,48 +77,48 @@ export default function OnboardingPage() {
     return false;
   };
 
+  const handleFinish = async () => {
+    if (!hasSelection()) return;
+    if (!auth.currentUser) {
+      navigate("/canvas-setup");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const uid = auth.currentUser.uid;
+
+      // save the answers on the user doc first.
+      await apiClient.patch(`/api/users/${uid}`, {
+        onboardingAnswers: answers,
+      });
+
+      // if they gave us a real goal, seed it now.
+      const goalTitle = typeof answers[5] === "string" ? answers[5].trim() : "";
+      if (goalTitle) {
+        await apiClient.post("/api/goals", {
+          title: goalTitle,
+          type: "project",
+          color: "#9caf88",
+        });
+      }
+    } catch (err) {
+      console.error("Onboarding save error:", err);
+      // don't trap them here if this save flakes.
+    } finally {
+      setSaving(false);
+      navigate("/canvas-setup");
+    }
+  };
+
   const handleNext = () => {
     if (!hasSelection()) return;
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      setFinished(true);
+      handleFinish();
     }
   };
-
-  if (finished) {
-    return (
-      <div className="onboarding-container">
-        <div className="onboarding-card onboarding-card--centered">
-          <div className="onboarding-header">
-            <h1>Sync Canvas</h1>
-            <p>Bring assignments, deadlines, and course data into Glide+ automatically.</p>
-          </div>
-
-          <h2 className="onboarding-question">Sync your Canvas account?</h2>
-          <p className="onboarding-sub">
-            Staying in sync with Canvas helps Glide+ understand your academic load and surface smarter suggestions.
-          </p>
-
-          <div className="onboarding-choices onboarding-choices--stacked">
-            <Link to="/canvas-setup" className="onboarding-primary-btn">
-              Yes, sync Canvas →
-            </Link>
-            <Link to="/dashboard" className="onboarding-backbtn">
-              No thanks
-            </Link>
-          </div>
-
-          <p className="onboarding-footer">
-            Need an account?{" "}
-            <Link to="/signup" className="onboarding-link">
-              Sign up here
-            </Link>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="onboarding-container">
@@ -145,9 +148,7 @@ export default function OnboardingPage() {
                     checked={selected}
                     onChange={() => {
                       setAnswers((prev) => {
-                        const existing = Array.isArray(prev[step])
-                          ? prev[step]
-                          : [];
+                        const existing = Array.isArray(prev[step]) ? prev[step] : [];
                         const next = existing.includes(opt)
                           ? existing.filter((item) => item !== opt)
                           : [...existing, opt];
@@ -184,10 +185,10 @@ export default function OnboardingPage() {
           <button
             className="onboarding-primary-btn"
             type="button"
-            disabled={!hasSelection()}
+            disabled={!hasSelection() || saving}
             onClick={handleNext}
           >
-            {step === totalSteps ? "Finish" : "Next →"}
+            {saving ? "Saving…" : step === totalSteps ? "Finish" : "Next →"}
           </button>
         </div>
       </div>

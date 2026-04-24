@@ -1,12 +1,12 @@
 import { admin, db } from '../config/firebase.js';
 
 
-// get requests to retrieve the User profile
+// grab the user profile.
 const getUser = async (req, res) => {
     try {
         const uid = req.user.uid;
 
-        // First try direct doc lookup by UID
+        // try the direct uid doc first.
         const docRef = db.collection('users').doc(uid);
         const docSnap = await docRef.get();
 
@@ -17,7 +17,7 @@ const getUser = async (req, res) => {
             }]);
         }
 
-        // Fallback: legacy documents that might have userId field
+        // if this is older data, fall back to userId.
         const snapshot = await db.collection('users')
             .where('userId', '==', uid)
             .get();
@@ -40,12 +40,12 @@ const getUser = async (req, res) => {
 };
 
 
-// patch to update an existing user
+// update an existing user.
 const updateUser = async (req, res) => {
-    // Helper function to validate email format
+    // keep email validation here so the controller stays honest.
     const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    // Helper function to validate graduation year
+    // same deal for grad year.
     const isValidGradYear = (year) => Number.isInteger(year) && year > 1900 && year <= new Date().getFullYear() + 10;
     
     try {
@@ -53,14 +53,14 @@ const updateUser = async (req, res) => {
         const uid = req.user.uid;
         const {
             canvasToken, darkMode, email, firstName, fontScale, gradYear, lastName, longestStreak, major, notifications, photo,
-            timezone, totalXP, university, hometown, year
+            timezone, totalXP, university, homeTown, year, onboardingAnswers, preferences
         } = req.body;
 
-        // Get the user document
+        // load the user doc once and work from that.
         const docRef = db.collection('users').doc(userId);
         const doc = await docRef.get();
 
-        // Ensure the caller is updating their own user document
+        // only let people patch their own user doc.
         const docOwnerId = doc.exists ? (doc.data()?.userId || doc.id) : userId;
         if (docOwnerId !== uid) {
             return res.status(403).json({
@@ -68,9 +68,10 @@ const updateUser = async (req, res) => {
             });
         }
 
-        // Build update object with only provided fields
+        // only write what actually came in.
         const updateData = {};
-        const authUpdateData = {};  // for Auth in Firebase
+        const authUpdateData = {};  // firebase auth fields live separately.
+        const existingData = doc.exists ? doc.data() : {};
 
         if (canvasToken !== undefined) {
             updateData.canvasToken = canvasToken || '';
@@ -135,20 +136,68 @@ const updateUser = async (req, res) => {
             updateData.university = university;
         }
 
-        if (hometown !== undefined) {
-            updateData.hometown = hometown;
+        if (homeTown !== undefined) {
+            updateData.homeTown = homeTown;
+        }
+
+        if (onboardingAnswers !== undefined) {
+            updateData.onboardingAnswers = onboardingAnswers;
         }
 
         if (year !== undefined) {
             updateData.year = year;
         }
 
-        // Update Firebase Authentication email if provided
+        if (preferences !== undefined && preferences && typeof preferences === 'object' && !Array.isArray(preferences)) {
+            const existingPreferences =
+                existingData.preferences && typeof existingData.preferences === 'object' && !Array.isArray(existingData.preferences)
+                    ? existingData.preferences
+                    : {};
+            const mergedPreferences = {
+                ...existingPreferences,
+                ...preferences,
+            };
+
+            updateData.preferences = mergedPreferences;
+
+            if (mergedPreferences.notifications !== undefined) {
+                updateData.notifications = Boolean(mergedPreferences.notifications);
+            }
+            if (mergedPreferences.weeklySummary !== undefined) {
+                updateData.weeklySummary = Boolean(mergedPreferences.weeklySummary);
+            }
+            if (mergedPreferences.taskColor !== undefined) {
+                updateData.taskColor = mergedPreferences.taskColor;
+            }
+            if (mergedPreferences.goalColor !== undefined) {
+                updateData.goalColor = mergedPreferences.goalColor;
+            }
+            if (mergedPreferences.defaultPriority !== undefined) {
+                updateData.defaultPriority = mergedPreferences.defaultPriority;
+            }
+            if (mergedPreferences.theme !== undefined) {
+                updateData.darkMode = mergedPreferences.theme === 'dark';
+            }
+            if (mergedPreferences.fontScale !== undefined) {
+                updateData.fontScale = mergedPreferences.fontScale;
+            }
+            if (mergedPreferences.highContrast !== undefined) {
+                updateData.highContrast = Boolean(mergedPreferences.highContrast);
+            }
+            if (mergedPreferences.highlightLinks !== undefined) {
+                updateData.highlightLinks = Boolean(mergedPreferences.highlightLinks);
+            }
+            if (mergedPreferences.reduceMotion !== undefined) {
+                updateData.reduceMotion = Boolean(mergedPreferences.reduceMotion);
+            }
+        }
+
+        // if the email changed, auth needs the same update too.
         if (authUpdateData.email) {
             await admin.auth().updateUser(userId, authUpdateData);
         }
 
-        // Persist the data (create doc if it does not exist)
+        // merge into firestore and create the doc if we need to.
         const timestamp = admin.firestore.FieldValue.serverTimestamp();
         updateData.updatedAt = timestamp;
         if (!doc.exists) {
@@ -157,7 +206,7 @@ const updateUser = async (req, res) => {
         }
 
         if (Object.keys(updateData).length === 1 && updateData.updatedAt) {
-            // No useful fields provided
+            // don't do a fake update with no real fields.
             return res.status(400).json({ error: 'No valid fields provided to update' });
         }
 
@@ -176,7 +225,7 @@ const updateUser = async (req, res) => {
     } catch (err) {
         console.error('Update user error:', err);
 
-        // Handle specific Firebase Auth errors
+        // surface auth errors cleanly.
         if (err.code === 'auth/email-already-exists') {
             return res.status(400).json({
                 success: false,
@@ -200,7 +249,7 @@ const updateUser = async (req, res) => {
 };
 
 
-// remove a user from db
+// remove a user.
 const deleteUser = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -213,15 +262,15 @@ const deleteUser = async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        // Check if user owns this user
+        // same rule here: only the owner can delete it.
         if (doc.data().userId !== uid) {
             return res.status(403).json({ error: 'Not authorized to delete this user' });
         }
 
-        // Delete the user from Firestore
+        // kill the firestore doc first.
         await docRef.delete();
 
-        // Delete the user from Firebase Auth
+        // then remove auth.
         await admin.auth().deleteUser(userId);
 
         res.json({

@@ -17,7 +17,7 @@ const generateSchedule = async (req, res) => {
 
 const getTodaySchedule = async (req, res) => {
   const uid = req.user.uid;
-  const today = toDateKey(new Date());
+  const today = req.query.date || toDateKey(new Date());
   try {
     const snap = await db.collection('schedule_blocks')
       .where('userId', '==', uid)
@@ -65,7 +65,7 @@ const triggerReplan = async (req, res) => {
   }
 };
 
-// Complete a scheduled block and award XP
+// complete a schedule block and pay out xp.
 const completeBlock = async (req, res) => {
   const { blockId } = req.params;
   const uid = req.user.uid;
@@ -91,7 +91,7 @@ const completeBlock = async (req, res) => {
       let xpGained = 0;
       let newTotalXP = userData.totalXP || 0;
 
-      // Complete task if present
+      // if this block points at a task, finish that too.
       if (block.taskId) {
         const taskRef = db.collection('tasks').doc(block.taskId);
         const taskSnap = await t.get(taskRef);
@@ -110,7 +110,7 @@ const completeBlock = async (req, res) => {
         }
       }
 
-      // Complete habit if present
+      // habits still come through schedule blocks for now.
       if (block.habitId) {
         const habitRef = db.collection('habits').doc(block.habitId);
         const habitSnap = await t.get(habitRef);
@@ -142,7 +142,7 @@ const completeBlock = async (req, res) => {
         }
       }
 
-      // Update user XP if changed
+      // only touch user xp if something actually paid out.
       if (xpGained > 0) {
         t.update(userRef, {
           totalXP: newTotalXP,
@@ -150,7 +150,7 @@ const completeBlock = async (req, res) => {
         });
       }
 
-      // Mark block complete
+      // then mark the block itself done.
       t.update(blockRef, {
         status: 'completed',
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),

@@ -18,7 +18,7 @@ export default function LandingPage() {
       3500
     );
     return () => clearInterval(interval);
-  }, []);
+  }, [slides.length]);
 
   return (
     <div className="landing-page">

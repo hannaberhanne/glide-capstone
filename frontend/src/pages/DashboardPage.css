@@ -18,6 +18,58 @@
   box-sizing: border-box;
 }
 
+/* ── Skeleton loading ── */
+@keyframes skel-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.dash--loading {
+  display: flex;
+  align-items: flex-start;
+  padding: 32px 24px;
+}
+
+.dash-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.skel {
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--today-line, rgba(46,38,31,0.08)) 25%, var(--today-bg, #f3ede3) 50%, var(--today-line, rgba(46,38,31,0.08)) 75%);
+  background-size: 400px 100%;
+  animation: skel-shimmer 1.4s ease-in-out infinite;
+}
+
+.skel-title  { height: 28px; width: 55%; }
+.skel-row    { height: 52px; width: 100%; }
+.skel-row--short { width: 70%; }
+.skel-card   { height: 120px; width: 100%; }
+.skel-card--short { width: 75%; }
+
+/* ── Empty states ── */
+.goals-empty {
+  padding: 36px 24px;
+  text-align: center;
+  color: var(--today-muted, #6c5c4b);
+}
+
+.goals-empty-text {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.goals-empty-sub {
+  font-size: 13px;
+  margin: 0;
+  opacity: 0.75;
+}
+
 .today-page-head,
 .today-surface {
   width: min(1360px, 100%);
@@ -1177,4 +1229,19 @@ html.reduce-motion .today-task-row {
   .today-rail {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Dark mode: warm dark twin for dashboard palette ── */
+html.dark-mode .dash {
+  --today-bg:          #2a231d;
+  --today-sheet-bg:    #1e1914;
+  --today-rail-bg:     #231d17;
+  --today-ink:         #f0e8dc;
+  --today-muted:       #a8957e;
+  --today-accent:      #7d9577;
+  --today-accent-strong: #9caf88;
+  --today-gold:        #d4a574;
+  --today-alert:       #c47a5e;
+  --today-line:        rgba(240, 232, 220, 0.08);
+  --today-line-strong: rgba(240, 232, 220, 0.13);
 }
