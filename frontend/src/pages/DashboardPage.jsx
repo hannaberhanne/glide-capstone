@@ -33,14 +33,13 @@ function saveDismissedTaskIds(key, ids) {
   try {
     window.sessionStorage.setItem(key, JSON.stringify([...ids]));
   } catch {
-    // Ignore storage failures; dismissal can fall back to in-memory state.
+    // session storage can fail. not worth breaking dismiss for.
   }
 }
 
 export default function DashboardPage() {
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const { user, xp, setXp, refreshUser } = useUser(API_URL);
-  const { tasks, fetchTasks, addTask, updateTask, deleteTask, completeTask } = useTasks(API_URL);
+  const { user, xp, setXp, refreshUser, userLoading } = useUser();
+  const { tasks, fetchTasks, addTask, updateTask, deleteTask, completeTask, loading } = useTasks();
 
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
@@ -126,6 +125,19 @@ export default function DashboardPage() {
     window.localStorage.setItem("glide_today_rail_note", railNote);
   }, [railNote]);
 
+  if (loading || userLoading) {
+    return (
+      <div className="dash dash--loading" aria-label="Loading your workspace">
+        <div className="dash-skeleton">
+          <div className="skel skel-title" />
+          <div className="skel skel-row" />
+          <div className="skel skel-row" />
+          <div className="skel skel-row skel-row--short" />
+        </div>
+      </div>
+    );
+  }
+
   const openCreateModal = () => {
     setEditingTask(null);
     setShowTaskModal(true);
@@ -173,7 +185,7 @@ export default function DashboardPage() {
       setEditingTask(null);
     } catch (err) {
       console.error("Failed to save task:", err);
-      alert(err?.message || "Failed to save task. Please try again.");
+      setBanner({ message: err?.message || "Failed to save task. Please try again.", type: "error" });
     }
   };
 
@@ -220,7 +232,7 @@ export default function DashboardPage() {
       await deleteTask(taskId);
     } catch (err) {
       console.error("Failed to delete task:", err);
-      alert(err?.message || "Failed to delete task. Please try again.");
+      setBanner({ message: err?.message || "Failed to delete task. Please try again.", type: "error" });
     }
   };
 

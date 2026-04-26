@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { auth } from "../config/firebase.js";
 import TaskModal from "../components/TaskModal.jsx";
+import AlertBanner from "../components/AlertBanner.jsx";
 import useTasks from "../hooks/useTasks";
+import { apiClient } from "../lib/apiClient.js";
 import PlannerHud from "./planner/PlannerHud.jsx";
 import PlannerSidebar from "./planner/PlannerSidebar.jsx";
 import PlannerGrid from "./planner/PlannerGrid.jsx";
@@ -37,7 +39,6 @@ function mergeDateWithExistingTime(targetDate, currentDueAt) {
 }
 
 export default function PlannerPage() {
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const today = useMemo(() => startOfDay(new Date()), []);
   const [cursor, setCursor] = useState(() => startOfMonth(today));
   const [assistSuggestions, setAssistSuggestions] = useState([]);
@@ -48,7 +49,8 @@ export default function PlannerPage() {
   const [dragHoverDayKey, setDragHoverDayKey] = useState(null);
   const [overflowBusy, setOverflowBusy] = useState(false);
   const [overflowToast, setOverflowToast] = useState("");
-  const { tasks, loading, fetchTasks, addTask, updateTask, completeTask } = useTasks(API_URL);
+  const [banner, setBanner] = useState(null);
+  const { tasks, loading, fetchTasks, addTask, updateTask, completeTask } = useTasks();
 
   const [plannerState, dispatch] = useReducer(
     plannerReducer,
@@ -127,7 +129,7 @@ export default function PlannerPage() {
       await fetchTasks();
     } catch (err) {
       console.error("Failed to save task:", err);
-      alert(err?.message || "Failed to save task. Please try again.");
+      setBanner({ message: err?.message || "Failed to save task. Please try again.", type: "error" });
     }
   };
 
@@ -139,7 +141,7 @@ export default function PlannerPage() {
       }
     } catch (err) {
       console.error("Failed to complete task:", err);
-      alert(err?.message || "Failed to complete task. Please try again.");
+      setBanner({ message: err?.message || "Failed to complete task. Please try again.", type: "error" });
     }
   };
 
@@ -240,22 +242,12 @@ export default function PlannerPage() {
     dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: true }));
 
     try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/ai/replan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          perDay: 3,
-          apply: false,
-          selectedDate: viewModel.selectedDay.date.toISOString(),
-          instruction: "Create calm, balanced placements for this week.",
-        }),
+      const data = await apiClient.post("/api/ai/replan", {
+        perDay: 3,
+        apply: false,
+        selectedDate: viewModel.selectedDay.date.toISOString(),
+        instruction: "Create calm, balanced placements for this week.",
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
       const suggestions = Array.isArray(data)
         ? data
         : Array.isArray(data?.suggestions)
@@ -357,6 +349,7 @@ export default function PlannerPage() {
 
   return (
     <div className={`planner-page ${plannerState.assist.active ? "is-assist-active" : ""}`.trim()}>
+      {banner && <AlertBanner message={banner.message} type={banner.type} onClose={() => setBanner(null)} />}
       <div className="planner-shell">
         <PlannerSidebar
           tasks={viewModel.backlogTasks}

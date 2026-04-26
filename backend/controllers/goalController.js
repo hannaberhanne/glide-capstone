@@ -1,302 +1,268 @@
 import { admin, db } from '../config/firebase.js';
+import { computeLevel } from '../domain/xp.js';
+import { sanitizeForPrompt } from '../domain/sanitize.js';
 
-function computeLevel(totalXP) {
-  let level = 0;
-  let accumulated = 0;
-  while (totalXP >= accumulated + 100 * (level + 1)) {
-    accumulated += 100 * (level + 1);
-    level++;
-  }
-  return level;
-}
+const dateKey = (d = new Date()) => d.toISOString().slice(0, 10);
 
 const XP_MAP = {
-    easy: 5,
-    medium: 10,
-    hard: 15,
-    expert: 20,
+  easy: 5,
+  medium: 10,
+  hard: 15,
+  expert: 20,
 };
 
 function normalizeXpValue(value) {
-    if (value === undefined || value === null || value === '') {
-        return null;
-    }
-    const xp = Number(value);
-    if (!Number.isFinite(xp)) {
-        return null;
-    }
-    return Math.max(0, Math.round(xp));
-}
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
 
-function dateKey(d = new Date()) {
-    return d.toISOString().slice(0, 10);
+  const xp = Number(value);
+  if (!Number.isFinite(xp)) {
+    return null;
+  }
+
+  return Math.max(0, Math.round(xp));
 }
 
 function streakBonus(streak) {
-    if (streak === 21) return 15;
-    if (streak === 7) return 5;
-    return 0;
+  if (streak === 21) return 15;
+  if (streak === 7) return 5;
+  return 0;
 }
 
 const suggestTasks = async (req, res) => {
-    const { title } = req.body;
+  const { title } = req.body;
 
-    if (!title) {
-        return res.status(400).json({ error: "Goal title is required." });
-    }
+  if (!title) {
+    return res.status(400).json({ error: 'Goal title is required.' });
+  }
 
-    try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: "gpt-4o-mini",
-                temperature: 0.7,
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a student productivity assistant. When given a goal title, suggest 1-3 concrete tasks to help achieve it. Respond ONLY with a valid JSON array. No explanation, no markdown, no code fences. Each object must have: "title" (string), "difficulty" (one of: easy, medium, hard, expert).`,
-                    },
-                    {
-                        role: "user",
-                        content: `Goal: "${title.trim()}"`,
-                    },
-                ],
-            }),
-        });
+  try {
+    const safeTitle = sanitizeForPrompt(title);
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        temperature: 0.7,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a student productivity assistant. When given a goal title, suggest 1-3 concrete tasks to help achieve it. Respond ONLY with a valid JSON array. No explanation, no markdown, no code fences. Each object must have: "title" (string), "difficulty" (one of: easy, medium, hard, expert).',
+          },
+          {
+            role: 'user',
+            content: `Goal: "${safeTitle}"`,
+          },
+        ],
+      }),
+    });
 
-        const data = await response.json();
-        const raw = data.choices[0].message.content.trim();
-        const parsed = JSON.parse(raw);
+    const data = await response.json();
+    const raw = data.choices[0].message.content.trim();
+    const parsed = JSON.parse(raw);
 
-        const tasks = parsed.map((task) => ({
-            title: task.title,
-            difficulty: task.difficulty,
-            xp: XP_MAP[task.difficulty] ?? 5,
-        }));
+    const tasks = parsed.map((task) => ({
+      title: task.title,
+      difficulty: task.difficulty,
+      xp: XP_MAP[task.difficulty] ?? 5,
+    }));
 
-        return res.status(200).json({ tasks });
-    } catch (err) {
-        console.error("suggestTasks error:", err);
-        return res.status(500).json({ error: "Failed to generate task suggestions." });
-    }
+    return res.status(200).json({ tasks });
+  } catch (err) {
+    console.error('suggestTasks error:', err);
+    return res.status(500).json({ error: 'Failed to generate task suggestions.' });
+  }
 };
 
-
-// get requests to retrieve all goals
 const getGoals = async (req, res) => {
-    try {
-        const uid = req.user.uid;
+  try {
+    const uid = req.user.uid;
 
-        const snapshot = await db.collection('goals')
-            .where('userId', '==', uid)
-            .get();
+    const snapshot = await db.collection('goals').where('userId', '==', uid).get();
 
-        const goals = snapshot.docs.map(doc => ({
-            goalId: doc.id,
-            ...doc.data()
-        }));
+    const goals = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        goalId: doc.id,
+        ...data,
+        completedToday: Array.isArray(data.completionHistory)
+          ? data.completionHistory.includes(dateKey())
+          : Boolean(data.completedToday),
+      };
+    });
 
-        // Fetch tasks for each goal and attach them
-        const goalsWithTasks = await Promise.all(
-            goals.map(async (goal) => {
-                const tasksSnapshot = await db.collection('tasks')
-                    .where('goalId', '==', goal.goalId)
-                    .get();
+    const goalsWithTasks = await Promise.all(
+      goals.map(async (goal) => {
+        if (goal.type === 'routine') {
+          return goal;
+        }
 
-                const tasks = {};
-                tasksSnapshot.docs.forEach(doc => {
-                    const task = doc.data();
-                    tasks[task.title] = task.xpValue;
-                });
+        const tasksSnapshot = await db.collection('tasks').where('goalId', '==', goal.goalId).get();
+        const tasks = {};
 
-                return { ...goal, tasks };
-            })
-        );
+        tasksSnapshot.docs.forEach((doc) => {
+          const task = doc.data();
+          tasks[task.title] = task.xpValue;
+        });
 
-        res.json(goalsWithTasks);
+        return { ...goal, tasks };
+      })
+    );
 
-    } catch (err) {
-        console.error('Get goals error:', err.message);
-        res.status(500).json({ error: 'Failed to fetch goals' });
-    }
+    res.json(goalsWithTasks);
+  } catch (err) {
+    console.error('Get goals error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch goals' });
+  }
 };
 
-
-// post request to create a new goals
 const createGoal = async (req, res) => {
-    try {
-        const { color, title } = req.body;
-        const uid = req.user.uid;
+  try {
+    const { color, title, type, frequency, targetDays, durationMinutes, icon, xpValue } = req.body;
+    const uid = req.user.uid;
 
-        if (!title || title.trim() === '') {  // at least needs a title for a goal
-            return res.status(400).json({
-                error: 'Title is required and cannot be empty'
-            });
-        }
-
-        const docRef = await db.collection('goals').add({
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            color: color || '#A58F1C',
-            longestStreak: 0,
-            streak: 0,
-            title: title.trim(),
-            userId: uid,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        // if successful send back the new goal created so it updates in real time
-        res.status(201).json({
-            createdAt: new Date().toISOString(),
-            color: color,
-            completedToday: false,
-            goalId: docRef.id,
-            longestStreak: 0,
-            streak: 0,
-            title: title.trim(),
-            userId: uid,
-            updatedAt: new Date().toISOString()
-        });
-
-
-    } catch (err) {
-        console.error('Create goal error:', err);
-        res.status(500).json({
-            error: 'Failed to create goal',
-            message: err.message
-        });
+    if (!title || title.trim() === '') {
+      return res.status(400).json({ error: 'Title is required and cannot be empty' });
     }
+
+    const goalType = type === 'routine' ? 'routine' : 'project';
+    const normalizedXp = normalizeXpValue(xpValue);
+
+    const newGoal = {
+      title: title.trim(),
+      color: color || '#A58F1C',
+      type: goalType,
+      streak: 0,
+      longestStreak: 0,
+      completedToday: false,
+      completionHistory: [],
+      totalCompletions: 0,
+      badges: [],
+      userId: uid,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (goalType === 'routine') {
+      newGoal.frequency = frequency || 'daily';
+      newGoal.targetDays = Array.isArray(targetDays) ? targetDays : [1, 2, 3, 4, 5];
+      newGoal.durationMinutes = durationMinutes || 0;
+      newGoal.icon = icon || '';
+      newGoal.xpValue = normalizedXp ?? 10;
+    } else if (normalizedXp !== null) {
+      newGoal.xpValue = normalizedXp;
+    }
+
+    const docRef = await db.collection('goals').add(newGoal);
+
+    res.status(201).json({
+      goalId: docRef.id,
+      ...newGoal,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error('Create goal error:', err);
+    res.status(500).json({ error: 'Failed to create goal', message: err.message });
+  }
 };
 
-
-
-// patch to update an existing goal
 const updateGoal = async (req, res) => {
-    try {
-        const { goalId } = req.params;
-        const uid = req.user.uid;
-        const { color, completedToday, longestStreak, streak, tasks, title } = req.body;
+  try {
+    const { goalId } = req.params;
+    const uid = req.user.uid;
+    const { color, title, frequency, targetDays, durationMinutes, icon, xpValue, type } = req.body;
 
-        // Get the goal document
-        const docRef = db.collection('goals').doc(goalId);
-        const doc = await docRef.get();
+    const docRef = db.collection('goals').doc(goalId);
+    const doc = await docRef.get();
 
-        // Check if goal exists
-        if (!doc.exists) {
-            return res.status(404).json({ error: 'Goal not found' });
-        }
-
-        // Check if user owns this goal
-        if (doc.data().userId !== uid) {
-            return res.status(403).json({
-                error: 'Not authorized to update this goal'
-            });
-        }
-
-        // Build update object with only provided fields
-        const updateData = {};
-
-        if (color !== undefined) {
-            updateData.color = color;
-        }
-
-        if (longestStreak !== undefined) {  // if the longestStreak is not undefined then add 1 to longest streak
-            if (streak > longestStreak) {
-                updateData.longestStreak = admin.firestore.FieldValue.increment(1);
-            }
-        }
-
-        if (streak !== undefined) {  // add 1 to the streak if updated
-            if (completedToday === false) {
-                updateData.streak = admin.firestore.FieldValue.increment(1);
-                updateData.completedtoday = true;
-            }
-        }
-
-        if (title !== undefined) {
-            updateData.title = title;
-        }
-
-        updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
-
-        // Update the goal in Firestore
-        await docRef.update(updateData);
-
-        // Get the updated events to return
-        const updatedDoc = await docRef.get();
-
-        const data = updatedDoc.data();
-        res.json({
-            goalId: updatedDoc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate().toISOString() || null,
-            updatedAt: data.updatedAt?.toDate().toISOString() || null,
-            message: 'Goal updated successfully'
-        });
-
-    } catch (err) {
-        console.error('Update goal error:', err);
-        res.status(500).json({
-            error: 'Failed to update goal',
-            message: err.message
-        });
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Goal not found' });
     }
+
+    if (doc.data().userId !== uid) {
+      return res.status(403).json({ error: 'Not authorized to update this goal' });
+    }
+
+    const updateData = {
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (color !== undefined) updateData.color = color;
+    if (title !== undefined) updateData.title = title.trim();
+    if (type !== undefined) updateData.type = type === 'routine' ? 'routine' : 'project';
+    if (frequency !== undefined) updateData.frequency = frequency;
+    if (targetDays !== undefined) updateData.targetDays = targetDays;
+    if (durationMinutes !== undefined) updateData.durationMinutes = durationMinutes;
+    if (icon !== undefined) updateData.icon = icon;
+
+    const normalizedXp = normalizeXpValue(xpValue);
+    if (xpValue !== undefined && normalizedXp !== null) {
+      updateData.xpValue = normalizedXp;
+    }
+
+    await docRef.update(updateData);
+    const updatedDoc = await docRef.get();
+    const data = updatedDoc.data();
+
+    res.json({
+      goalId: updatedDoc.id,
+      ...data,
+      createdAt: data.createdAt?.toDate().toISOString() || null,
+      updatedAt: data.updatedAt?.toDate().toISOString() || null,
+    });
+  } catch (err) {
+    console.error('Update goal error:', err);
+    res.status(500).json({ error: 'Failed to update goal', message: err.message });
+  }
 };
 
-
-// remove a goal from db
 const deleteGoal = async (req, res) => {
-    try {
-        const { goalId } = req.params;
-        const uid = req.user.uid;
+  try {
+    const { goalId } = req.params;
+    const uid = req.user.uid;
 
-        const docRef = db.collection('goals').doc(goalId);
-        const doc = await docRef.get();
+    const docRef = db.collection('goals').doc(goalId);
+    const doc = await docRef.get();
 
-        if (!doc.exists) {
-            return res.status(404).json({ error: 'Goal not found' });
-        }
-
-        if (doc.data().userId !== uid) {
-            return res.status(403).json({ error: 'Not authorized to delete this goal' });
-        }
-
-        // Delete all tasks belonging to this goal
-        const tasksSnapshot = await db.collection('tasks')
-            .where('goalId', '==', goalId)
-            .get();
-
-        const batch = db.batch();
-
-        tasksSnapshot.docs.forEach(taskDoc => {
-            batch.delete(taskDoc.ref);
-        });
-
-        // Delete the goal itself in the same batch
-        batch.delete(docRef);
-
-        await batch.commit();
-
-        res.json({
-            goalId: goalId,
-            deleted: true,
-            message: 'Goal and associated tasks deleted successfully'
-        });
-    } catch (err) {
-        console.error('Delete goal error:', err);
-        res.status(500).json({ error: 'Failed to delete goal' });
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Goal not found' });
     }
+
+    if (doc.data().userId !== uid) {
+      return res.status(403).json({ error: 'Not authorized to delete this goal' });
+    }
+
+    const tasksSnapshot = await db.collection('tasks').where('goalId', '==', goalId).get();
+    const batch = db.batch();
+
+    tasksSnapshot.docs.forEach((taskDoc) => {
+      batch.delete(taskDoc.ref);
+    });
+
+    batch.delete(docRef);
+    await batch.commit();
+
+    res.json({
+      goalId,
+      deleted: true,
+      message: 'Goal and associated tasks deleted successfully',
+    });
+  } catch (err) {
+    console.error('Delete goal error:', err);
+    res.status(500).json({ error: 'Failed to delete goal' });
+  }
 };
 
-// Mark goal complete and award bigger XP
 const completeGoal = async (req, res) => {
   const { goalId } = req.params;
   const uid = req.user.uid;
-  const today = dateKey();
-  const yesterday = (() => {
+  const todayKey = dateKey();
+  const yesterdayKey = (() => {
     const d = new Date();
     d.setDate(d.getDate() - 1);
     return dateKey(d);
@@ -313,55 +279,56 @@ const completeGoal = async (req, res) => {
       if (!goalSnap.exists || goalSnap.data().userId !== uid) {
         throw new Error('NOT_FOUND');
       }
+
       if (!userSnap.exists) {
         throw new Error('USER_NOT_FOUND');
       }
 
       const goal = goalSnap.data();
       const userData = userSnap.data();
+      const history = Array.isArray(goal.completionHistory) ? goal.completionHistory : [];
       const isRoutineGoal = goal.type === 'routine';
 
-      if (!isRoutineGoal && goal.completedToday) {
-        return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
+      if (history.includes(todayKey)) {
+        return {
+          already: true,
+          xpGained: 0,
+          newTotalXP: userData.totalXP || 0,
+          currentStreak: goal.streak || 0,
+        };
       }
 
       let xpGained = 0;
-      let goalUpdate = {
+      let newStreak = goal.streak || 0;
+      let newLongestStreak = goal.longestStreak || 0;
+
+      if (isRoutineGoal) {
+        const hasYesterday = history.includes(yesterdayKey);
+        newStreak = hasYesterday ? (goal.streak || 0) + 1 : 1;
+        newLongestStreak = Math.max(goal.longestStreak || 0, newStreak);
+        const baseXP = normalizeXpValue(goal.xpValue) ?? 10;
+        xpGained = baseXP + streakBonus(newStreak);
+      } else {
+        xpGained = normalizeXpValue(goal.xpValue) ?? 25;
+      }
+
+      const totalCompletions = (goal.totalCompletions || 0) + 1;
+      const newTotalXP = (userData.totalXP || 0) + xpGained;
+      const newLevel = computeLevel(newTotalXP);
+
+      const goalUpdate = {
+        completedToday: true,
+        totalCompletions,
+        completionHistory: admin.firestore.FieldValue.arrayUnion(todayKey),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
 
       if (isRoutineGoal) {
-        const history = Array.isArray(goal.completionHistory) ? goal.completionHistory : [];
-        if (history.includes(today)) {
-          return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
-        }
-
-        const nextStreak = history.includes(yesterday) ? (goal.streak || 0) + 1 : 1;
-        const nextLongest = Math.max(nextStreak, goal.longestStreak || 0);
-        const baseXp = normalizeXpValue(goal.xpValue) ?? 10;
-        const bonusXp = streakBonus(nextStreak);
-
-        xpGained = baseXp + bonusXp;
-        goalUpdate = {
-          ...goalUpdate,
-          completedToday: true,
-          streak: nextStreak,
-          longestStreak: nextLongest,
-          completionHistory: admin.firestore.FieldValue.arrayUnion(today),
-        };
-      } else {
-        xpGained = normalizeXpValue(goal.xpValue) ?? 25;
-        goalUpdate = {
-          ...goalUpdate,
-          completedToday: true,
-        };
+        goalUpdate.streak = newStreak;
+        goalUpdate.longestStreak = newLongestStreak;
       }
 
-      const newTotalXP = (userData.totalXP || 0) + xpGained;
-      const newLevel = computeLevel(newTotalXP);
-
       t.update(goalRef, goalUpdate);
-
       t.update(userRef, {
         totalXP: newTotalXP,
         level: newLevel,
@@ -373,12 +340,18 @@ const completeGoal = async (req, res) => {
         xpGained,
         newTotalXP,
         newLevel,
-        newStreak: goalUpdate.streak ?? goal.streak ?? 0,
+        newStreak,
       };
     });
 
     if (result.already) {
-      return res.json({ success: true, xpGained: 0, newTotalXP: result.newTotalXP, message: 'Goal already completed today' });
+      return res.json({
+        success: true,
+        xpGained: 0,
+        newTotalXP: result.newTotalXP,
+        currentStreak: result.currentStreak,
+        message: 'Goal already completed today',
+      });
     }
 
     return res.json({
@@ -387,22 +360,25 @@ const completeGoal = async (req, res) => {
       newTotalXP: result.newTotalXP,
       newLevel: result.newLevel,
       newStreak: result.newStreak,
-      message: 'Goal completed'
+      message: 'Goal completed',
     });
-
   } catch (err) {
-    if (err.message === 'NOT_FOUND') return res.status(404).json({ error: 'Goal not found' });
-    if (err.message === 'USER_NOT_FOUND') return res.status(404).json({ error: 'User not found' });
+    if (err.message === 'NOT_FOUND') {
+      return res.status(404).json({ error: 'Goal not found' });
+    }
+    if (err.message === 'USER_NOT_FOUND') {
+      return res.status(404).json({ error: 'User not found' });
+    }
     console.error('Complete goal error:', err);
     return res.status(500).json({ error: 'Failed to complete goal' });
   }
 };
 
 export {
-    createGoal,
-    getGoals,
-    updateGoal,
-    deleteGoal,
-    completeGoal,
-    suggestTasks
+  createGoal,
+  getGoals,
+  updateGoal,
+  deleteGoal,
+  completeGoal,
+  suggestTasks,
 };

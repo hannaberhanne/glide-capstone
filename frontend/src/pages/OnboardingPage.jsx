@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../config/firebase.js";
+import { apiClient } from "../lib/apiClient.js";
 import "./OnboardingPage.css";
-
-const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const questions = [
   {
@@ -89,32 +88,17 @@ export default function OnboardingPage() {
     setSaving(true);
     try {
       const uid = auth.currentUser.uid;
-      const token = await auth.currentUser.getIdToken();
 
-      await fetch(`${API_URL}/api/users/${uid}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          onboardingAnswers: answers,
-        }),
+      await apiClient.patch(`/api/users/${uid}`, {
+        onboardingAnswers: answers,
       });
 
       const goalTitle = typeof answers[5] === "string" ? answers[5].trim() : "";
       if (goalTitle) {
-        await fetch(`${API_URL}/api/goals`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: goalTitle,
-            type: "project",
-            color: "#9caf88",
-          }),
+        await apiClient.post("/api/goals", {
+          title: goalTitle,
+          type: "project",
+          color: "#9caf88",
         });
       }
     } catch (err) {
