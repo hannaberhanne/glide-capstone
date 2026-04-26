@@ -27,7 +27,7 @@ export default function SignupPage() {
       firstName.trim() !== "" &&
       lastName.trim() !== "" &&
       password !== "" &&
-      password.length >= 3 &&
+      password.length >= 6 &&
       password === confirmPassword;
 
   // !passwordRegex.test(password.trim())

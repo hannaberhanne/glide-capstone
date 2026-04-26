@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+process.env.FIRESTORE_ENABLE_TRACING = 'false';
+
 try {
     // On Firebase App Hosting, ADC is automatically available.
     // Fall back to explicit credentials for local dev.
@@ -23,6 +25,9 @@ try {
 }
 
 const db = admin.firestore();
-db.settings({ preferRest: true });
+db.settings({
+    preferRest: true,
+    ignoreUndefinedProperties: true,
+});
 
 export { admin, db };

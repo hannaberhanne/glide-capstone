@@ -8,3 +8,5 @@ env:
     value: "true"
   - variable: NODE_OPTIONS
     value: "--openssl-legacy-provider"
+  - variable: FIRESTORE_ENABLE_TRACING
+    value: "false"
