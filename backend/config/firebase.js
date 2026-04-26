@@ -23,5 +23,6 @@ try {
 }
 
 const db = admin.firestore();
+db.settings({ preferRest: true });
 
 export { admin, db };
