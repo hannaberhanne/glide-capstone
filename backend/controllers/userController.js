@@ -35,6 +35,7 @@ const getUser = async (req, res) => {
 
     } catch (err) {
         console.error('Get user error:', err.message);
+        console.error('Get user error2:', err);
         res.status(500).json({ error: 'Failed to fetch user' });
     }
 };
