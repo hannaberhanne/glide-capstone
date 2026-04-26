@@ -1,8 +1,11 @@
 import { admin, db } from '../config/firebase.js';
-import { computeLevel } from '../domain/xp.js';
 import { sanitizeForPrompt } from '../domain/sanitize.js';
-
-const dateKey = (d = new Date()) => d.toISOString().slice(0, 10);
+import {
+  buildProjectGoalCompletionOutcome,
+  buildRoutineGoalCompletionOutcome,
+  dateKey,
+  normalizeXpValue,
+} from '../domain/completion.js';
 
 const XP_MAP = {
   easy: 5,
@@ -10,25 +13,6 @@ const XP_MAP = {
   hard: 15,
   expert: 20,
 };
-
-function normalizeXpValue(value) {
-  if (value === undefined || value === null || value === '') {
-    return null;
-  }
-
-  const xp = Number(value);
-  if (!Number.isFinite(xp)) {
-    return null;
-  }
-
-  return Math.max(0, Math.round(xp));
-}
-
-function streakBonus(streak) {
-  if (streak === 21) return 15;
-  if (streak === 7) return 5;
-  return 0;
-}
 
 const suggestTasks = async (req, res) => {
   const { title } = req.body;
@@ -286,68 +270,64 @@ const completeGoal = async (req, res) => {
 
       const goal = goalSnap.data();
       const userData = userSnap.data();
-      const history = Array.isArray(goal.completionHistory) ? goal.completionHistory : [];
       const isRoutineGoal = goal.type === 'routine';
+      const userBadges = Array.isArray(userData.badges) ? userData.badges : [];
+      const outcome = isRoutineGoal
+        ? buildRoutineGoalCompletionOutcome({
+            goal,
+            userData,
+            todayKey,
+            yesterdayKey,
+            userBadges,
+          })
+        : buildProjectGoalCompletionOutcome({
+            goal,
+            userData,
+            todayKey,
+          });
 
-      if (history.includes(todayKey)) {
-        return {
-          already: true,
-          xpGained: 0,
-          newTotalXP: userData.totalXP || 0,
-          currentStreak: goal.streak || 0,
-        };
+      if (outcome.already) {
+        return outcome;
       }
-
-      let xpGained = 0;
-      let newStreak = goal.streak || 0;
-      let newLongestStreak = goal.longestStreak || 0;
-
-      if (isRoutineGoal) {
-        const hasYesterday = history.includes(yesterdayKey);
-        newStreak = hasYesterday ? (goal.streak || 0) + 1 : 1;
-        newLongestStreak = Math.max(goal.longestStreak || 0, newStreak);
-        const baseXP = normalizeXpValue(goal.xpValue) ?? 10;
-        xpGained = baseXP + streakBonus(newStreak);
-      } else {
-        xpGained = normalizeXpValue(goal.xpValue) ?? 25;
-      }
-
-      const totalCompletions = (goal.totalCompletions || 0) + 1;
-      const newTotalXP = (userData.totalXP || 0) + xpGained;
-      const newLevel = computeLevel(newTotalXP);
 
       const goalUpdate = {
         completedToday: true,
-        totalCompletions,
+        totalCompletions: outcome.totalCompletions,
         completionHistory: admin.firestore.FieldValue.arrayUnion(todayKey),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
 
       if (isRoutineGoal) {
-        goalUpdate.streak = newStreak;
-        goalUpdate.longestStreak = newLongestStreak;
+        goalUpdate.streak = outcome.newStreak;
+        goalUpdate.longestStreak = outcome.newLongestStreak;
       }
 
       t.update(goalRef, goalUpdate);
-      t.update(userRef, {
-        totalXP: newTotalXP,
-        level: newLevel,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
 
-      return {
-        already: false,
-        xpGained,
-        newTotalXP,
-        newLevel,
-        newStreak,
+      const userUpdate = {
+        totalXP: outcome.newTotalXP,
+        level: outcome.newLevel,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
+
+      if (outcome.badgesAwarded?.length) {
+        userUpdate.badges = admin.firestore.FieldValue.arrayUnion(
+          ...outcome.badgesAwarded.map((badge) => ({
+            ...badge,
+            earnedAt: admin.firestore.FieldValue.serverTimestamp(),
+          }))
+        );
+      }
+
+      t.update(userRef, userUpdate);
+      return outcome;
     });
 
     if (result.already) {
       return res.json({
         success: true,
         xpGained: 0,
+        xpSource: 'none',
         newTotalXP: result.newTotalXP,
         currentStreak: result.currentStreak,
         message: 'Goal already completed today',
@@ -356,10 +336,12 @@ const completeGoal = async (req, res) => {
 
     return res.json({
       success: true,
+      xpSource: result.xpSource,
       xpGained: result.xpGained,
       newTotalXP: result.newTotalXP,
       newLevel: result.newLevel,
       newStreak: result.newStreak,
+      badgesAwarded: result.badgesAwarded || [],
       message: 'Goal completed',
     });
   } catch (err) {

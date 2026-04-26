@@ -1,8 +1,15 @@
 import { db } from '../config/firebase.js';
 import { generateDailySchedule, replanSchedule } from '../services/schedulerService.js';
 import { admin } from '../config/firebase.js';
+import {
+  buildRoutineGoalCompletionOutcome,
+  buildTaskCompletionOutcome,
+  dateKey,
+  normalizeXpValue,
+} from '../domain/completion.js';
+import { getXpFromAI } from '../domain/taskXp.js';
 
-const toDateKey = (d) => d.toISOString().split('T')[0];
+const toDateKey = (d) => dateKey(d);
 
 const generateSchedule = async (req, res) => {
   try {
@@ -36,12 +43,12 @@ const getTodaySchedule = async (req, res) => {
             block.xpValue = task.xpValue || 10;
           }
         }
-        if (block.habitId) {
-          const habitSnap = await db.collection('habits').doc(block.habitId).get();
-          if (habitSnap.exists) {
-            const habit = habitSnap.data();
-            block.itemTitle = habit.title;
-            block.xpValue = habit.xpValue || 10;
+        if (block.goalId) {
+          const goalSnap = await db.collection('goals').doc(block.goalId).get();
+          if (goalSnap.exists) {
+            const goal = goalSnap.data();
+            block.itemTitle = goal.title;
+            block.xpValue = goal.xpValue || 10;
           }
         }
         return block;
@@ -70,10 +77,34 @@ const completeBlock = async (req, res) => {
   const { blockId } = req.params;
   const uid = req.user.uid;
   const todayKey = toDateKey(new Date());
+  const yesterdayKey = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return toDateKey(d);
+  })();
 
   try {
+    const blockRef = db.collection('schedule_blocks').doc(blockId);
+    const blockPreview = await blockRef.get();
+
+    if (!blockPreview.exists || blockPreview.data().userId !== uid) {
+      return res.status(404).json({ error: 'Block not found' });
+    }
+
+    let generatedTaskXp = null;
+    const blockData = blockPreview.data();
+
+    if (blockData.taskId) {
+      const taskPreview = await db.collection('tasks').doc(blockData.taskId).get();
+      if (taskPreview.exists && taskPreview.data().userId === uid) {
+        const taskData = taskPreview.data();
+        if (normalizeXpValue(taskData.xpValue) === null) {
+          generatedTaskXp = await getXpFromAI(taskData);
+        }
+      }
+    }
+
     const result = await db.runTransaction(async (t) => {
-      const blockRef = db.collection('schedule_blocks').doc(blockId);
       const userRef = db.collection('users').doc(uid);
 
       const blockSnap = await t.get(blockRef);
@@ -82,72 +113,104 @@ const completeBlock = async (req, res) => {
       }
       const block = blockSnap.data();
       if (block.status === 'completed') {
-        return { already: true, xpGained: 0, newTotalXP: null };
+        return { already: true, xpSource: 'none', xpGained: 0, newTotalXP: null };
       }
 
       const userSnap = await t.get(userRef);
       if (!userSnap.exists) throw new Error('USER_NOT_FOUND');
       const userData = userSnap.data();
-      let xpGained = 0;
-      let newTotalXP = userData.totalXP || 0;
+      let delegate = {
+        already: true,
+        xpSource: 'none',
+        xpGained: 0,
+        newTotalXP: userData.totalXP || 0,
+        newLevel: userData.level ?? null,
+      };
 
-      // if this block points at a task, finish that too.
       if (block.taskId) {
         const taskRef = db.collection('tasks').doc(block.taskId);
         const taskSnap = await t.get(taskRef);
-        if (taskSnap.exists) {
-          const task = taskSnap.data();
-          if (!task.isComplete) {
-            xpGained = task.xpValue || 10;
-            newTotalXP += xpGained;
-            t.update(taskRef, {
-              isComplete: true,
-              completedAt: admin.firestore.FieldValue.serverTimestamp(),
-              xpValue: xpGained,
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-          }
+        if (!taskSnap.exists || taskSnap.data().userId !== uid) {
+          throw new Error('TASK_NOT_FOUND');
         }
-      }
 
-      // habits still come through schedule blocks for now.
-      if (block.habitId) {
-        const habitRef = db.collection('habits').doc(block.habitId);
-        const habitSnap = await t.get(habitRef);
-        if (habitSnap.exists) {
-          const habit = habitSnap.data();
-          const history = Array.isArray(habit.completionHistory) ? habit.completionHistory : [];
-          if (!history.includes(todayKey)) {
-            const yesterday = (() => {
-              const d = new Date();
-              d.setDate(d.getDate() - 1);
-              return toDateKey(d);
-            })();
-            const currentStreak = history.includes(yesterday) ? (habit.currentStreak || 0) + 1 : 1;
-            const longestStreak = Math.max(habit.longestStreak || 0, currentStreak);
-            const totalCompletions = (habit.totalCompletions || 0) + 1;
-            const habitXP = habit.xpValue || 10;
-            xpGained += habitXP;
-            newTotalXP += habitXP;
-
-            t.update(habitRef, {
-              completionHistory: admin.firestore.FieldValue.arrayUnion(todayKey),
-              totalCompletions,
-              currentStreak,
-              longestStreak,
-              isComplete: true,
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-          }
-        }
-      }
-
-      // only touch user xp if something actually paid out.
-      if (xpGained > 0) {
-        t.update(userRef, {
-          totalXP: newTotalXP,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        const task = taskSnap.data();
+        delegate = buildTaskCompletionOutcome({
+          task,
+          userData,
+          todayKey,
+          generatedXp: generatedTaskXp,
         });
+
+        if (!delegate.already) {
+          const taskUpdate = {
+            isComplete: true,
+            lastCompleted: todayKey,
+            completedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          };
+
+          if (normalizeXpValue(task.xpValue) === null) {
+            taskUpdate.xpValue = delegate.taskXpValue;
+          }
+
+          t.update(taskRef, taskUpdate);
+          t.update(userRef, {
+            totalXP: delegate.newTotalXP,
+            level: delegate.newLevel,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      }
+
+      if (block.goalId) {
+        const goalRef = db.collection('goals').doc(block.goalId);
+        const goalSnap = await t.get(goalRef);
+
+        if (!goalSnap.exists || goalSnap.data().userId !== uid) {
+          throw new Error('GOAL_NOT_FOUND');
+        }
+
+        const goal = goalSnap.data();
+        if (goal.type !== 'routine') {
+          throw new Error('GOAL_NOT_ROUTINE');
+        }
+
+        delegate = buildRoutineGoalCompletionOutcome({
+          goal,
+          userData,
+          todayKey,
+          yesterdayKey,
+          userBadges: Array.isArray(userData.badges) ? userData.badges : [],
+        });
+
+        if (!delegate.already) {
+          t.update(goalRef, {
+            completedToday: true,
+            completionHistory: admin.firestore.FieldValue.arrayUnion(todayKey),
+            totalCompletions: delegate.totalCompletions,
+            streak: delegate.newStreak,
+            longestStreak: delegate.newLongestStreak,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          const userUpdate = {
+            totalXP: delegate.newTotalXP,
+            level: delegate.newLevel,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          };
+
+          if (delegate.badgesAwarded?.length) {
+            userUpdate.badges = admin.firestore.FieldValue.arrayUnion(
+              ...delegate.badgesAwarded.map((badge) => ({
+                ...badge,
+                earnedAt: admin.firestore.FieldValue.serverTimestamp(),
+              }))
+            );
+          }
+
+          t.update(userRef, userUpdate);
+        }
       }
 
       // then mark the block itself done.
@@ -156,17 +219,32 @@ const completeBlock = async (req, res) => {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      return { already: false, xpGained, newTotalXP };
+      return {
+        blockAlreadyCompleted: false,
+        underlyingAlready: delegate.already,
+        xpSource: delegate.already ? 'none' : delegate.xpSource,
+        xpGained: delegate.xpGained || 0,
+        newTotalXP: delegate.newTotalXP || userData.totalXP || 0,
+      };
     });
 
-    if (result.already) {
-      return res.json({ success: true, xpGained: 0, message: 'Already completed' });
+    if (result.blockAlreadyCompleted) {
+      return res.json({ success: true, xpSource: 'none', xpGained: 0, message: 'Already completed' });
     }
 
-    return res.json({ success: true, xpGained: result.xpGained || 0, newTotalXP: result.newTotalXP || null });
+    return res.json({
+      success: true,
+      xpSource: result.xpSource,
+      xpGained: result.xpGained || 0,
+      newTotalXP: result.newTotalXP || null,
+      underlyingAlready: Boolean(result.underlyingAlready),
+    });
   } catch (err) {
     if (err.message === 'NOT_FOUND') return res.status(404).json({ error: 'Block not found' });
     if (err.message === 'USER_NOT_FOUND') return res.status(404).json({ error: 'User not found' });
+    if (err.message === 'TASK_NOT_FOUND') return res.status(404).json({ error: 'Task not found for block' });
+    if (err.message === 'GOAL_NOT_FOUND') return res.status(404).json({ error: 'Goal not found for block' });
+    if (err.message === 'GOAL_NOT_ROUTINE') return res.status(400).json({ error: 'Only routine goals can back schedule blocks' });
     console.error('Complete block error:', err);
     return res.status(500).json({ error: 'Failed to complete block' });
   }

@@ -70,25 +70,26 @@ async function gatherContext(userId, targetDate) {
     })
     .slice(0, 20);
 
-  // Fetch habits (active)
-  const habitsSnap = await db.collection('habits')
+  // Fetch routine goals as the canonical recurring-work model.
+  const routineGoalsSnap = await db.collection('goals')
     .where('userId', '==', userId)
+    .where('type', '==', 'routine')
     .get();
-  const habits = habitsSnap.docs
+  const routines = routineGoalsSnap.docs
     .map((doc) => {
-      const h = doc.data();
+      const goal = doc.data();
       return {
-        habitId: doc.id,
-        title: (h.title || '').slice(0, 100),
-        frequency: h.frequency || 'daily',
-        targetDays: h.targetDays || [],
-        durationMinutes: h.durationMinutes || 30,
-        xpValue: h.xpValue || 10,
-        currentStreak: h.currentStreak || 0,
-        isActive: h.isActive !== false,
+        goalId: doc.id,
+        title: (goal.title || '').slice(0, 100),
+        frequency: goal.frequency || 'daily',
+        targetDays: goal.targetDays || [],
+        durationMinutes: goal.durationMinutes || 30,
+        xpValue: goal.xpValue || 10,
+        currentStreak: goal.streak || 0,
+        isActive: true,
       };
     })
-    .filter((h) => h.isActive);
+    .filter((routine) => routine.isActive);
 
   // Fetch classes/commitments from courses
   const commitments = [];
@@ -127,7 +128,7 @@ async function gatherContext(userId, targetDate) {
     availableHours: user.workHours || '09:00-21:00',
     timezone: user.timezone || 'America/New_York',
     tasks,
-    habits,
+    routines,
     commitments,
     deferredOverdue,
     userProfile: {
@@ -169,13 +170,15 @@ ${context.tasks.map((t) => `
   Priority: ${t.priority} | Effort: ${t.estimatedMinutes}min | Category: ${t.category}
   Source: ${t.source} | Skipped: ${t.timesSkipped}`).join('\n')}
 
-HABITS (${context.habits.length}):
-${context.habits.map((h) => `
-- "${h.title}" id:${h.habitId} ${h.durationMinutes}min ${h.frequency} ${h.targetDays.length ? '(' + h.targetDays.join(',') + ')' : ''} XP:${h.xpValue} Streak:${h.currentStreak}`).join('\n')}
+ROUTINES (${context.routines.length}):
+${context.routines.map((routine) => `
+- "${routine.title}"
+  goalId: ${routine.goalId}
+  ${routine.durationMinutes}min ${routine.frequency} ${routine.targetDays.length ? '(' + routine.targetDays.join(',') + ')' : ''} XP:${routine.xpValue} Streak:${routine.currentStreak}`).join('\n')}
 
 INSTRUCTIONS:
-1) Select 5-7 items (tasks + habits) for TODAY. Prioritize overdue/due-soon, include 1-2 habits (streaks matter), don't exceed max work minutes.
-2) Order: start with a quick win (<30min), high-focus in morning, habits at natural times, end with something satisfying.
+1) Select 5-7 items (tasks + routines) for TODAY. Prioritize overdue/due-soon, include 1-2 routines (streaks matter), don't exceed max work minutes.
+2) Order: start with a quick win (<30min), high-focus in morning, routines at natural times, end with something satisfying.
 3) Time slots in ${context.timezone}: use 30-90 minute blocks, include 15min breaks between hard tasks, leave some flex. Keep within available hours.
    Do NOT schedule during fixed commitments.
    Ignore/defer tasks that are overdue by more than 14 days unless critical.
@@ -190,9 +193,9 @@ OUTPUT (JSON only):
       "endISO": "2025-12-01T14:45:00-05:00",
       "startLabel": "2:00 PM",
       "endLabel": "2:45 PM",
-      "type": "task" | "habit" | "break",
+      "type": "task" | "routine" | "break",
       "taskId": "optional",
-      "habitId": "optional",
+      "goalId": "optional",
       "reasoning": "why this block",
       "confidence": 0.0-1.0
     }
@@ -249,7 +252,7 @@ export async function generateDailySchedule(userId, targetDate = new Date()) {
       endTime: block.endLabel || block.endISO,
       type: block.type || 'task',
       taskId: block.taskId || null,
-      habitId: block.habitId || null,
+      goalId: block.goalId || null,
       status: 'planned',
       confidence: block.confidence,
       reasoning: block.reasoning,
@@ -293,7 +296,7 @@ function generateHeuristicSchedule(context) {
       endLabel: s.end,
       type: "task",
       taskId: t.taskId,
-      habitId: null,
+      goalId: null,
       reasoning: "Heuristic fallback: top tasks placed in default slots",
       confidence: 0.4
     };

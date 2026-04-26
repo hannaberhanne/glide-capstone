@@ -1,10 +1,6 @@
 import { admin, db } from '../config/firebase.js';
-import OpenAI from 'openai';
-import { computeLevel } from '../domain/xp.js';
-
-const openai = process.env.OPENAI_API_KEY
-    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    : null;
+import { buildTaskCompletionOutcome, normalizeXpValue } from '../domain/completion.js';
+import { getXpFromAI } from '../domain/taskXp.js';
 
 function todayDateString() {
   const now = new Date();
@@ -38,41 +34,6 @@ function normalizeEstimatedMinutes({ estimatedMinutes, estimatedTime }) {
         return val <= 12 ? val * 60 : val;
     }
     return 0;
-}
-
-function normalizeXpValue(value) {
-    if (value === undefined || value === null || value === '') {
-        return null;
-    }
-    const xp = Number(value);
-    if (!Number.isFinite(xp)) {
-        return null;
-    }
-    return Math.max(0, Math.round(xp));
-}
-
-async function getXpFromAI(task) {
-  try {
-    if (!openai) return 50;
-    const resp = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: `Assign an XP reward for this student productivity task.
-Task: "${task.title}"
-Category: ${task.category || 'general'}
-Estimated minutes: ${task.estimatedMinutes || 0}
-
-Return only one number from 10 to 150.`
-      }],
-      max_tokens: 5,
-    });
-    const xp = parseInt(resp.choices[0]?.message?.content?.trim(), 10);
-    return Number.isNaN(xp) ? 50 : Math.min(Math.max(xp, 10), 150);
-  } catch (err) {
-    console.error('AI XP error, fallback to 50:', err.message);
-    return 50;
-  }
 }
 
 // get all tasks for the current user.
@@ -323,33 +284,36 @@ const completeTask = async (req, res) => {
             const task = taskSnap.data();
             const userData = userSnap.data();
             const today = todayDateString();
+            const outcome = buildTaskCompletionOutcome({
+                task,
+                userData,
+                todayKey: today,
+                generatedXp,
+            });
 
-            if (task.lastCompleted === today) {
-                return { already: true, xpGained: 0, newTotalXP: userData.totalXP || 0 };
+            if (outcome.already) {
+                return outcome;
             }
 
-            const storedXp = normalizeXpValue(task.xpValue);
-            const xpGained = storedXp ?? generatedXp ?? 50;
-            const newTotalXP = (userData.totalXP || 0) + xpGained;
-            const newLevel = computeLevel(newTotalXP);
-
             const taskUpdate = {
+                isComplete: true,
                 lastCompleted: today,
+                completedAt: admin.firestore.FieldValue.serverTimestamp(),
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             };
-            if (storedXp === null) {
-                taskUpdate.xpValue = xpGained;
+            if (normalizeXpValue(task.xpValue) === null) {
+                taskUpdate.xpValue = outcome.taskXpValue;
             }
 
             t.update(taskRef, taskUpdate);
 
             t.update(userRef, {
-                totalXP: newTotalXP,
-                level: newLevel,
+                totalXP: outcome.newTotalXP,
+                level: outcome.newLevel,
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            return { already: false, xpGained, newTotalXP, newLevel };
+            return outcome;
         });
 
         if (result.already) {
