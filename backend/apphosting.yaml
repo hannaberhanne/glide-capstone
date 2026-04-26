@@ -1,3 +1,10 @@
 runConfig:
   runtime: nodejs20
   startCommand: node server.js
+env:
+  - variable: FIRESTORE_PREFER_REST
+    value: "true"
+  - variable: OTEL_SDK_DISABLED
+    value: "true"
+  - variable: NODE_OPTIONS
+    value: "--openssl-legacy-provider"
