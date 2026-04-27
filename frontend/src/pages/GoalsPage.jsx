@@ -4,6 +4,8 @@ import AddGoal from "../components/AddGoal.jsx";
 import EditGoal from "../components/EditGoal.jsx";
 import AlertBanner from "../components/AlertBanner";
 import { auth } from "../config/firebase.js";
+import useUser from "../hooks/useUser.js";
+import { computeBadges } from "../utils/badgeSystem.js";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -38,7 +40,14 @@ function GoalCard({ goal, onDelete, onEdit }) {
 
       <div className="goal-card-header" style={{ backgroundColor: goal.color }}>
         <span className="goal-card-title">{goal.title}</span>
-        <span className="goal-card-streak">🔥 {goal.streak}</span>
+        <span className="goal-card-streak">
+  <svg width="14" height="14" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="32,8 58,52 6,52" fill="white" opacity=".4" />
+    <polygon points="32,20 48,48 16,48" fill="white" opacity=".65" />
+    <polygon points="32,30 42,46 22,46" fill="white" />
+  </svg>
+  {goal.streak}
+</span>
       </div>
 
       <div className="goal-card-body">
@@ -125,11 +134,18 @@ function StatBadge({ icon, label, value }) {
   );
 }
 
-function EarnedBadge({ badge }) {
+function BadgeItem({ badge, locked }) {
   return (
-    <div className="earned-badge" title={badge.description}>
-      <span className="earned-badge-icon">{badge.icon}</span>
-      <span className="earned-badge-label">{badge.label}</span>
+    <div
+      className={`badge-item ${locked ? "badge-item--locked" : ""}`}
+      title={badge.description}
+    >
+      <div
+        className="badge-item-svg"
+        dangerouslySetInnerHTML={{ __html: badge.svg }}
+      />
+      <span className="badge-item-label">{badge.label}</span>
+      {locked && <span className="badge-item-hint">{badge.description}</span>}
     </div>
   );
 }
@@ -137,17 +153,17 @@ function EarnedBadge({ badge }) {
 export default function GoalsPage() {
   const [quote, setQuote] = useState(null);
   const [banner, setBanner] = useState(null);
-  const [earnedBadges] = useState([]);
   const [goals, setGoals] = useState([]);
   const [tasks, setTasks] = useState([]);   // all tasks for this user
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
-  const [stats] = useState({
-    streak: null,
-    longestStreak: null,
-    level: null,
-    totalXP: null,
-  });
+  const { user, xp } = useUser(API_BASE_URL);
+  const userRecord = Array.isArray(user) ? user[0] : user;
+  const level = userRecord?.level ?? 0;
+  const bestStreak = goals.length ? Math.max(...goals.map((g) => g.streak || 0)) : null;
+  const longestStreak = goals.length ? Math.max(...goals.map((g) => g.longestStreak || 0)) : null;
+  const { earned, locked } = computeBadges({ xp, level, goals, tasks });
+  
 
   useEffect(() => {
     const fetchQuote = async () => {
@@ -309,33 +325,52 @@ export default function GoalsPage() {
           </div>
 
           <div className="goals-right">
-            <h2 className="achievements-title">Your Achievements</h2>
+  <h2 className="achievements-title">Your Achievements</h2>
 
-            <div className="stat-badges-grid">
-              <StatBadge icon="🔥" label="Current Streak" value={`${stats.streak} days`} />
-              <StatBadge icon="🏆" label="Longest Streak" value={`${stats.longestStreak} days`} />
-              <StatBadge icon="⭐" label="Level" value={stats.level} />
-              <StatBadge icon="✨" label="Total XP" value={stats.totalXP} />
-            </div>
+  <div className="stat-badges-grid">
+    <StatBadge icon="" label="Current Streak" value={bestStreak !== null ? `${bestStreak} days` : "—"} />
+    <StatBadge icon="" label="Longest Streak" value={longestStreak !== null ? `${longestStreak} days` : "—"} />
+    <StatBadge icon="" label="Level" value={level ?? "—"} />
+<StatBadge icon="" label="Total XP" value={xp ?? "—"} />
+  </div>
 
-            <div className="earned-badges-section">
-              <h3 className="earned-badges-heading">Badges Earned</h3>
-              <div className="earned-badges-grid">
-                {earnedBadges.map((badge) => (
-                  <EarnedBadge key={badge.id} badge={badge} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+  <div className="earned-badges-section">
+    <h3 className="earned-badges-heading">
+      Badges Earned
+      {earned.length > 0 && (
+        <span className="earned-badges-count">{earned.length}</span>
+      )}
+    </h3>
+    {earned.length === 0 ? (
+      <p className="badges-empty">Complete goals and build streaks to earn badges!</p>
+    ) : (
+      <div className="earned-badges-grid">
+        {earned.map((badge) => (
+          <BadgeItem key={badge.id} badge={badge} locked={false} />
+        ))}
       </div>
+    )}
+  </div>
 
+  {locked.length > 0 && (
+    <div className="earned-badges-section">
+      <h3 className="earned-badges-heading">Locked</h3>
+      <div className="earned-badges-grid">
+        {locked.map((badge) => (
+          <BadgeItem key={badge.id} badge={badge} locked={true} />
+        ))}
+      </div>
+    </div>
+  )}
+  </div>
+ </div>
+</div>
       {showAddGoal && (
         <AddGoal
           onClose={() => setShowAddGoal(false)}
           onGoalCreated={handleGoalCreated}
         />
-      )}
+       )}
 
       {editingGoal && (
         <EditGoal
@@ -350,7 +385,7 @@ export default function GoalsPage() {
           message={banner.message}
           type={banner.type}
           onClose={() => setBanner(null)}
-        />
+      />
       )}
     </>
   );
