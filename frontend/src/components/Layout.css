@@ -6,7 +6,7 @@
 }
 
 .app-shell--today {
-  background: #f3ede3;
+  background: var(--bg-color);
 }
 
 .app-shell--compact {
@@ -21,7 +21,7 @@
   padding: 0 0 18px;
   display: flex;
   flex-direction: column;
-  background: color-mix(in srgb, var(--bg-secondary) 76%, #f3ede3 24%);
+  background: var(--bg-secondary);
   border-right: 1px solid rgba(46, 38, 31, 0.08);
   z-index: 55;
   transition: width 180ms ease;
@@ -43,15 +43,15 @@
   justify-content: center;
   border: 1px solid rgba(46, 38, 31, 0.08);
   border-radius: 12px;
-  background: rgba(251, 247, 240, 0.48);
-  color: rgba(108, 92, 75, 0.78);
+  background: rgba(128, 128, 128, 0.12);
+  color: var(--text-muted);
   cursor: pointer;
   transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .side-collapse:hover {
-  background: rgba(251, 247, 240, 0.78);
-  border-color: rgba(46, 38, 31, 0.12);
+  background: rgba(128, 128, 128, 0.2);
+  border-color: rgba(128, 128, 128, 0.24);
   color: var(--text-color);
 }
 
@@ -72,18 +72,18 @@
   align-items: center;
   gap: 11px;
   border-radius: 12px;
-  color: rgba(108, 92, 75, 0.86);
+  color: var(--text-muted);
   text-decoration: none;
   transition: background-color 140ms ease, color 140ms ease;
 }
 
 .side-nav-item:hover {
-  background: rgba(251, 247, 240, 0.42);
+  background: rgba(128, 128, 128, 0.12);
   color: var(--text-color);
 }
 
 .side-nav-item.active {
-  background: rgba(251, 247, 240, 0.68);
+  background: rgba(128, 128, 128, 0.2);
   color: var(--text-color);
 }
 
@@ -131,7 +131,7 @@
 }
 
 .side-nav-item-settings {
-  color: rgba(108, 92, 75, 0.8);
+  color: var(--text-muted);
 }
 
 .app-shell--compact .side-nav,
@@ -173,7 +173,7 @@
 .app-shell--today .shell-frame,
 .app-shell--today .main-content,
 .app-shell--today .app-footer {
-  background: #f3ede3;
+  background: var(--bg-color);
 }
 
 .app-footer {
@@ -210,6 +210,18 @@ html.high-contrast .side-nav-item.active {
 html.high-contrast .side-nav-item.active::before,
 html.high-contrast .side-nav-dot {
   background: yellow;
+}
+
+html.dark-mode .side-spine {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+html.dark-mode .side-collapse {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .side-nav-item.active::before {
+  background: color-mix(in srgb, #9caf88 72%, #f5f1e8 28%);
 }
 
 @media (max-width: 1020px) {

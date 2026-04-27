@@ -1,21 +1,63 @@
 .planner-page {
-  --planner-bg: #f3ede3;
-  --planner-backlog-bg: #dfd5c4;
-  --planner-grid-bg: #e9e0d0;
-  --planner-paper: #fbf7f0;
-  --planner-paper-strong: #f7f2e8;
-  --planner-ink: #2e261f;
-  --planner-muted: #7a6b5b;
-  --planner-line: rgba(46, 38, 31, 0.11);
-  --planner-line-strong: rgba(46, 38, 31, 0.18);
-  --planner-success: #6b8f71;
-  --planner-alert: #f5cb5c;
-  --planner-ghost: rgba(107, 143, 113, 0.2);
+  --planner-bg: var(--bg-color);
+  --planner-paper: var(--card-bg);
+  --planner-paper-strong: var(--bg-secondary);
+  --planner-ink: var(--text-color);
+  --planner-muted: var(--text-muted);
+  --planner-line: var(--card-border);
+  --planner-line-strong: var(--card-border);
+  --planner-success: var(--color-green);
+  --planner-alert: var(--color-gold);
+  --planner-ghost: var(--accent-soft);
+  --planner-accent: var(--accent);
+  --planner-shadow: var(--shadow-soft);
+
+  --planner-panel-bg: color-mix(in srgb, var(--planner-paper) 86%, var(--planner-bg));
+  --planner-panel-bg-strong: color-mix(in srgb, var(--planner-paper) 96%, var(--planner-bg));
+  --planner-chip-bg: color-mix(in srgb, var(--planner-paper-strong) 78%, transparent);
+  --planner-hover-bg: color-mix(in srgb, var(--planner-paper) 70%, transparent);
+  --planner-button-bg: var(--planner-ink);
+  --planner-button-text: var(--planner-paper);
+  --planner-secondary-button-bg: color-mix(in srgb, var(--planner-paper-strong) 78%, transparent);
+
   width: min(1440px, 100%);
   margin: 0 auto;
   padding: 16px 0 28px;
   color: var(--planner-ink);
   box-sizing: border-box;
+}
+
+html.dark-mode .planner-page {
+  --planner-panel-bg: color-mix(in srgb, var(--card-bg) 88%, #000);
+  --planner-panel-bg-strong: color-mix(in srgb, var(--card-bg) 96%, #000);
+  --planner-chip-bg: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+  --planner-hover-bg: color-mix(in srgb, var(--card-bg) 78%, transparent);
+  --planner-button-bg: var(--text-color);
+  --planner-button-text: var(--bg-color);
+  --planner-secondary-button-bg: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+}
+
+html.high-contrast .planner-page {
+  --planner-bg: #000;
+  --planner-paper: #000;
+  --planner-paper-strong: #000;
+  --planner-ink: #fff;
+  --planner-muted: #fff;
+  --planner-line: #fff;
+  --planner-line-strong: #fff;
+  --planner-success: #0f0;
+  --planner-alert: #ff0;
+  --planner-ghost: rgba(255, 255, 0, 0.18);
+  --planner-accent: #ff0;
+  --planner-shadow: none;
+
+  --planner-panel-bg: #000;
+  --planner-panel-bg-strong: #000;
+  --planner-chip-bg: #000;
+  --planner-hover-bg: #111;
+  --planner-button-bg: #ff0;
+  --planner-button-text: #000;
+  --planner-secondary-button-bg: #000;
 }
 
 .planner-shell {
@@ -37,15 +79,12 @@
   position: sticky;
   top: 18px;
   background:
-    linear-gradient(180deg, rgba(244, 238, 228, 0.52) 0%, rgba(223, 213, 196, 0.72) 100%),
-    linear-gradient(180deg, rgba(223, 213, 196, 0.82) 0%, rgba(216, 205, 185, 0.84) 100%);
-  border: 1px solid rgba(46, 38, 31, 0.1);
+    linear-gradient(180deg, var(--planner-panel-bg-strong) 0%, var(--planner-panel-bg) 100%);
+  border: 1px solid var(--planner-line);
   border-radius: 0 22px 22px 0;
   min-height: calc(100vh - 132px);
   padding: 24px 18px 18px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    0 18px 32px rgba(46, 38, 31, 0.06);
+  box-shadow: var(--planner-shadow);
   backdrop-filter: blur(14px);
 }
 
@@ -66,7 +105,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 800;
-  color: rgba(122, 107, 91, 0.9);
+  color: var(--planner-muted);
 }
 
 .planner-sidebar-count {
@@ -77,8 +116,9 @@
   height: 28px;
   padding: 0 12px;
   border-radius: 999px;
-  background: rgba(251, 247, 240, 0.7);
-  border: 1px solid rgba(46, 38, 31, 0.1);
+  background: var(--planner-chip-bg);
+  border: 1px solid var(--planner-line);
+  color: var(--planner-ink);
   font-size: 13px;
   font-weight: 700;
 }
@@ -90,9 +130,9 @@
 .planner-assist-toggle {
   height: 42px;
   border-radius: 999px;
-  border: 1px solid rgba(46, 38, 31, 0.14);
-  background: var(--planner-ink);
-  color: var(--planner-paper);
+  border: 1px solid var(--planner-line-strong);
+  background: var(--planner-button-bg);
+  color: var(--planner-button-text);
   padding: 0 18px;
   font-family: inherit;
   font-size: 14px;
@@ -112,7 +152,7 @@
 
 .planner-sidebar-body {
   min-height: calc(100vh - 210px);
-  border-top: 1px solid rgba(46, 38, 31, 0.08);
+  border-top: 1px solid var(--planner-line);
   padding-top: 14px;
 }
 
@@ -137,7 +177,7 @@
 }
 
 .planner-backlog-card:hover {
-  background: rgba(251, 247, 240, 0.42);
+  background: var(--planner-hover-bg);
 }
 
 .planner-backlog-card.is-dragging {
@@ -170,7 +210,7 @@
   width: 4px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(122, 107, 91, 0.5);
+  background: var(--planner-muted);
 }
 
 .planner-backlog-main {
@@ -211,13 +251,13 @@
   width: 4px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(122, 107, 91, 0.5);
+  background: var(--planner-muted);
 }
 
 .planner-backlog-empty {
   min-height: 180px;
   position: relative;
-  border: 1px dashed rgba(46, 38, 31, 0.12);
+  border: 1px dashed var(--planner-line-strong);
   border-radius: 18px;
   display: grid;
   place-items: center;
@@ -241,11 +281,16 @@
   width: 132px;
   height: 52px;
   transform: translateX(-50%);
-  opacity: 0.16;
+  opacity: 0.18;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 132 52' fill='none'%3E%3Cpath d='M8 38c20-5 48-6 116-4' stroke='%236c5c4b' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M28 27c16-4 34-4 63-3 8 0 15 1 22 4' stroke='%236c5c4b' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M31 26c2 7 12 10 18 10h28c15 0 27-4 35-10' stroke='%236c5c4b' stroke-width='1.6' stroke-linecap='round'/%3E%3Ccircle cx='49' cy='40' r='5' stroke='%236c5c4b' stroke-width='1.6'/%3E%3Ccircle cx='88' cy='40' r='5' stroke='%236c5c4b' stroke-width='1.6'/%3E%3Cpath d='M16 10c0 0 3 5 8 7' stroke='%236c5c4b' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M79 11c8 1 16 5 22 12' stroke='%236c5c4b' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+html.high-contrast .planner-backlog-empty::before,
+html.high-contrast .planner-day-empty::before {
+  display: none;
 }
 
 .planner-stage {
@@ -266,10 +311,9 @@
   margin: 0 auto;
   padding: 12px 14px;
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(251, 247, 240, 0.92) 0%, rgba(245, 239, 230, 0.88) 100%);
-  border: 1px solid rgba(46, 38, 31, 0.1);
-  box-shadow: 0 12px 24px rgba(46, 38, 31, 0.06);
+  background: linear-gradient(180deg, var(--planner-panel-bg-strong) 0%, var(--planner-panel-bg) 100%);
+  border: 1px solid var(--planner-line);
+  box-shadow: var(--planner-shadow);
   backdrop-filter: blur(10px);
 }
 
@@ -290,16 +334,16 @@
   font-size: 30px;
   line-height: 1;
   font-weight: 700;
-  color: var(--planner-ink);
+  color: var(--planner-muted);
 }
 
 .planner-hud-arrow {
   width: 42px;
   height: 42px;
   border-radius: 999px;
-  border: 1px solid rgba(46, 38, 31, 0.1);
-  background: rgba(233, 224, 208, 0.74);
-  color: rgba(122, 107, 91, 0.9);
+  border: 1px solid var(--planner-line);
+  background: var(--planner-secondary-button-bg);
+  color: var(--planner-ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -308,14 +352,16 @@
 }
 
 .planner-assist-toggle.is-active {
-  background:
-    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.22) 0, rgba(255, 255, 255, 0) 44%),
-    linear-gradient(135deg, rgba(107, 143, 113, 0.96) 0%, rgba(94, 113, 86, 0.98) 100%);
-  border-color: rgba(107, 143, 113, 0.42);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 0 0 1px rgba(107, 143, 113, 0.12),
-    0 10px 18px rgba(94, 113, 86, 0.18);
+  background: var(--planner-success);
+  border-color: var(--planner-success);
+  color: #fff;
+  box-shadow: var(--planner-shadow);
+}
+
+html.high-contrast .planner-assist-toggle.is-active {
+  background: #ff0;
+  border-color: #ff0;
+  color: #000;
 }
 
 .planner-hud-action,
@@ -323,8 +369,8 @@
 .planner-schedule-complete {
   height: 38px;
   border-radius: 999px;
-  border: 1px solid rgba(46, 38, 31, 0.14);
-  background: rgba(251, 247, 240, 0.74);
+  border: 1px solid var(--planner-line-strong);
+  background: var(--planner-chip-bg);
   color: var(--planner-ink);
   padding: 0 16px;
   font-family: inherit;
@@ -342,7 +388,7 @@
 
 .planner-hud-action-secondary,
 .planner-schedule-action-secondary {
-  background: rgba(233, 224, 208, 0.72);
+  background: var(--planner-secondary-button-bg);
 }
 
 .planner-hud-action:disabled,
@@ -355,20 +401,28 @@
 
 .planner-grid-surface {
   position: relative;
-  background: linear-gradient(180deg, rgba(233, 224, 208, 0.92) 0%, rgba(229, 218, 199, 0.92) 100%);
-  border: 1px solid rgba(46, 38, 31, 0.1);
+  background: linear-gradient(180deg, var(--planner-panel-bg) 0%, var(--planner-paper-strong) 100%);
+  border: 1px solid var(--planner-line);
   border-radius: 22px 0 0 22px;
   padding: 22px 22px 24px;
   overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: var(--planner-shadow);
 }
 
 .planner-grid-surface::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(115deg, rgba(110, 82, 46, 0.018) 0 2px, rgba(110, 82, 46, 0) 2px 16px);
+  background: repeating-linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--planner-muted) 5%, transparent) 0 2px,
+    transparent 2px 16px
+  );
   pointer-events: none;
+}
+
+html.high-contrast .planner-grid-surface::before {
+  display: none;
 }
 
 .planner-weekdays {
@@ -387,7 +441,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 800;
-  color: rgba(122, 107, 91, 0.8);
+  color: var(--planner-muted);
 }
 
 .planner-grid-matrix {
@@ -405,7 +459,7 @@
   min-width: 0;
   border-radius: 18px;
   border: 1px solid transparent;
-  background: rgba(251, 247, 240, 0.44);
+  background: color-mix(in srgb, var(--planner-paper) 58%, transparent);
   padding: 14px 14px 12px;
   cursor: pointer;
   transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1), border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
@@ -416,7 +470,8 @@
 
 .planner-day-cell:hover,
 .planner-day-cell:focus-visible {
-  background: rgba(251, 247, 240, 0.6);
+  background: var(--planner-hover-bg);
+  border-color: var(--planner-line);
 }
 
 .planner-day-cell.is-outside {
@@ -424,27 +479,28 @@
 }
 
 .planner-day-cell.is-today {
-  background: rgba(251, 247, 240, 0.56);
+  background: color-mix(in srgb, var(--planner-accent) 14%, var(--planner-paper));
+  border-color: var(--planner-accent);
 }
 
 .planner-day-cell.is-selected {
   grid-column: span 2;
   grid-row: span 2;
-  background: rgba(251, 247, 240, 0.96);
-  border-color: rgba(46, 38, 31, 0.18);
-  box-shadow: 0 16px 30px rgba(46, 38, 31, 0.08);
+  background: var(--planner-panel-bg-strong);
+  border-color: var(--planner-line-strong);
+  box-shadow: var(--planner-shadow);
   animation: planner-selected-lift 360ms cubic-bezier(0.22, 0.9, 0.3, 1);
 }
 
 .planner-day-cell.is-drag-hover {
-  border: 3px dashed rgba(107, 143, 113, 0.85);
-  background: rgba(243, 237, 227, 0.98);
+  border: 3px dashed var(--planner-success);
+  background: color-mix(in srgb, var(--planner-success) 16%, var(--planner-paper));
   transform: scale(1.02);
 }
 
 .planner-day-cell.has-data:not(.is-selected) {
-  background: rgba(251, 247, 240, 0.68);
-  box-shadow: 0 10px 18px rgba(46, 38, 31, 0.04);
+  background: color-mix(in srgb, var(--planner-paper) 78%, transparent);
+  box-shadow: var(--planner-shadow);
 }
 
 .planner-day-cell.is-empty:not(.is-selected) {
@@ -460,7 +516,7 @@
   font-size: 28px;
   line-height: 1;
   font-weight: 700;
-  color: rgba(122, 107, 91, 0.9);
+  color: var(--planner-muted);
 }
 
 .planner-day-preview {
@@ -475,8 +531,9 @@
   min-width: 0;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(231, 222, 205, 0.78);
-  color: rgba(46, 38, 31, 0.82);
+  background: var(--planner-chip-bg);
+  color: var(--planner-ink);
+  border: 1px solid transparent;
   font-size: 12px;
   line-height: 1.2;
   font-weight: 600;
@@ -492,8 +549,8 @@
 
 .planner-day-chip-more,
 .planner-day-chip-ghost {
-  background: rgba(107, 143, 113, 0.12);
-  color: rgba(76, 76, 76, 0.72);
+  background: var(--planner-ghost);
+  color: var(--planner-muted);
 }
 
 .planner-day-authority {
@@ -520,35 +577,30 @@
   color: var(--planner-ink);
 }
 
-.planner-day-authority-name {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  margin-top: 4px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(231, 222, 205, 0.68);
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 800;
-  color: var(--planner-muted);
-}
-
+.planner-day-authority-name,
 .planner-day-authority-count {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(231, 222, 205, 0.68);
+  background: var(--planner-chip-bg);
+  border: 1px solid var(--planner-line);
   font-size: 11px;
   line-height: 1;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-weight: 800;
+  color: var(--planner-muted);
+}
+
+.planner-day-authority-name {
+  margin-top: 4px;
+  letter-spacing: 0.08em;
+}
+
+.planner-day-authority-count {
+  letter-spacing: 0.04em;
   font-weight: 700;
-  color: rgba(46, 38, 31, 0.72);
   text-align: right;
 }
 
@@ -575,7 +627,7 @@
   align-items: center;
   min-height: 48px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(46, 38, 31, 0.08);
+  border-bottom: 1px solid var(--planner-line);
 }
 
 .planner-day-task.is-done {
@@ -590,7 +642,7 @@
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  border: 1.5px solid rgba(107, 143, 113, 0.72);
+  border: 1.5px solid var(--planner-success);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -601,6 +653,12 @@
 .planner-day-check.checked {
   background: var(--planner-success);
   border-color: var(--planner-success);
+}
+
+html.high-contrast .planner-day-check.checked {
+  background: #0f0;
+  border-color: #0f0;
+  color: #000;
 }
 
 .planner-day-task-main {
@@ -623,8 +681,8 @@
   gap: 10px;
   padding: 10px 10px 10px 12px;
   border-radius: 14px;
-  border: 1.5px dashed rgba(107, 143, 113, 0.84);
-  background: rgba(107, 143, 113, 0.12);
+  border: 1.5px dashed var(--planner-success);
+  background: var(--planner-ghost);
 }
 
 .planner-ghost-main,
@@ -644,7 +702,7 @@
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
-  color: rgba(46, 38, 31, 0.68);
+  color: var(--planner-muted);
 }
 
 .planner-day-density {
@@ -660,14 +718,14 @@
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(122, 107, 91, 0.38);
+  background: var(--planner-muted);
 }
 
 .planner-day-density-halo {
   width: 16px !important;
   height: 16px !important;
-  background: rgba(245, 203, 92, 0.34) !important;
-  box-shadow: 0 0 0 6px rgba(245, 203, 92, 0.16);
+  background: var(--planner-alert) !important;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--planner-alert) 22%, transparent);
   animation: planner-halo-pulse 2s ease-in-out infinite;
 }
 
@@ -680,7 +738,7 @@
   gap: 18px;
   align-items: start;
   padding-top: 18px;
-  border-top: 1px solid rgba(46, 38, 31, 0.12);
+  border-top: 1px solid var(--planner-line);
 }
 
 .planner-selected-head {
@@ -706,9 +764,9 @@
   margin-top: 18px;
   padding: 18px;
   border-radius: 18px;
-  border: 1px solid rgba(46, 38, 31, 0.1);
-  background: rgba(251, 247, 240, 0.72);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--planner-line);
+  background: var(--planner-panel-bg);
+  box-shadow: var(--planner-shadow);
 }
 
 .planner-schedule-head {
@@ -744,8 +802,8 @@
   align-items: center;
   padding: 12px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(46, 38, 31, 0.08);
-  background: rgba(233, 224, 208, 0.5);
+  border: 1px solid var(--planner-line);
+  background: var(--planner-chip-bg);
 }
 
 .planner-schedule-block.is-completed {
@@ -789,14 +847,14 @@
   min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(251, 247, 240, 0.68);
-  border: 1px solid rgba(46, 38, 31, 0.08);
+  background: var(--planner-paper);
+  border: 1px solid var(--planner-line);
   font-size: 11px;
   line-height: 1;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 800;
-  color: rgba(46, 38, 31, 0.72);
+  color: var(--planner-muted);
   white-space: nowrap;
 }
 
@@ -818,8 +876,8 @@
   min-width: 320px;
   padding: 16px;
   border-radius: 18px;
-  border: 1px solid rgba(46, 38, 31, 0.1);
-  background: rgba(251, 247, 240, 0.78);
+  border: 1px solid var(--planner-line);
+  background: var(--planner-panel-bg);
 }
 
 .planner-spillway-head {
@@ -838,7 +896,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 800;
-  color: rgba(122, 107, 91, 0.86);
+  color: var(--planner-muted);
 }
 
 .planner-spillway-list {
@@ -850,8 +908,9 @@
 .planner-spillway-task {
   padding: 9px 12px;
   border-radius: 12px;
-  background: rgba(231, 222, 205, 0.58);
-  color: rgba(46, 38, 31, 0.72);
+  background: var(--planner-chip-bg);
+  color: var(--planner-muted);
+  border: 1px solid var(--planner-line);
   font-size: 14px;
   line-height: 1.25;
   transform: scale(0.82);
@@ -864,7 +923,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 45;
-  background: rgba(223, 213, 196, 0.22);
+  background: color-mix(in srgb, var(--planner-bg) 65%, transparent);
 }
 
 .planner-assist-banner {
@@ -878,12 +937,9 @@
   max-width: 520px;
   padding: 16px 18px;
   border-radius: 28px;
-  background:
-    linear-gradient(180deg, rgba(251, 247, 240, 0.88) 0%, rgba(244, 238, 228, 0.82) 100%);
-  border: 1px solid rgba(46, 38, 31, 0.1);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    0 18px 30px rgba(46, 38, 31, 0.1);
+  background: linear-gradient(180deg, var(--planner-panel-bg-strong) 0%, var(--planner-panel-bg) 100%);
+  border: 1px solid var(--planner-line);
+  box-shadow: var(--planner-shadow);
   backdrop-filter: blur(14px);
 }
 
@@ -903,12 +959,13 @@
   z-index: 70;
   padding: 12px 18px;
   border-radius: 999px;
-  background: rgba(46, 38, 31, 0.94);
-  color: var(--planner-paper);
+  background: var(--planner-button-bg);
+  color: var(--planner-button-text);
+  border: 1px solid var(--planner-line-strong);
   font-size: 13px;
   line-height: 1;
   font-weight: 700;
-  box-shadow: 0 12px 24px rgba(46, 38, 31, 0.16);
+  box-shadow: var(--planner-shadow);
 }
 
 .is-assist-active .planner-sidebar,
@@ -916,29 +973,84 @@
   filter: saturate(0.92);
 }
 
+html.high-contrast .planner-sidebar,
+html.high-contrast .planner-hud,
+html.high-contrast .planner-grid-surface,
+html.high-contrast .planner-day-cell,
+html.high-contrast .planner-schedule-card,
+html.high-contrast .planner-schedule-block,
+html.high-contrast .planner-spillway,
+html.high-contrast .planner-assist-banner,
+html.high-contrast .planner-day-chip,
+html.high-contrast .planner-day-authority-name,
+html.high-contrast .planner-day-authority-count,
+html.high-contrast .planner-sidebar-count {
+  border-color: #fff;
+  box-shadow: none;
+}
+
+html.high-contrast .planner-day-cell.is-today,
+html.high-contrast .planner-day-cell.is-selected,
+html.high-contrast .planner-day-cell.is-drag-hover {
+  border-color: #ff0;
+}
+
+html.high-contrast .planner-hud-arrow,
+html.high-contrast .planner-hud-action,
+html.high-contrast .planner-schedule-action,
+html.high-contrast .planner-schedule-complete {
+  border-color: #fff;
+  background: #000;
+  color: #fff;
+}
+
+html.high-contrast .planner-hud-arrow:hover,
+html.high-contrast .planner-hud-action:hover,
+html.high-contrast .planner-schedule-action:hover,
+html.high-contrast .planner-schedule-complete:hover {
+  border-color: #ff0;
+  color: #ff0;
+}
+
 @keyframes planner-halo-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 4px rgba(245, 203, 92, 0.12);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--planner-alert) 18%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(245, 203, 92, 0.18);
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--planner-alert) 26%, transparent);
   }
 }
 
 @keyframes planner-selected-lift {
   0% {
     transform: translateY(8px) scale(0.985);
-    box-shadow: 0 10px 18px rgba(46, 38, 31, 0.04);
+    box-shadow: var(--planner-shadow);
   }
   62% {
     transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 20px 36px rgba(46, 38, 31, 0.09);
+    box-shadow: var(--planner-shadow);
   }
   100% {
     transform: translateY(0) scale(1);
-    box-shadow: 0 16px 30px rgba(46, 38, 31, 0.08);
+    box-shadow: var(--planner-shadow);
   }
+}
+
+html.reduce-motion .planner-sidebar-add,
+html.reduce-motion .planner-selected-add,
+html.reduce-motion .planner-spillway-action,
+html.reduce-motion .planner-assist-exit,
+html.reduce-motion .planner-assist-toggle,
+html.reduce-motion .planner-hud-arrow,
+html.reduce-motion .planner-hud-action,
+html.reduce-motion .planner-schedule-action,
+html.reduce-motion .planner-schedule-complete,
+html.reduce-motion .planner-day-cell,
+html.reduce-motion .planner-backlog-card,
+html.reduce-motion .planner-day-density-halo {
+  animation: none !important;
+  transition: none !important;
 }
 
 @media (max-width: 1320px) {
@@ -988,6 +1100,7 @@
 
   .planner-hud-title {
     font-size: 24px;
+    color: var(--planner-muted);
   }
 
   .planner-grid-matrix {

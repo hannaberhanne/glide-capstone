@@ -45,7 +45,7 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(46, 38, 31, 0.74);
+  color: var(--today-muted);
 }
 
 .today-sheet-title {
@@ -64,7 +64,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 7px;
-  color: rgba(108, 92, 75, 0.72);
+  color: var(--today-muted);
   align-self: start;
   min-height: 18px;
 }
@@ -149,11 +149,11 @@
 }
 
 .today-section-primary .today-section-label {
-  color: rgba(46, 38, 31, 0.86);
+  color: var(--today-muted);
 }
 
 .today-section-upcoming .today-section-label {
-  color: rgba(69, 57, 46, 0.82);
+  color: var(--today-muted);
 }
 
 .today-section-upcoming::before {
@@ -470,7 +470,7 @@
 }
 
 .today-inline-input::placeholder {
-  color: rgba(108, 92, 75, 0.48);
+  color: var(--today-muted);
   font-size: 17px;
   font-weight: 550;
 }
@@ -486,15 +486,12 @@
   width: 248px;
   padding: 24px 18px 14px;
   background:
-    radial-gradient(circle at 18% 16%, rgba(255, 245, 223, 0.14) 0, rgba(255, 245, 223, 0) 34%),
-    radial-gradient(circle at 82% 72%, rgba(126, 94, 51, 0.08) 0, rgba(126, 94, 51, 0) 42%),
-    linear-gradient(180deg, #dcc29a 0%, #d0ae80 100%);
-  border: 1px solid rgba(46, 38, 31, 0.12);
+    radial-gradient(circle at 18% 16%, color-mix(in srgb, var(--today-sheet-bg) 18%, transparent) 0, transparent 34%),
+    radial-gradient(circle at 82% 72%, color-mix(in srgb, var(--today-accent) 10%, transparent) 0, transparent 42%),
+    linear-gradient(180deg, var(--today-rail-bg) 0%, var(--today-sheet-bg) 100%);
+  border: 1px solid var(--today-line-strong);
   border-radius: 18px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -14px 28px rgba(139, 101, 52, 0.08),
-    0 4px 12px rgba(46, 38, 31, 0.04);
+  box-shadow: var(--shadow-soft, none);
   overflow: visible;
 }
 
@@ -506,13 +503,13 @@
   background:
     repeating-linear-gradient(
       115deg,
-      rgba(110, 82, 46, 0.028) 0 2px,
-      rgba(110, 82, 46, 0) 2px 14px
+      color-mix(in srgb, var(--today-muted) 8%, transparent) 0 2px,
+      transparent 2px 14px
     ),
     repeating-linear-gradient(
       12deg,
-      rgba(255, 241, 212, 0.03) 0 1px,
-      rgba(255, 241, 212, 0) 1px 12px
+      color-mix(in srgb, var(--today-ink) 4%, transparent) 0 1px,
+      transparent 1px 12px
     );
   pointer-events: none;
   opacity: 0.7;
@@ -555,11 +552,11 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(46, 38, 31, 0.62);
+  color: var(--today-muted);
 }
 
 .rail-section-link {
-  color: rgba(46, 38, 31, 0.72);
+  color: var(--today-muted);
   text-decoration: none;
   font-size: 12px;
   line-height: 1.2;
@@ -760,11 +757,11 @@
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: rgba(46, 38, 31, 0.82);
+  color: var(--today-muted);
 }
 
 .rail-level-chip-next {
-  color: rgba(108, 92, 75, 0.72);
+  color: var(--today-muted);
 }
 
 .rail-level-xp {
@@ -776,7 +773,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(46, 38, 31, 0.56);
+  color: var(--today-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -930,7 +927,7 @@
 }
 
 .rail-calendar-date {
-  color: rgba(46, 38, 31, 0.26);
+  color: var(--today-muted);
 }
 
 .rail-calendar-grid {
@@ -996,15 +993,15 @@
 .rail-calendar-date {
   position: relative;
   z-index: 2;
-  color: rgba(46, 38, 31, 0.72);
+  color: var(--today-muted);
 }
 
 .rail-calendar-day:not(.is-month) .rail-calendar-date {
-  color: rgba(108, 92, 75, 0.16);
+  color: var(--today-muted);
 }
 
 .rail-calendar-day.is-previous-month .rail-calendar-date {
-  color: rgba(108, 92, 75, 0.14);
+  color: var(--today-muted);
 }
 
 .rail-calendar-day.is-next-month .rail-calendar-date {
@@ -1016,11 +1013,11 @@
 }
 
 .rail-calendar-day.is-today .rail-calendar-date {
-  color: rgba(46, 38, 31, 0.34);
+  color: var(--today-muted);
 }
 
 .rail-calendar-day.is-streak .rail-calendar-date {
-  color: rgba(46, 38, 31, 0.18);
+  color: var(--today-muted);
 }
 
 .rail-calendar-mark {
