@@ -450,6 +450,23 @@
   margin-top: 4px;
 }
 
+.settings-btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-color);
+  border: 1px solid rgba(46, 38, 31, 0.1);
+}
+
+.settings-canvas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.settings-link-danger {
+  color: #a94442;
+}
+
 .student-header {
   justify-content: space-between;
   align-items: flex-start;

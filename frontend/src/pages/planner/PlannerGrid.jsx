@@ -9,6 +9,10 @@ export default function PlannerGrid({
   assistActive,
   draggingDisabled,
   overflowBusy,
+  scheduleBlocks,
+  scheduleLoading,
+  generating,
+  completingBlockId,
   onSelectDay,
   onDragStartTask,
   onDragEnd,
@@ -20,6 +24,9 @@ export default function PlannerGrid({
   onRejectSuggestion,
   onReturnOverflow,
   onAddTask,
+  onGenerateSchedule,
+  onReplanSchedule,
+  onCompleteBlock,
 }) {
   return (
     <section className="planner-grid-surface" aria-label="Planning grid">
@@ -51,7 +58,19 @@ export default function PlannerGrid({
         ))}
       </div>
 
-      <SelectedDayPanel day={selectedDay} overflowBusy={overflowBusy} onReturnOverflow={onReturnOverflow} onAddTask={onAddTask} />
+      <SelectedDayPanel
+        day={selectedDay}
+        overflowBusy={overflowBusy}
+        scheduleBlocks={scheduleBlocks}
+        scheduleLoading={scheduleLoading}
+        generating={generating}
+        completingBlockId={completingBlockId}
+        onReturnOverflow={onReturnOverflow}
+        onAddTask={onAddTask}
+        onGenerateSchedule={onGenerateSchedule}
+        onReplanSchedule={onReplanSchedule}
+        onCompleteBlock={onCompleteBlock}
+      />
     </section>
   );
 }

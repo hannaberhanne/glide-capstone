@@ -29,6 +29,34 @@ async function findExistingCanvasTask({ uid, assignmentId, canvasAssignmentId })
   return canvasMatch.docs.find((doc) => doc.data().userId === uid) || null;
 }
 
+function normalizeComparable(value) {
+  if (value === undefined || value === null) return null;
+  return value;
+}
+
+function detectMaterialTaskChange(existingTaskData, syncedFields, assignmentData) {
+  const nextComplete = Boolean(assignmentData?.completed);
+  const changedFields = {
+    title: normalizeComparable(existingTaskData.title) !== normalizeComparable(syncedFields.title),
+    dueAt: normalizeComparable(existingTaskData.dueAt) !== normalizeComparable(syncedFields.dueAt),
+    description:
+      normalizeComparable(existingTaskData.description) !== normalizeComparable(syncedFields.description),
+    xpValue: Number(existingTaskData.xpValue || 0) !== Number(syncedFields.xpValue || 0),
+    isComplete: Boolean(existingTaskData.isComplete) !== nextComplete,
+    canvasUrl:
+      normalizeComparable(existingTaskData.canvasUrl) !== normalizeComparable(syncedFields.canvasUrl),
+  };
+
+  const changed = Object.values(changedFields).some(Boolean);
+  const materialChange =
+    changedFields.title ||
+    changedFields.dueAt ||
+    changedFields.xpValue ||
+    changedFields.isComplete;
+
+  return { changed, materialChange, changedFields };
+}
+
 export async function upsertCanvasTaskFromAssignment({
   uid,
   courseId,
@@ -53,12 +81,36 @@ export async function upsertCanvasTaskFromAssignment({
   });
 
   if (existingTask) {
+    const existingTaskData = existingTask.data();
+    const nextComplete = Boolean(assignmentData?.completed);
+    const { changed, materialChange, changedFields } = detectMaterialTaskChange(
+      existingTaskData,
+      syncedFields,
+      assignmentData
+    );
+
+    if (!changed) {
+      return {
+        action: 'unchanged',
+        taskId: existingTask.id,
+        materialChange: false,
+        changedFields: {},
+      };
+    }
+
     await existingTask.ref.set({
       ...syncedFields,
-      priority: existingTask.data().priority || DEFAULT_TASK_PRIORITY
+      completedToday: nextComplete,
+      isComplete: nextComplete,
+      priority: existingTaskData.priority || DEFAULT_TASK_PRIORITY
     }, { merge: true });
 
-    return { action: 'updated', taskId: existingTask.id };
+    return {
+      action: 'updated',
+      taskId: existingTask.id,
+      materialChange,
+      changedFields,
+    };
   }
 
   const initialComplete = Boolean(assignmentData.completed);
@@ -71,7 +123,19 @@ export async function upsertCanvasTaskFromAssignment({
     priority: DEFAULT_TASK_PRIORITY
   });
 
-  return { action: 'added', taskId: newTaskRef.id };
+  return {
+    action: 'added',
+    taskId: newTaskRef.id,
+    materialChange: true,
+    changedFields: {
+      title: true,
+      dueAt: true,
+      description: true,
+      xpValue: true,
+      isComplete: initialComplete,
+      canvasUrl: true,
+    },
+  };
 }
 
 export async function getCanvasTaskCount(uid) {

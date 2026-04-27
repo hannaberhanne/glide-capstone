@@ -5,6 +5,8 @@ import AlertBanner from "../components/AlertBanner.jsx";
 import TaskModal from "../components/TaskModal.jsx";
 import useTasks from "../hooks/useTasks";
 import useUser from "../hooks/useUser";
+import useSchedule from "../hooks/useSchedule.js";
+import { apiClient } from "../lib/apiClient.js";
 import UpcomingPanel from "./dashboard/UpcomingPanel.jsx";
 import DashboardRail from "./dashboard/DashboardRail.jsx";
 import {
@@ -40,17 +42,25 @@ function saveDismissedTaskIds(key, ids) {
 export default function DashboardPage() {
   const { user, xp, setXp, refreshUser, userLoading } = useUser();
   const { tasks, fetchTasks, addTask, updateTask, deleteTask, completeTask, loading } = useTasks();
+  const {
+    blocks: scheduleBlocks,
+    scheduleLoading,
+    completingBlockId,
+    fetchBlocks: fetchSchedule,
+    completeBlock: completeScheduleBlock,
+  } = useSchedule();
 
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [xpBursts, setXpBursts] = useState([]);
   const [banner, setBanner] = useState(null);
-  const [railNote, setRailNote] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return window.localStorage.getItem("glide_today_rail_note") || "";
-  });
+  const [railNote, setRailNote] = useState("");
   const xpAnchorRef = useRef(null);
   const location = useLocation();
+  const noteHydratedRef = useRef(false);
+  const noteSaveTimeoutRef = useRef(null);
+  const lastSavedNoteRef = useRef("");
+  const noteSaveErrorShownRef = useRef(false);
 
   const userRecord = Array.isArray(user) ? user[0] : user;
   const displayName =
@@ -121,9 +131,63 @@ export default function DashboardPage() {
   }, [location.state]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem("glide_today_rail_note", railNote);
-  }, [railNote]);
+    if (userLoading) return;
+
+    const storedNote =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("glide_today_rail_note") || ""
+        : "";
+    const nextNote = userRecord?.dashboardNote ?? storedNote;
+
+    setRailNote(nextNote);
+    lastSavedNoteRef.current = nextNote;
+    noteHydratedRef.current = true;
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("glide_today_rail_note", nextNote);
+    }
+  }, [userLoading, userRecord?.dashboardNote]);
+
+  useEffect(() => {
+    if (!noteHydratedRef.current || userLoading || !auth.currentUser) return;
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("glide_today_rail_note", railNote);
+    }
+
+    if (railNote === lastSavedNoteRef.current) return;
+
+    if (noteSaveTimeoutRef.current) {
+      window.clearTimeout(noteSaveTimeoutRef.current);
+    }
+
+    noteSaveTimeoutRef.current = window.setTimeout(async () => {
+      try {
+        await apiClient.patch(`/api/users/${auth.currentUser.uid}`, { dashboardNote: railNote });
+        lastSavedNoteRef.current = railNote;
+        noteSaveErrorShownRef.current = false;
+      } catch (err) {
+        console.error("Failed to save dashboard note:", err);
+        if (!noteSaveErrorShownRef.current) {
+          setBanner({ message: err?.message || "Failed to save your dashboard note.", type: "error" });
+          noteSaveErrorShownRef.current = true;
+        }
+      }
+    }, 400);
+
+    return () => {
+      if (noteSaveTimeoutRef.current) {
+        window.clearTimeout(noteSaveTimeoutRef.current);
+      }
+    };
+  }, [railNote, userLoading]);
+
+  useEffect(() => {
+    if (userLoading || !auth.currentUser) return;
+    fetchSchedule(todayKey).catch((err) => {
+      setBanner({ message: err?.message || "Failed to load today’s plan.", type: "error" });
+    });
+  }, [fetchSchedule, todayKey, userLoading]);
 
   if (loading || userLoading) {
     return (
@@ -245,6 +309,55 @@ export default function DashboardPage() {
     });
   };
 
+  const handleCompleteScheduleBlock = async (blockId, sourceNode) => {
+    const sourceRect = sourceNode?.getBoundingClientRect?.() || null;
+
+    try {
+      const data = await completeScheduleBlock(blockId, todayKey);
+      await fetchTasks();
+      await refreshUser();
+
+      if (typeof data?.newTotalXP === "number") {
+        setXp(data.newTotalXP);
+      }
+
+      if (
+        typeof window !== "undefined" &&
+        sourceRect &&
+        xpAnchorRef.current &&
+        Number(data?.xpGained) > 0
+      ) {
+        const targetRect = xpAnchorRef.current.getBoundingClientRect();
+        const burstId = `${blockId}-${Date.now()}`;
+        setXpBursts((prev) => [
+          ...prev,
+          {
+            id: burstId,
+            label: `+${Math.round(data.xpGained)} XP`,
+            startX: sourceRect.left + sourceRect.width / 2,
+            startY: sourceRect.top + sourceRect.height / 2,
+            endX: targetRect.left + targetRect.width * 0.7,
+            endY: targetRect.top + targetRect.height / 2,
+          },
+        ]);
+        window.setTimeout(() => {
+          setXpBursts((prev) => prev.filter((burst) => burst.id !== burstId));
+        }, 950);
+      }
+
+      if (data?.xpGained > 0) {
+        setBanner({ message: `Block completed. +${Math.round(data.xpGained)} XP.`, type: "success" });
+      } else if (data?.underlyingAlready) {
+        setBanner({ message: "Block closed. The underlying work was already complete.", type: "info" });
+      } else {
+        setBanner({ message: "Block completed.", type: "success" });
+      }
+    } catch (err) {
+      console.error("Failed to complete schedule block:", err);
+      setBanner({ message: err?.message || "Failed to complete that block.", type: "error" });
+    }
+  };
+
   return (
     <div className="dash">
       {banner && (
@@ -313,6 +426,10 @@ export default function DashboardPage() {
             currentLevelXP={xpModel.currentLevelXP}
             xpProgressPct={xpModel.progress}
             streakCalendar={streakCalendar}
+            scheduleBlocks={scheduleBlocks}
+            scheduleLoading={scheduleLoading}
+            completingBlockId={completingBlockId}
+            onCompleteScheduleBlock={handleCompleteScheduleBlock}
             railNote={railNote}
             onRailNoteChange={setRailNote}
             xpAnchorRef={xpAnchorRef}

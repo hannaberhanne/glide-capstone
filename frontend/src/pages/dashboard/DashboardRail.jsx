@@ -1,9 +1,21 @@
+import { Link } from "react-router-dom";
+
+function formatScheduleType(type) {
+  if (type === "routine") return "Routine";
+  if (type === "break") return "Break";
+  return "Task";
+}
+
 export default function DashboardRail({
   level,
   nextLevel,
   currentLevelXP,
   xpProgressPct,
   streakCalendar,
+  scheduleBlocks,
+  scheduleLoading,
+  completingBlockId,
+  onCompleteScheduleBlock,
   railNote,
   onRailNoteChange,
   xpAnchorRef,
@@ -85,6 +97,59 @@ export default function DashboardRail({
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="rail-block rail-schedule-block" aria-label="Today's AI plan">
+        <div className="rail-section-head">
+          <span className="rail-section-label">Today&apos;s Plan</span>
+          <Link to="/planner" className="rail-section-link">
+            Open Planner
+          </Link>
+        </div>
+
+        {scheduleLoading ? (
+          <div className="rail-schedule-empty">Loading today&apos;s plan…</div>
+        ) : scheduleBlocks.length ? (
+          <div className="rail-schedule-list">
+            {scheduleBlocks.slice(0, 4).map((block) => {
+              const isCompleted = block.status === "completed";
+              const canComplete = !isCompleted && block.type !== "break";
+              return (
+                <article
+                  key={block.blockId}
+                  className={`rail-schedule-item ${isCompleted ? "is-complete" : ""}`.trim()}
+                >
+                  <div className="rail-schedule-meta">
+                    <span className="rail-schedule-time">{block.startTime || "--"}</span>
+                    <span className="rail-schedule-chip">{formatScheduleType(block.type)}</span>
+                  </div>
+                  <strong className="rail-schedule-title">{block.itemTitle || "Untitled block"}</strong>
+                  {block.reasoning ? (
+                    <p className="rail-schedule-reason">{block.reasoning}</p>
+                  ) : null}
+                  {canComplete ? (
+                    <button
+                      type="button"
+                      className="rail-schedule-action"
+                      onClick={(event) => onCompleteScheduleBlock(block.blockId, event.currentTarget)}
+                      disabled={completingBlockId === block.blockId}
+                    >
+                      {completingBlockId === block.blockId ? "..." : "Done"}
+                    </button>
+                  ) : (
+                    <span className="rail-schedule-state">
+                      {isCompleted ? "Done" : "Break"}
+                    </span>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rail-schedule-empty">
+            Generate a plan in Planner to let Glide shape today for you.
+          </div>
+        )}
       </section>
 
       <section className="rail-note-block" aria-label="Quick notes">

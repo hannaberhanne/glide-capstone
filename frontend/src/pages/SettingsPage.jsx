@@ -85,7 +85,14 @@ export default function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { user, xp, refreshUser } = useUser();
-  const { canvasStatus } = useCanvasStatus();
+  const {
+    canvasStatus,
+    statusLoading,
+    syncing: canvasSyncing,
+    disconnecting: canvasDisconnecting,
+    syncCanvas,
+    disconnectCanvas,
+  } = useCanvasStatus();
   const {
     prefs: accessibilityPrefs,
     updatePref: updateAccessibilityPref,
@@ -109,6 +116,7 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState(() => getInitialVisualPrefs(userRecord));
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [canvasMessage, setCanvasMessage] = useState("");
 
   const avatarPattern = useMemo(
     () => resolvePattern(form.major, userRecord?.category),
@@ -217,6 +225,32 @@ export default function SettingsPage() {
       setStatusMessage("Unable to save changes right now.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCanvasSync = async () => {
+    setCanvasMessage("");
+    try {
+      const data = await syncCanvas();
+      setCanvasMessage(
+        data?.materialTaskChanges > 0
+          ? "Canvas synced. Your workload changed, so replan from Planner when you are ready."
+          : "Canvas synced successfully."
+      );
+    } catch (err) {
+      console.error("Canvas sync failed:", err);
+      setCanvasMessage(err?.message || "Unable to sync Canvas right now.");
+    }
+  };
+
+  const handleCanvasDisconnect = async (deleteData = false) => {
+    setCanvasMessage("");
+    try {
+      const data = await disconnectCanvas({ deleteData });
+      setCanvasMessage(data?.message || "Canvas disconnected.");
+    } catch (err) {
+      console.error("Canvas disconnect failed:", err);
+      setCanvasMessage(err?.message || "Unable to disconnect Canvas right now.");
     }
   };
 
@@ -561,7 +595,7 @@ export default function SettingsPage() {
             <div className="settings-info-list">
               <div>
                 <span className="settings-info-label">Status</span>
-                <p>{canvasConnected ? "Connected" : "Offline"}</p>
+                <p>{statusLoading ? "Checking..." : (canvasConnected ? "Connected" : "Offline")}</p>
               </div>
 
               <div>
@@ -572,11 +606,64 @@ export default function SettingsPage() {
                     : "Connect Canvas to import assignments and deadlines."}
                 </p>
               </div>
+
+              <div>
+                <span className="settings-info-label">Last Sync</span>
+                <p>{canvasStatus?.lastSync ? new Date(canvasStatus.lastSync).toLocaleString() : "Never"}</p>
+              </div>
+
+              <div>
+                <span className="settings-info-label">Linked Tasks</span>
+                <p>{canvasStatus?.linkedTasksCount ?? 0}</p>
+              </div>
+
+              <div>
+                <span className="settings-info-label">Planning Impact</span>
+                <p>
+                  {canvasStatus?.lastSyncSummary?.materialTaskChanges > 0
+                    ? "Last sync changed the workload. Replan from Planner when you are ready."
+                    : "Last sync did not change the workload."}
+                </p>
+              </div>
             </div>
 
-            <Link to="/canvas-setup" className="settings-btn inline-btn">
-              {canvasConnected ? "Manage Connection" : "Connect Canvas"}
-            </Link>
+            <div className="settings-canvas-actions">
+              <button
+                type="button"
+                className="settings-btn inline-btn"
+                onClick={handleCanvasSync}
+                disabled={!canvasConnected || canvasSyncing}
+              >
+                {canvasSyncing ? "Syncing..." : "Sync Now"}
+              </button>
+
+              <Link to="/canvas-setup" className="settings-btn inline-btn settings-btn-secondary">
+                {canvasConnected ? "Manage Connection" : "Connect Canvas"}
+              </Link>
+
+              {canvasConnected ? (
+                <>
+                  <button
+                    type="button"
+                    className="settings-link"
+                    onClick={() => handleCanvasDisconnect(false)}
+                    disabled={canvasDisconnecting}
+                  >
+                    {canvasDisconnecting ? "Disconnecting..." : "Disconnect"}
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-link settings-link-danger"
+                    onClick={() => handleCanvasDisconnect(true)}
+                    disabled={canvasDisconnecting}
+                  >
+                    {canvasDisconnecting ? "Disconnecting..." : "Disconnect + Remove Data"}
+                  </button>
+                </>
+              ) : null}
+            </div>
+
+            {canvasMessage ? <p className="settings-status">{canvasMessage}</p> : null}
           </article>
         </div>
 

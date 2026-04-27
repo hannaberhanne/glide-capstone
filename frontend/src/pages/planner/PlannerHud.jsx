@@ -1,4 +1,14 @@
-export default function PlannerHud({ monthLabel, assistActive, assistBusy, onPrev, onNext, onToggleAssist }) {
+export default function PlannerHud({
+  monthLabel,
+  assistActive,
+  assistBusy,
+  scheduleBusy,
+  onPrev,
+  onNext,
+  onToggleAssist,
+  onGenerateSchedule,
+  onReplanSchedule,
+}) {
   return (
     <div className="planner-hud" aria-label="Planner controls">
       <div className="planner-hud-month">
@@ -15,12 +25,31 @@ export default function PlannerHud({ monthLabel, assistActive, assistBusy, onPre
         </button>
       </div>
 
+      <div className="planner-hud-actions">
+        <button
+          type="button"
+          className="planner-hud-action"
+          onClick={onGenerateSchedule}
+          disabled={scheduleBusy}
+        >
+          Generate Day
+        </button>
+        <button
+          type="button"
+          className="planner-hud-action planner-hud-action-secondary"
+          onClick={onReplanSchedule}
+          disabled={scheduleBusy}
+        >
+          Replan
+        </button>
+      </div>
+
       <button
         type="button"
         className={`planner-assist-toggle ${assistActive ? "is-active" : ""}`.trim()}
         onClick={onToggleAssist}
         aria-pressed={assistActive}
-        disabled={assistBusy}
+        disabled={assistBusy || scheduleBusy}
       >
         Assist
       </button>

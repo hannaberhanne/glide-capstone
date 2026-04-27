@@ -540,6 +540,133 @@
   gap: 2px;
 }
 
+.rail-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rail-section-label {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(46, 38, 31, 0.62);
+}
+
+.rail-section-link {
+  color: rgba(46, 38, 31, 0.72);
+  text-decoration: none;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.rail-section-link:hover {
+  color: var(--today-ink);
+}
+
+.rail-schedule-block {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(46, 38, 31, 0.12);
+}
+
+.rail-schedule-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rail-schedule-item {
+  padding: 12px 12px 10px;
+  border-radius: 12px;
+  background: rgba(251, 247, 240, 0.34);
+  border: 1px solid rgba(46, 38, 31, 0.08);
+}
+
+.rail-schedule-item.is-complete {
+  opacity: 0.64;
+}
+
+.rail-schedule-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.rail-schedule-time,
+.rail-schedule-chip,
+.rail-schedule-state {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rail-schedule-time {
+  color: rgba(46, 38, 31, 0.58);
+  font-variant-numeric: tabular-nums;
+}
+
+.rail-schedule-chip,
+.rail-schedule-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(251, 247, 240, 0.56);
+  border: 1px solid rgba(46, 38, 31, 0.08);
+  color: rgba(46, 38, 31, 0.68);
+}
+
+.rail-schedule-title {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--today-ink);
+}
+
+.rail-schedule-reason,
+.rail-schedule-empty {
+  margin: 6px 0 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--today-muted);
+}
+
+.rail-schedule-action {
+  margin-top: 10px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(46, 38, 31, 0.12);
+  background: rgba(46, 38, 31, 0.9);
+  color: var(--today-sheet-bg);
+  padding: 0 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rail-schedule-action:disabled {
+  opacity: 0.58;
+  cursor: wait;
+}
+
 .rail-note-block {
   position: relative;
   margin: auto 2px -10px;

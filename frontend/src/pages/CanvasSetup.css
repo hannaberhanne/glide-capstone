@@ -105,6 +105,109 @@ html.high-contrast .canvas-setup-container {
   opacity: 0.9;
 }
 
+.canvas-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.canvas-status-card {
+  margin-top: 22px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--canvas-input-border);
+  background: color-mix(in srgb, var(--canvas-card-bg) 88%, #f3f4f6 12%);
+  text-align: left;
+}
+
+.canvas-status-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.canvas-status-kicker,
+.canvas-status-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--canvas-sub);
+}
+
+.canvas-status-title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--canvas-title);
+}
+
+.canvas-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--canvas-input-border);
+  color: var(--canvas-sub);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.canvas-status-pill.is-connected {
+  color: #1f5132;
+  border-color: rgba(31, 81, 50, 0.2);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.canvas-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.canvas-status-grid p,
+.canvas-status-copy {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--canvas-text);
+}
+
+.canvas-status-summary {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.canvas-status-copy--compact {
+  color: var(--canvas-sub);
+}
+
+.canvas-danger-zone {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.canvas-setup-btn-secondary {
+  background: transparent;
+  color: var(--canvas-title);
+  border: 1px solid var(--canvas-input-border);
+}
+
+.canvas-setup-btn-danger {
+  background: #a94442;
+}
+
 .canvas-message {
   margin-top: 14px;
   font-size: 15px;
@@ -122,4 +225,15 @@ html.high-contrast .canvas-setup-container {
 
 .canvas-return-btn:hover {
   color: var(--canvas-return-hover);
+}
+
+@media (max-width: 640px) {
+  .canvas-setup-card {
+    padding: 28px 24px;
+    transform: none;
+  }
+
+  .canvas-status-grid {
+    grid-template-columns: 1fr;
+  }
 }

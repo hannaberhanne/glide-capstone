@@ -6,6 +6,40 @@ import {
   upsertCanvasTaskFromAssignment
 } from '../services/canvasTaskSyncService.js';
 
+function dateKey(date) {
+  return date.toISOString().split('T')[0];
+}
+
+function isoOrNull(value) {
+  if (!value) return null;
+  if (typeof value?.toDate === 'function') {
+    return value.toDate().toISOString();
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  return value;
+}
+
+function buildCanvasStatusPayload({ userData, coursesCount, assignmentsCount, linkedTasksCount }) {
+  const hasStoredToken = Boolean(userData?.canvasToken);
+  const lastSyncSummary = userData?.lastCanvasSyncSummary || null;
+  const plannedWindow = userData?.lastCanvasPlannedWindow || null;
+
+  return {
+    hasToken: hasStoredToken,
+    tokenSource: hasStoredToken ? 'user' : 'none',
+    lastSync: isoOrNull(userData?.lastCanvasSyncAt),
+    coursesCount,
+    assignmentsCount,
+    linkedTasksCount,
+    lastSyncSummary,
+    lastPlanTriggered: Boolean(userData?.lastCanvasPlanTriggered),
+    lastPlanWindowStart: plannedWindow?.start || null,
+    lastPlanWindowEnd: plannedWindow?.end || null,
+  };
+}
+
 // Sync courses and assignments from Canvas to Firestore
 const syncCanvas = async (req, res) => {
   try {
@@ -29,11 +63,11 @@ const syncCanvas = async (req, res) => {
       userData = newUserData;
     }
 
-    const token = canvasToken || userData?.canvasToken || process.env.CANVAS_TOKEN;
+    const token = canvasToken || userData?.canvasToken;
     if (!token) {
       return res.status(400).json({
         success: false,
-        error: 'Canvas token is required. Provide in body or store on user.'
+        error: 'Canvas token is required. Save your Canvas token first.'
       });
     }
 
@@ -54,6 +88,8 @@ const syncCanvas = async (req, res) => {
     let assignmentsUpdated = 0;
     let tasksAdded = 0;
     let tasksUpdated = 0;
+    let tasksUnchanged = 0;
+    let materialTaskChanges = 0;
 
     for (const courseData of coursesWithAssignments) {
       // upsert course by canvasId for this user
@@ -145,26 +181,59 @@ const syncCanvas = async (req, res) => {
 
         if (taskResult.action === 'added') {
           tasksAdded++;
-        } else {
+        } else if (taskResult.action === 'updated') {
           tasksUpdated++;
+        } else {
+          tasksUnchanged++;
+        }
+
+        if (taskResult.materialChange) {
+          materialTaskChanges++;
         }
       }
     }
 
+    const planTriggered = false;
+    const plannedStartDate = null;
+    const plannedEndDate = null;
+    const blocksCreated = 0;
+
+    const syncSummary = {
+      coursesAdded,
+      coursesUpdated,
+      assignmentsAdded,
+      assignmentsUpdated,
+      tasksAdded,
+      tasksUpdated,
+      tasksUnchanged,
+      materialTaskChanges,
+      planTriggered,
+      plannedStartDate,
+      plannedEndDate,
+      blocksCreated,
+      tokenSource: canvasToken ? 'provided' : 'stored',
+    };
+
+    await db.collection('users').doc(uid).set({
+      lastCanvasSyncAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastCanvasSyncSummary: syncSummary,
+      lastCanvasPlanTriggered: planTriggered,
+      lastCanvasPlannedWindow: planTriggered
+        ? { start: plannedStartDate, end: plannedEndDate }
+        : null,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
     res.json({
       success: true,
-      message: 'Canvas data synced successfully',
+      message: materialTaskChanges > 0
+        ? 'Canvas synced successfully. Your workload changed, so replan from Planner when you are ready.'
+        : 'Canvas data synced successfully.',
       data: {
-        coursesAdded,
-        coursesUpdated,
-        assignmentsAdded,
-        assignmentsUpdated,
-        tasksAdded,
-        tasksUpdated,
+        ...syncSummary,
         totalCourses: coursesAdded + coursesUpdated,
         totalAssignments: assignmentsAdded + assignmentsUpdated,
-        totalTasks: tasksAdded + tasksUpdated,
-        tokenSource: canvasToken ? 'provided' : (userData?.canvasToken ? 'stored' : 'env')
+        totalTasks: tasksAdded + tasksUpdated + tasksUnchanged,
       }
     });
 
@@ -193,24 +262,6 @@ const getCanvasSyncStatus = async (req, res) => {
     const userDoc = await db.collection('users').doc(uid).get();
     const userData = userDoc.data();
 
-    const hasStoredToken = !!(userData?.canvasToken);
-    const hasEnvToken = !!process.env.CANVAS_TOKEN;
-    const hasToken = hasStoredToken || hasEnvToken;
-
-    if (!hasToken) {
-      return res.json({
-        success: true,
-        data: {
-          hasToken: false,
-          tokenSource: 'none',
-          lastSync: null,
-          coursesCount: 0,
-          assignmentsCount: 0,
-          linkedTasksCount: 0
-        }
-      });
-    }
-
     const coursesSnapshot = await db.collection('courses')
       .where('userId', '==', uid)
       .get();
@@ -220,24 +271,14 @@ const getCanvasSyncStatus = async (req, res) => {
       .get();
     const linkedTasksCount = await getCanvasTaskCount(uid);
 
-    let lastSync = null;
-    coursesSnapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.lastCanvasSync && (!lastSync || data.lastCanvasSync > lastSync)) {
-        lastSync = data.lastCanvasSync;
-      }
-    });
-
     res.json({
       success: true,
-      data: {
-        hasToken: true,
-        tokenSource: hasStoredToken ? 'user' : 'env',
-        lastSync: lastSync,
+      data: buildCanvasStatusPayload({
+        userData,
         coursesCount: coursesSnapshot.size,
         assignmentsCount: assignmentsSnapshot.size,
-        linkedTasksCount
-      }
+        linkedTasksCount,
+      }),
     });
 
   } catch (error) {
@@ -257,6 +298,10 @@ const disconnectCanvas = async (req, res) => {
 
     await db.collection('users').doc(uid).update({
       canvasToken: '',
+      lastCanvasSyncAt: null,
+      lastCanvasSyncSummary: null,
+      lastCanvasPlanTriggered: false,
+      lastCanvasPlannedWindow: null,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
@@ -285,6 +330,8 @@ const disconnectCanvas = async (req, res) => {
 
     res.json({
       success: true,
+      disconnected: true,
+      deletedData: Boolean(deleteData),
       message: deleteData
         ? 'Canvas disconnected and synced data deleted'
         : 'Canvas disconnected. Your Canvas data remains in the database.'

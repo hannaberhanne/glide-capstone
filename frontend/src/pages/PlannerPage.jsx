@@ -3,6 +3,7 @@ import { auth } from "../config/firebase.js";
 import TaskModal from "../components/TaskModal.jsx";
 import AlertBanner from "../components/AlertBanner.jsx";
 import useTasks from "../hooks/useTasks";
+import useSchedule from "../hooks/useSchedule.js";
 import { apiClient } from "../lib/apiClient.js";
 import PlannerHud from "./planner/PlannerHud.jsx";
 import PlannerSidebar from "./planner/PlannerSidebar.jsx";
@@ -51,6 +52,16 @@ export default function PlannerPage() {
   const [overflowToast, setOverflowToast] = useState("");
   const [banner, setBanner] = useState(null);
   const { tasks, loading, fetchTasks, addTask, updateTask, completeTask } = useTasks();
+  const {
+    blocks: scheduleBlocks,
+    scheduleLoading,
+    generating: scheduleBusy,
+    completingBlockId,
+    fetchBlocks,
+    generateSchedule,
+    replanSchedule,
+    completeBlock: completeScheduleBlock,
+  } = useSchedule();
 
   const [plannerState, dispatch] = useReducer(
     plannerReducer,
@@ -90,6 +101,13 @@ export default function PlannerPage() {
     const timeout = window.setTimeout(() => setOverflowToast(""), 2200);
     return () => window.clearTimeout(timeout);
   }, [overflowToast]);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    fetchBlocks(viewModel.selectedDay.key).catch((err) => {
+      setBanner({ message: err?.message || "Failed to load the day plan.", type: "error" });
+    });
+  }, [fetchBlocks, viewModel.selectedDay.key]);
 
   const openCreateModal = () => {
     setEditingTask(null);
@@ -319,6 +337,68 @@ export default function PlannerPage() {
     }
   };
 
+  const handleGenerateSchedule = async () => {
+    try {
+      await generateSchedule(viewModel.selectedDay.key);
+      setBanner({
+        message: `Generated a plan for ${viewModel.selectedDay.dayName}.`,
+        type: "success",
+      });
+    } catch (err) {
+      setBanner({
+        message: err?.message || "Unable to generate a plan right now.",
+        type: "error",
+      });
+    }
+  };
+
+  const handleReplanSchedule = async () => {
+    try {
+      await replanSchedule(viewModel.selectedDay.key);
+      setBanner({
+        message:
+          viewModel.selectedDay.key === dayKey(today)
+            ? "Replanned today."
+            : `Replanned ${viewModel.selectedDay.dayName}.`,
+        type: "success",
+      });
+    } catch (err) {
+      setBanner({
+        message: err?.message || "Unable to replan right now.",
+        type: "error",
+      });
+    }
+  };
+
+  const handleCompleteScheduleBlock = async (blockId) => {
+    try {
+      const data = await completeScheduleBlock(blockId, viewModel.selectedDay.key);
+      await fetchTasks();
+
+      if (data?.xpGained > 0) {
+        setBanner({
+          message: `Completed. +${Math.round(data.xpGained)} XP.`,
+          type: "success",
+        });
+      } else if (data?.underlyingAlready) {
+        setBanner({
+          message: "Block closed. The underlying work was already complete.",
+          type: "info",
+        });
+      } else {
+        setBanner({
+          message: "Block completed.",
+          type: "success",
+        });
+      }
+    } catch (err) {
+      setBanner({
+        message: err?.message || "Unable to complete that block.",
+        type: "error",
+      });
+    }
+  };
+
   const handlePrevMonth = () => {
     const next = addMonths(cursor, -1);
     dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.NAVIGATE_MONTH, { monthKey: monthKey(next) }));
@@ -367,9 +447,12 @@ export default function PlannerPage() {
             monthLabel={viewModel.monthLabel}
             assistActive={plannerState.assist.active}
             assistBusy={assistLoading || interactionLocks.assistDisabled}
+            scheduleBusy={scheduleBusy}
             onPrev={handlePrevMonth}
             onNext={handleNextMonth}
             onToggleAssist={toggleAssist}
+            onGenerateSchedule={handleGenerateSchedule}
+            onReplanSchedule={handleReplanSchedule}
           />
 
           <PlannerGrid
@@ -380,6 +463,10 @@ export default function PlannerPage() {
             assistActive={plannerState.assist.active}
             draggingDisabled={interactionLocks.dragDisabled}
             overflowBusy={overflowBusy}
+            scheduleBlocks={scheduleBlocks}
+            scheduleLoading={scheduleLoading}
+            generating={scheduleBusy}
+            completingBlockId={completingBlockId}
             onSelectDay={handleSelectDay}
             onDragStartTask={handleDragStart}
             onDragEnd={handleDragEnd}
@@ -391,6 +478,9 @@ export default function PlannerPage() {
             onRejectSuggestion={handleRejectSuggestion}
             onReturnOverflow={handleReturnOverflow}
             onAddTask={openCreateModal}
+            onGenerateSchedule={handleGenerateSchedule}
+            onReplanSchedule={handleReplanSchedule}
+            onCompleteBlock={handleCompleteScheduleBlock}
           />
         </section>
       </div>

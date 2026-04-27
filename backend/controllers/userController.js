@@ -53,7 +53,7 @@ const updateUser = async (req, res) => {
         const uid = req.user.uid;
         const {
             canvasToken, darkMode, email, firstName, fontScale, gradYear, lastName, longestStreak, major, notifications, photo,
-            timezone, totalXP, university, homeTown, year, onboardingAnswers, preferences
+            timezone, totalXP, university, homeTown, year, onboardingAnswers, preferences, dashboardNote
         } = req.body;
 
         // load the user doc once and work from that.
@@ -142,6 +142,10 @@ const updateUser = async (req, res) => {
 
         if (onboardingAnswers !== undefined) {
             updateData.onboardingAnswers = onboardingAnswers;
+        }
+
+        if (dashboardNote !== undefined) {
+            updateData.dashboardNote = dashboardNote === null ? '' : String(dashboardNote);
         }
 
         if (year !== undefined) {
