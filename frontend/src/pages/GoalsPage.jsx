@@ -328,10 +328,10 @@ export default function GoalsPage() {
   <h2 className="achievements-title">Your Achievements</h2>
 
   <div className="stat-badges-grid">
-    <StatBadge icon="" label="Current Streak" value={bestStreak !== null ? `${bestStreak} days` : "—"} />
-    <StatBadge icon="" label="Longest Streak" value={longestStreak !== null ? `${longestStreak} days` : "—"} />
-    <StatBadge icon="" label="Level" value={level ?? "—"} />
-<StatBadge icon="" label="Total XP" value={xp ?? "—"} />
+    <StatBadge icon="" label="Current Streak" value={bestStreak !== null ? `${bestStreak} days` : "0 days"} />
+    <StatBadge icon="" label="Longest Streak" value={longestStreak !== null ? `${longestStreak} days` : "0 days"} />
+    <StatBadge icon="" label="Level" value={level ?? 0} />
+<StatBadge icon="" label="Total XP" value={xp ?? 0} />
   </div>
 
   <div className="earned-badges-section">
