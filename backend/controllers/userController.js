@@ -1,4 +1,5 @@
 import { admin, db } from '../config/firebase.js';
+import { normalizeNotificationPreferences } from '../domain/notificationPreferences.js';
 
 
 // grab the user profile.
@@ -53,7 +54,7 @@ const updateUser = async (req, res) => {
         const uid = req.user.uid;
         const {
             canvasToken, darkMode, email, firstName, fontScale, gradYear, lastName, longestStreak, major, notifications, photo,
-            timezone, totalXP, university, homeTown, year, onboardingAnswers, preferences, dashboardNote
+            timezone, totalXP, university, homeTown, year, onboardingAnswers, preferences, dashboardNote, weeklySummary
         } = req.body;
 
         // load the user doc once and work from that.
@@ -116,10 +117,6 @@ const updateUser = async (req, res) => {
             updateData.major = major;
         }
 
-        if (notifications !== undefined) {
-            updateData.notifications = notifications;
-        }
-
         if (photo !== undefined) {
             updateData.photo = photo;
         }
@@ -157,19 +154,24 @@ const updateUser = async (req, res) => {
                 existingData.preferences && typeof existingData.preferences === 'object' && !Array.isArray(existingData.preferences)
                     ? existingData.preferences
                     : {};
+            const existingNotificationPrefs =
+                existingPreferences.notifications && typeof existingPreferences.notifications === 'object' && !Array.isArray(existingPreferences.notifications)
+                    ? existingPreferences.notifications
+                    : existingPreferences.notifications;
             const mergedPreferences = {
                 ...existingPreferences,
                 ...preferences,
             };
 
-            updateData.preferences = mergedPreferences;
+            mergedPreferences.notifications = normalizeNotificationPreferences({
+                incoming: preferences.notifications,
+                existing: existingNotificationPrefs,
+                legacyNotifications: notifications ?? existingData.notifications,
+                legacyWeeklySummary: weeklySummary ?? existingData.weeklySummary,
+                timezoneFallback: timezone ?? existingData.timezone,
+            });
 
-            if (mergedPreferences.notifications !== undefined) {
-                updateData.notifications = Boolean(mergedPreferences.notifications);
-            }
-            if (mergedPreferences.weeklySummary !== undefined) {
-                updateData.weeklySummary = Boolean(mergedPreferences.weeklySummary);
-            }
+            updateData.preferences = mergedPreferences;
             if (mergedPreferences.taskColor !== undefined) {
                 updateData.taskColor = mergedPreferences.taskColor;
             }
@@ -194,6 +196,21 @@ const updateUser = async (req, res) => {
             if (mergedPreferences.reduceMotion !== undefined) {
                 updateData.reduceMotion = Boolean(mergedPreferences.reduceMotion);
             }
+        } else if (notifications !== undefined || weeklySummary !== undefined) {
+            const existingPreferences =
+                existingData.preferences && typeof existingData.preferences === 'object' && !Array.isArray(existingData.preferences)
+                    ? existingData.preferences
+                    : {};
+            updateData.preferences = {
+                ...existingPreferences,
+                notifications: normalizeNotificationPreferences({
+                    incoming: existingPreferences.notifications,
+                    existing: existingPreferences.notifications,
+                    legacyNotifications: notifications ?? existingData.notifications,
+                    legacyWeeklySummary: weeklySummary ?? existingData.weeklySummary,
+                    timezoneFallback: timezone ?? existingData.timezone,
+                }),
+            };
         }
 
         // if the email changed, auth needs the same update too.

@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getMessaging, isSupported, deleteToken, getToken, onMessage } from "firebase/messaging";
 
 
 const firebaseConfig = {
@@ -17,3 +18,19 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const firebaseApp = app;
+export const messagingConfig = {
+  vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY || "",
+};
+
+export async function getMessagingInstance() {
+  const supported = await isSupported().catch(() => false);
+  if (!supported) return null;
+  return getMessaging(app);
+}
+
+export {
+  deleteToken,
+  getToken,
+  onMessage,
+};

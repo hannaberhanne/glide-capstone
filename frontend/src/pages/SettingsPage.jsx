@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { auth } from "../config/firebase";
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword as updateFirebasePassword,
+} from "firebase/auth";
 import { apiClient } from "../lib/apiClient.js";
 import useCanvasStatus from "../hooks/useCanvasStatus";
+import useNotificationRegistration from "../hooks/useNotificationRegistration.js";
 import useUser from "../hooks/useUser";
 import useAccessibilityPrefs, {
   getStoredAccessibilityPrefs,
@@ -48,11 +54,69 @@ const getStoredVisualPrefs = () => ({
   defaultPriority: localStorage.getItem("defaultPriority") || "medium",
 });
 
+const getBrowserTimezone = () => {
+  if (typeof Intl !== "undefined") {
+    const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (resolved) return resolved;
+  }
+  return "America/New_York";
+};
+
+const getDefaultNotificationPrefs = (timezoneFallback = getBrowserTimezone()) => ({
+  pushEnabled: false,
+  emailEnabled: false,
+  quietHoursStart: "",
+  quietHoursEnd: "",
+  timezone: timezoneFallback,
+  notifyDailyPlanReady: true,
+  notifyMissedBlocks: true,
+  notifyDueSoonTasks: true,
+  notifyStreakRisk: true,
+  notifyMajorReplans: true,
+});
+
+const getInitialNotificationPrefs = (userRecord) => {
+  const canonical = userRecord?.preferences?.notifications;
+  const timezoneFallback = userRecord?.timezone || getBrowserTimezone();
+  const defaults = getDefaultNotificationPrefs(timezoneFallback);
+
+  if (canonical && typeof canonical === "object" && !Array.isArray(canonical)) {
+    return {
+      ...defaults,
+      ...canonical,
+      timezone: canonical.timezone || defaults.timezone,
+      quietHoursStart: canonical.quietHoursStart || "",
+      quietHoursEnd: canonical.quietHoursEnd || "",
+    };
+  }
+
+  const legacyNotifications =
+    typeof userRecord?.notifications === "boolean"
+      ? userRecord.notifications
+      : typeof canonical === "boolean"
+        ? canonical
+        : defaults.notifyDueSoonTasks;
+  const legacyWeeklySummary =
+    typeof userRecord?.weeklySummary === "boolean"
+      ? userRecord.weeklySummary
+      : typeof userRecord?.preferences?.weeklySummary === "boolean"
+        ? userRecord.preferences.weeklySummary
+        : defaults.notifyDailyPlanReady;
+
+  return {
+    ...defaults,
+    notifyDueSoonTasks: legacyNotifications,
+    notifyDailyPlanReady: legacyWeeklySummary,
+  };
+};
+
 const getInitialProfileForm = (userRecord) => ({
   firstName: userRecord?.firstName || "",
   lastName: userRecord?.lastName || "",
   email: auth.currentUser?.email || "",
-  password: "",
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
   homeTown: userRecord?.homeTown || "",
   university: userRecord?.university || "",
   year: userRecord?.year || "",
@@ -62,10 +126,6 @@ const getInitialProfileForm = (userRecord) => ({
 
 const getInitialVisualPrefs = (userRecord) => ({
   ...getStoredVisualPrefs(),
-  notifications:
-    userRecord?.notifications ?? userRecord?.preferences?.notifications ?? false,
-  weeklySummary:
-    userRecord?.weeklySummary ?? userRecord?.preferences?.weeklySummary ?? false,
   taskColor:
     userRecord?.taskColor ??
     userRecord?.preferences?.taskColor ??
@@ -100,9 +160,24 @@ export default function SettingsPage() {
     decreaseFontScale,
     setPrefs: setAccessibilityPrefs,
   } = useAccessibilityPrefs();
+  const {
+    supported: pushSupported,
+    vapidConfigured,
+    permission: pushPermission,
+    browserRegistered,
+    currentBrowserToken,
+    registering: pushRegistering,
+    disabling: pushDisabling,
+    registrationError: pushRegistrationError,
+    registerThisBrowser,
+    disableThisBrowser,
+  } = useNotificationRegistration();
 
   const userRecord = Array.isArray(user) ? user[0] : user;
   const canvasConnected = Boolean(canvasStatus?.hasToken);
+  const supportsPasswordChange = Boolean(
+    auth.currentUser?.providerData?.some((provider) => provider?.providerId === "password")
+  );
   const displayName =
     [userRecord?.firstName, userRecord?.lastName].filter(Boolean).join(" ") ||
     auth.currentUser?.displayName ||
@@ -114,9 +189,13 @@ export default function SettingsPage() {
   );
   const [form, setForm] = useState(() => getInitialProfileForm(userRecord));
   const [prefs, setPrefs] = useState(() => getInitialVisualPrefs(userRecord));
+  const [notificationPrefs, setNotificationPrefs] = useState(() =>
+    getInitialNotificationPrefs(userRecord)
+  );
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [canvasMessage, setCanvasMessage] = useState("");
+  const [pushMessage, setPushMessage] = useState("");
 
   const avatarPattern = useMemo(
     () => resolvePattern(form.major, userRecord?.category),
@@ -126,6 +205,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setForm(getInitialProfileForm(userRecord));
     setPrefs(getInitialVisualPrefs(userRecord));
+    setNotificationPrefs(getInitialNotificationPrefs(userRecord));
   }, [userRecord]);
 
   useEffect(() => {
@@ -179,17 +259,22 @@ export default function SettingsPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const togglePref = (field) => {
-    setPrefs((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
-
   const updatePref = (field, value) => {
     setPrefs((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleNotificationPref = (field) => {
+    setNotificationPrefs((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const updateNotificationPref = (field, value) => {
+    setNotificationPrefs((prev) => ({ ...prev, [field]: value }));
   };
 
   const resetForm = () => {
     setForm(getInitialProfileForm(userRecord));
     setPrefs(getInitialVisualPrefs(userRecord));
+    setNotificationPrefs(getInitialNotificationPrefs(userRecord));
     setAccessibilityPrefs(getStoredAccessibilityPrefs());
     setStatusMessage("");
   };
@@ -202,6 +287,44 @@ export default function SettingsPage() {
     setStatusMessage("");
 
     try {
+      const wantsPasswordChange =
+        form.currentPassword.trim() !== "" ||
+        form.newPassword.trim() !== "" ||
+        form.confirmPassword.trim() !== "";
+
+      if (wantsPasswordChange) {
+        if (!supportsPasswordChange) {
+          throw new Error("Password changes are only available for email/password accounts.");
+        }
+
+        if (!form.currentPassword.trim()) {
+          throw new Error("Enter your current password to change it.");
+        }
+
+        if (!form.newPassword.trim()) {
+          throw new Error("Enter a new password.");
+        }
+
+        if (form.newPassword.length < 6) {
+          throw new Error("New password must be at least 6 characters.");
+        }
+
+        if (form.newPassword !== form.confirmPassword) {
+          throw new Error("New password and confirmation do not match.");
+        }
+
+        if (!auth.currentUser.email) {
+          throw new Error("Current account email is missing. Sign in again and retry.");
+        }
+
+        const credential = EmailAuthProvider.credential(
+          auth.currentUser.email,
+          form.currentPassword
+        );
+        await reauthenticateWithCredential(auth.currentUser, credential);
+        await updateFirebasePassword(auth.currentUser, form.newPassword);
+      }
+
       const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -214,15 +337,43 @@ export default function SettingsPage() {
         preferences: {
           ...prefs,
           ...accessibilityPrefs,
+          notifications: {
+            ...notificationPrefs,
+            timezone: notificationPrefs.timezone.trim() || form.timezone.trim() || getBrowserTimezone(),
+            quietHoursStart: notificationPrefs.quietHoursStart || "",
+            quietHoursEnd: notificationPrefs.quietHoursEnd || "",
+          },
         },
       };
 
       await apiClient.patch(`/api/users/${auth.currentUser.uid}`, payload);
-      setStatusMessage("Profile updated");
+      setForm((prev) => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+      setStatusMessage(
+        wantsPasswordChange ? "Profile updated. Password changed." : "Profile updated"
+      );
       await refreshUser();
     } catch (err) {
       console.error("Profile update failed:", err);
-      setStatusMessage("Unable to save changes right now.");
+      switch (err?.code) {
+        case "auth/invalid-credential":
+        case "auth/wrong-password":
+          setStatusMessage("Current password is incorrect.");
+          break;
+        case "auth/weak-password":
+          setStatusMessage("New password is too weak.");
+          break;
+        case "auth/too-many-requests":
+          setStatusMessage("Too many attempts. Wait a bit and try again.");
+          break;
+        default:
+          setStatusMessage(err?.message || "Unable to save changes right now.");
+          break;
+      }
     } finally {
       setSaving(false);
     }
@@ -251,6 +402,28 @@ export default function SettingsPage() {
     } catch (err) {
       console.error("Canvas disconnect failed:", err);
       setCanvasMessage(err?.message || "Unable to disconnect Canvas right now.");
+    }
+  };
+
+  const handleRegisterBrowser = async () => {
+    setPushMessage("");
+    try {
+      await registerThisBrowser();
+      setPushMessage("This browser is now registered for push notifications.");
+    } catch (err) {
+      console.error("Push registration failed:", err);
+      setPushMessage(err?.message || "Unable to register this browser for push notifications.");
+    }
+  };
+
+  const handleDisableBrowser = async () => {
+    setPushMessage("");
+    try {
+      await disableThisBrowser();
+      setPushMessage("Push notifications have been disabled on this browser.");
+    } catch (err) {
+      console.error("Disable browser notifications failed:", err);
+      setPushMessage(err?.message || "Unable to disable push notifications on this browser.");
     }
   };
 
@@ -297,15 +470,49 @@ export default function SettingsPage() {
           </label>
 
           <label className="settings-field-full">
-            Password
+            Current Password
             <input
               className="settings-input"
-              value={form.password}
-              onChange={(e) => updateFormField("password", e.target.value)}
-              placeholder="Enter new password"
+              value={form.currentPassword}
+              onChange={(e) => updateFormField("currentPassword", e.target.value)}
+              placeholder={supportsPasswordChange ? "Enter current password" : "Not available for this account"}
               type="password"
+              autoComplete="current-password"
+              disabled={!supportsPasswordChange}
             />
           </label>
+
+          <label className="settings-field-full">
+            New Password
+            <input
+              className="settings-input"
+              value={form.newPassword}
+              onChange={(e) => updateFormField("newPassword", e.target.value)}
+              placeholder={supportsPasswordChange ? "Enter new password" : "Not available for this account"}
+              type="password"
+              autoComplete="new-password"
+              disabled={!supportsPasswordChange}
+            />
+          </label>
+
+          <label className="settings-field-full">
+            Confirm New Password
+            <input
+              className="settings-input"
+              value={form.confirmPassword}
+              onChange={(e) => updateFormField("confirmPassword", e.target.value)}
+              placeholder={supportsPasswordChange ? "Confirm new password" : "Not available for this account"}
+              type="password"
+              autoComplete="new-password"
+              disabled={!supportsPasswordChange}
+            />
+          </label>
+
+          {!supportsPasswordChange ? (
+            <p className="settings-field-full settings-muted-text">
+              This account does not use email/password sign-in. Use your provider's account settings instead.
+            </p>
+          ) : null}
 
           <label className="settings-field-full">
             Home Town
@@ -386,152 +593,286 @@ export default function SettingsPage() {
           <p className="settings-panel-subtitle">Customize how Glide+ feels day to day.</p>
         </div>
       </div>
+      <form className="settings-form" onSubmit={handleProfileSave}>
+        <div className="settings-section">
+          <h3 className="settings-section-title">Notifications</h3>
+          <div className="settings-preference-list">
+            <label className="settings-preference-row checkbox-row">
+              <span className="settings-preference-label">Enable push notifications</span>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.pushEnabled}
+                onChange={() => toggleNotificationPref("pushEnabled")}
+              />
+            </label>
 
-      <div className="settings-section">
-        <h3 className="settings-section-title">Notifications</h3>
-        <div className="settings-preference-list">
-          <label className="settings-preference-row checkbox-row">
-            <span className="settings-preference-label">Receive task reminders</span>
-            <input
-              type="checkbox"
-              checked={prefs.notifications}
-              onChange={() => togglePref("notifications")}
-            />
-          </label>
+            <div className="settings-preference-row settings-preference-row-stack">
+              <div>
+                <span className="settings-preference-label">Push status</span>
+                <p className="settings-muted-text">
+                  {!pushSupported
+                    ? "Push notifications are not supported in this browser."
+                    : !vapidConfigured
+                      ? "Missing web push VAPID configuration."
+                      : browserRegistered
+                        ? `Registered on this browser (${pushPermission}).`
+                        : `Not registered on this browser (${pushPermission}).`}
+                </p>
+              </div>
+              <div className="settings-canvas-actions">
+                <button
+                  type="button"
+                  className="settings-btn inline-btn"
+                  onClick={handleRegisterBrowser}
+                  disabled={!pushSupported || !vapidConfigured || pushRegistering || pushDisabling}
+                >
+                  {pushRegistering ? "Registering..." : browserRegistered ? "Refresh Registration" : "Enable on This Browser"}
+                </button>
+                {currentBrowserToken?.active ? (
+                  <button
+                    type="button"
+                    className="settings-link"
+                    onClick={handleDisableBrowser}
+                    disabled={pushDisabling || pushRegistering}
+                  >
+                    {pushDisabling ? "Disabling..." : "Disable on This Browser"}
+                  </button>
+                ) : null}
+              </div>
+              {pushRegistrationError ? (
+                <p className="settings-status">{pushRegistrationError}</p>
+              ) : pushMessage ? (
+                <p className="settings-status">{pushMessage}</p>
+              ) : null}
+            </div>
 
-          <label className="settings-preference-row checkbox-row">
-            <span className="settings-preference-label">Weekly progress summary</span>
-            <input
-              type="checkbox"
-              checked={prefs.weeklySummary}
-              onChange={() => togglePref("weeklySummary")}
-            />
-          </label>
+            <label className="settings-preference-row checkbox-row">
+              <span className="settings-preference-label">Enable email notifications</span>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.emailEnabled}
+                onChange={() => toggleNotificationPref("emailEnabled")}
+              />
+            </label>
+
+            <div className="settings-preference-row settings-preference-row-stack">
+              <div>
+                <span className="settings-preference-label">Quiet hours</span>
+                <p className="settings-muted-text">Leave blank to allow notifications at any time.</p>
+              </div>
+              <div className="settings-inline-grid">
+                <input
+                  className="settings-input"
+                  type="time"
+                  value={notificationPrefs.quietHoursStart}
+                  onChange={(e) => updateNotificationPref("quietHoursStart", e.target.value)}
+                  aria-label="Quiet hours start"
+                />
+                <input
+                  className="settings-input"
+                  type="time"
+                  value={notificationPrefs.quietHoursEnd}
+                  onChange={(e) => updateNotificationPref("quietHoursEnd", e.target.value)}
+                  aria-label="Quiet hours end"
+                />
+              </div>
+            </div>
+
+            <div className="settings-preference-row settings-preference-row-stack">
+              <div>
+                <span className="settings-preference-label">Notification timezone</span>
+                <p className="settings-muted-text">Used for quiet hours and send windows.</p>
+              </div>
+              <input
+                className="settings-input"
+                value={notificationPrefs.timezone}
+                onChange={(e) => updateNotificationPref("timezone", e.target.value)}
+                placeholder="America/New_York"
+                aria-label="Notification timezone"
+              />
+            </div>
+
+            <label className="settings-preference-row checkbox-row">
+              <span className="settings-preference-label">Daily plan ready</span>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.notifyDailyPlanReady}
+                onChange={() => toggleNotificationPref("notifyDailyPlanReady")}
+              />
+            </label>
+
+            <label className="settings-preference-row checkbox-row">
+              <span className="settings-preference-label">Missed schedule blocks</span>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.notifyMissedBlocks}
+                onChange={() => toggleNotificationPref("notifyMissedBlocks")}
+              />
+            </label>
+
+            <label className="settings-preference-row checkbox-row">
+              <span className="settings-preference-label">Due soon tasks</span>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.notifyDueSoonTasks}
+                onChange={() => toggleNotificationPref("notifyDueSoonTasks")}
+              />
+            </label>
+
+            <label className="settings-preference-row checkbox-row">
+              <span className="settings-preference-label">Streak risk</span>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.notifyStreakRisk}
+                onChange={() => toggleNotificationPref("notifyStreakRisk")}
+              />
+            </label>
+
+            <label className="settings-preference-row checkbox-row">
+              <span className="settings-preference-label">Major replans</span>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.notifyMajorReplans}
+                onChange={() => toggleNotificationPref("notifyMajorReplans")}
+              />
+            </label>
+          </div>
         </div>
-      </div>
 
-      <div className="settings-section">
-        <h3 className="settings-section-title">Appearance</h3>
-        <div className="settings-preference-list">
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">Theme</span>
-            <select
-              className="settings-select"
-              value={accessibilityPrefs.theme}
-              onChange={(e) => updateAccessibilityPref("theme", e.target.value)}
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
+        <div className="settings-section">
+          <h3 className="settings-section-title">Appearance</h3>
+          <div className="settings-preference-list">
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">Theme</span>
+              <select
+                className="settings-select"
+                value={accessibilityPrefs.theme}
+                onChange={(e) => updateAccessibilityPref("theme", e.target.value)}
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
 
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">Task color</span>
-            <select
-              className="settings-select"
-              value={prefs.taskColor}
-              onChange={(e) => updatePref("taskColor", e.target.value)}
-            >
-              <option value="purple">Purple</option>
-              <option value="blue">Blue</option>
-              <option value="green">Green</option>
-              <option value="orange">Orange</option>
-            </select>
-          </div>
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">Task color</span>
+              <select
+                className="settings-select"
+                value={prefs.taskColor}
+                onChange={(e) => updatePref("taskColor", e.target.value)}
+              >
+                <option value="purple">Purple</option>
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="orange">Orange</option>
+              </select>
+            </div>
 
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">Goal color</span>
-            <select
-              className="settings-select"
-              value={prefs.goalColor}
-              onChange={(e) => updatePref("goalColor", e.target.value)}
-            >
-              <option value="blue">Blue</option>
-              <option value="purple">Purple</option>
-              <option value="green">Green</option>
-              <option value="orange">Orange</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="settings-section">
-        <h3 className="settings-section-title">Task Defaults</h3>
-        <div className="settings-preference-list">
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">Default priority</span>
-            <select
-              className="settings-select"
-              value={prefs.defaultPriority}
-              onChange={(e) => updatePref("defaultPriority", e.target.value)}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="settings-section">
-        <h3 className="settings-section-title">Accessibility</h3>
-        <div className="settings-preference-list">
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">Font scale</span>
-            <div className="settings-font-scale">
-              <button type="button" className="settings-font-btn" onClick={decreaseFontScale}>
-                −
-              </button>
-              <span className="settings-font-value">{accessibilityPrefs.fontScale}%</span>
-              <button type="button" className="settings-font-btn" onClick={increaseFontScale}>
-                +
-              </button>
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">Goal color</span>
+              <select
+                className="settings-select"
+                value={prefs.goalColor}
+                onChange={(e) => updatePref("goalColor", e.target.value)}
+              >
+                <option value="blue">Blue</option>
+                <option value="purple">Purple</option>
+                <option value="green">Green</option>
+                <option value="orange">Orange</option>
+              </select>
             </div>
           </div>
+        </div>
 
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">High contrast</span>
-            <select
-              className="settings-select"
-              value={accessibilityPrefs.highContrast ? "on" : "off"}
-              onChange={(e) =>
-                updateAccessibilityPref("highContrast", e.target.value === "on")
-              }
-            >
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>
-          </div>
-
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">Highlight links</span>
-            <select
-              className="settings-select"
-              value={accessibilityPrefs.highlightLinks ? "on" : "off"}
-              onChange={(e) =>
-                updateAccessibilityPref("highlightLinks", e.target.value === "on")
-              }
-            >
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>
-          </div>
-
-          <div className="settings-preference-row">
-            <span className="settings-preference-label">Reduce motion</span>
-            <select
-              className="settings-select"
-              value={accessibilityPrefs.reduceMotion ? "on" : "off"}
-              onChange={(e) =>
-                updateAccessibilityPref("reduceMotion", e.target.value === "on")
-              }
-            >
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>
+        <div className="settings-section">
+          <h3 className="settings-section-title">Task Defaults</h3>
+          <div className="settings-preference-list">
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">Default priority</span>
+              <select
+                className="settings-select"
+                value={prefs.defaultPriority}
+                onChange={(e) => updatePref("defaultPriority", e.target.value)}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
+
+        <div className="settings-section">
+          <h3 className="settings-section-title">Accessibility</h3>
+          <div className="settings-preference-list">
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">Font scale</span>
+              <div className="settings-font-scale">
+                <button type="button" className="settings-font-btn" onClick={decreaseFontScale}>
+                  −
+                </button>
+                <span className="settings-font-value">{accessibilityPrefs.fontScale}%</span>
+                <button type="button" className="settings-font-btn" onClick={increaseFontScale}>
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">High contrast</span>
+              <select
+                className="settings-select"
+                value={accessibilityPrefs.highContrast ? "on" : "off"}
+                onChange={(e) =>
+                  updateAccessibilityPref("highContrast", e.target.value === "on")
+                }
+              >
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+            </div>
+
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">Highlight links</span>
+              <select
+                className="settings-select"
+                value={accessibilityPrefs.highlightLinks ? "on" : "off"}
+                onChange={(e) =>
+                  updateAccessibilityPref("highlightLinks", e.target.value === "on")
+                }
+              >
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+            </div>
+
+            <div className="settings-preference-row">
+              <span className="settings-preference-label">Reduce motion</span>
+              <select
+                className="settings-select"
+                value={accessibilityPrefs.reduceMotion ? "on" : "off"}
+                onChange={(e) =>
+                  updateAccessibilityPref("reduceMotion", e.target.value === "on")
+                }
+              >
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-form-actions">
+          <button className="settings-btn" type="submit" disabled={saving}>
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+          <button className="settings-link" type="button" onClick={resetForm}>
+            Reset
+          </button>
+        </div>
+
+        {statusMessage ? <p className="settings-status">{statusMessage}</p> : null}
+      </form>
     </section>
   );
 

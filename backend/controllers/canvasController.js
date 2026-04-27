@@ -1,5 +1,6 @@
 import CanvasService from '../services/canvasService.js';
 import { db, admin } from '../config/firebase.js';
+import { queueCanvasWorkloadChangeNotification } from '../services/notificationService.js';
 import {
   deleteCanvasTasksForUser,
   getCanvasTaskCount,
@@ -223,6 +224,15 @@ const syncCanvas = async (req, res) => {
         : null,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
+
+    try {
+      await queueCanvasWorkloadChangeNotification({
+        userId: uid,
+        syncSummary,
+      });
+    } catch (notificationError) {
+      console.error('Canvas workload notification error:', notificationError);
+    }
 
     res.json({
       success: true,

@@ -2,6 +2,10 @@ import { db } from '../config/firebase.js';
 import { generateDailySchedule, replanSchedule } from '../services/schedulerService.js';
 import { admin } from '../config/firebase.js';
 import {
+  queueDailyPlanReadyNotification,
+  queueMajorReplanNotification,
+} from '../services/notificationService.js';
+import {
   buildRoutineGoalCompletionOutcome,
   buildTaskCompletionOutcome,
   dateKey,
@@ -15,6 +19,17 @@ const generateSchedule = async (req, res) => {
   try {
     const targetDate = req.body?.date ? new Date(req.body.date) : new Date();
     const result = await generateDailySchedule(req.user.uid, targetDate);
+    try {
+      await queueDailyPlanReadyNotification({
+        userId: req.user.uid,
+        date: result.date,
+        blocksCreated: result.blocksCreated,
+        actionableBlocksCreated: result.actionableBlocksCreated,
+        rationale: result.rationale,
+      });
+    } catch (notificationError) {
+      console.error('Daily plan ready notification error:', notificationError);
+    }
     return res.json(result);
   } catch (err) {
     console.error('Generate schedule error:', err);
@@ -65,6 +80,22 @@ const getTodaySchedule = async (req, res) => {
 const triggerReplan = async (req, res) => {
   try {
     const result = await replanSchedule(req.user.uid);
+    try {
+      await queueMajorReplanNotification({
+        userId: req.user.uid,
+        date: result.date,
+        plannedWindowStart: result.date,
+        plannedWindowEnd: result.date,
+        blocksCreated: result.blocksCreated,
+        actionableBlocksCreated: result.actionableBlocksCreated,
+        source: 'schedule-replan',
+        metadata: {
+          rationale: result.rationale,
+        },
+      });
+    } catch (notificationError) {
+      console.error('Schedule replan notification error:', notificationError);
+    }
     return res.json(result);
   } catch (err) {
     console.error('Replan error:', err);

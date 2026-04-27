@@ -16,6 +16,7 @@ import taskRoutes from './routes/taskRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import quoteRoutes from './routes/quoteRoutes.js';
 import goalRoutes from './routes/goalRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 // Load .env variables
 dotenv.config();
@@ -28,15 +29,19 @@ const __dirname = path.dirname(__filename);
 
 // --- CORS Configuration ---
 const allowlist = new Set([
-  'http://localhost:5173',  // frontend dev server
-  'http://localhost:8080',  // backend serving frontend
+  'http://localhost:5173',
+  'http://localhost:8080',
   'https://glide-topaz.vercel.app'
 ]);
+
+function isAllowedLocalOrigin(origin) {
+  return /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+}
 
 // had to change this to a function since allowlist is a set
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowlist.has(origin)) {
+    if (!origin || allowlist.has(origin) || isAllowedLocalOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -62,6 +67,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/goals', goalRoutes); 
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -82,6 +88,8 @@ app.get('/api/health', (req, res) => {
       health: '/api/health',
       quotes: '/api/quotes',
       goals: '/api/goals'
+      ,
+      notifications: '/api/notifications'
     }
   });
 });

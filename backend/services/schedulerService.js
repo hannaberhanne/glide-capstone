@@ -239,8 +239,13 @@ export async function generateDailySchedule(userId, targetDate = new Date()) {
     .get();
   oldSnap.docs.forEach((doc) => batch.delete(doc.ref));
 
+  const schedule = aiResult.schedule || [];
+  const actionableBlocksCreated = schedule.filter(
+    (block) => block?.type === 'task' || block?.type === 'routine'
+  ).length;
+
   // Create new blocks
-  (aiResult.schedule || []).forEach((block) => {
+  schedule.forEach((block) => {
     const ref = db.collection('schedule_blocks').doc();
     batch.set(ref, {
       blockId: ref.id,
@@ -265,9 +270,11 @@ export async function generateDailySchedule(userId, targetDate = new Date()) {
 
   return {
     success: true,
+    date: dateStr,
     rationale: aiResult.rationale,
-    blocksCreated: (aiResult.schedule || []).length,
-    deferred: aiResult.deferred || []
+    blocksCreated: schedule.length,
+    actionableBlocksCreated,
+    deferred: aiResult.deferred || [],
   };
 }
 
