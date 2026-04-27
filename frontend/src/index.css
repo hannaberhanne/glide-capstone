@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
 html,
 body,
 #root {
@@ -20,7 +22,7 @@ html {
 body {
   background: var(--bg-color);
   color: var(--text-color);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -36,4 +38,151 @@ textarea {
 
 a {
   color: inherit;
+}
+
+/* ─── Shared controls ───────────────────────────────── */
+
+.glide-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glide-line);
+  font: inherit;
+  font-size: var(--text-body);
+  color: var(--glide-ink);
+  background: var(--glide-bg-paper);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.glide-input:focus {
+  border-color: var(--glide-moss);
+  box-shadow: var(--shadow-focus);
+}
+
+.glide-input::placeholder {
+  color: var(--glide-ink-muted);
+  opacity: 0.7;
+}
+
+html.high-contrast .glide-input {
+  background: #000;
+  color: #fff;
+  border-color: #fff;
+}
+
+html.high-contrast .glide-input:focus {
+  box-shadow: var(--shadow-focus);
+  border-color: #ff0;
+}
+
+.glide-btn-primary {
+  background: var(--glide-ink);
+  color: var(--glide-bg-paper);
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.glide-btn-primary:hover { opacity: 0.88; }
+.glide-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+html.high-contrast .glide-btn-primary { background: #ff0; color: #000; }
+
+.glide-btn-secondary {
+  background: transparent;
+  color: var(--glide-ink);
+  border: 1px solid var(--glide-line);
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.glide-btn-secondary:hover {
+  background: var(--glide-bg-paper-2);
+  border-color: var(--glide-line-strong);
+}
+
+.glide-btn-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+html.high-contrast .glide-btn-secondary {
+  border-color: #fff;
+  color: #ff0;
+  background: #000;
+}
+
+.glide-btn-ghost {
+  background: none;
+  border: none;
+  color: var(--glide-ink-muted);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-body);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.glide-btn-ghost:hover {
+  background: var(--glide-bg-paper-2);
+  color: var(--glide-ink);
+}
+
+html.high-contrast .glide-btn-ghost { color: #ff0; }
+html.high-contrast .glide-btn-ghost:hover { background: rgba(255, 255, 0, 0.12); }
+
+/* ─── Shared panels ─────────────────────────────────── */
+
+.glide-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(46, 38, 31, 0.4);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  padding: var(--space-4);
+  animation: glide-overlay-in 0.15s ease;
+}
+
+@keyframes glide-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+html.dark-mode .glide-modal-overlay { background: rgba(0, 0, 0, 0.55); }
+html.high-contrast .glide-modal-overlay { background: rgba(0, 0, 0, 0.9); }
+
+.glide-modal-card {
+  background: var(--glide-bg-paper);
+  border: 1px solid var(--glide-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  width: 100%;
+  max-width: 520px;
+  display: grid;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-panel);
+  color: var(--glide-ink);
+  animation: glide-card-in 0.18s ease;
+}
+
+@keyframes glide-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+html.high-contrast .glide-modal-card {
+  background: #000;
+  border: 2px solid #ff0;
+  color: #ff0;
 }
