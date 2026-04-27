@@ -382,6 +382,21 @@
 
 /* ─── High contrast ──────────────────────────────────── */
 html.high-contrast .ag-popup { background: #000; border-color: #fff; }
+html.high-contrast .ag-title,
+html.high-contrast .ag-label { color: #fff; }
 html.high-contrast .ag-input { background: #000; color: #fff; border-color: #fff; }
 html.high-contrast .ag-btn-submit { background: #ff0 !important; color: #000; }
 html.high-contrast .ag-btn-cancel { border-color: #fff; color: #fff; }
+html.high-contrast .ag-cadence-pill { border-color: #fff; color: #fff; background: #000; }
+html.high-contrast .ag-cadence-pill.active { background: #ff0 !important; border-color: #ff0; color: #000; }
+html.high-contrast .ag-preview-card { background: #000 !important; border-color: #fff; }
+html.high-contrast .ag-preview-title,
+html.high-contrast .ag-preview-cadence { color: #fff; }
+html.high-contrast .ag-preview-dot { background: #555; }
+html.high-contrast .ag-task-input { color: #fff; border-bottom-color: #fff; }
+html.high-contrast .ag-task-bullet,
+html.high-contrast .ag-add-task { color: #fff; }
+html.high-contrast .ag-task-xp { border-color: #fff; color: #fff; background: #000; }
+html.high-contrast .ag-task-remove { color: #fff; }
+html.high-contrast .ag-btn-suggest { border-color: #fff; color: #fff; }
+html.high-contrast .ag-footer { border-top-color: #fff; }

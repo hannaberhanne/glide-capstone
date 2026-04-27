@@ -6,6 +6,7 @@ import EditGoal from "../components/EditGoal.jsx";
 import AlertBanner from "../components/AlertBanner";
 import { auth } from "../config/firebase.js";
 import useUser from "../hooks/useUser.js";
+import { computeBadges } from "../utils/badgeSystem.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -62,6 +63,16 @@ function GoalHeatmap({ completionHistory, color }) {
           ))}
         </div>
       ))}
+    </div>
+  );
+}
+
+function BadgeItem({ badge, locked }) {
+  return (
+    <div className={`badge-item${locked ? " badge-item--locked" : ""}`} title={badge.description}>
+      <div className="badge-item-svg" dangerouslySetInnerHTML={{ __html: badge.svg }} />
+      <span className="badge-item-label">{badge.label}</span>
+      {locked && <span className="badge-item-hint">{badge.description}</span>}
     </div>
   );
 }
@@ -231,7 +242,7 @@ function EmptyGoals({ onAdd }) {
 }
 
 export default function GoalsPage() {
-  const { user } = useUser();
+  const { user, xp } = useUser();
   const [quote, setQuote]         = useState(null);
   const [banner, setBanner]       = useState(null);
   const [goals, setGoals]         = useState([]);
@@ -239,10 +250,11 @@ export default function GoalsPage() {
   const [showAdd, setShowAdd]     = useState(false);
   const [editing, setEditing]     = useState(null);
 
+  const level         = user?.level ?? 0;
   const currentStreak = goals.length ? Math.max(...goals.map(g => g.streak || 0)) : 0;
   const bestStreak    = goals.length ? Math.max(...goals.map(g => g.longestStreak || 0)) : 0;
-  const earnedBadges  = Array.isArray(user?.badges) ? user.badges : [];
   const hasNoStreak   = currentStreak === 0 && bestStreak === 0;
+  const { earned, locked } = computeBadges({ xp, level, goals, tasks });
 
   const allTasks  = goals.flatMap(g => g.taskDetails || []);
   const doneToday = allTasks.filter(t => t.lastCompleted === TODAY).length;
@@ -428,19 +440,27 @@ export default function GoalsPage() {
               )}
             </div>
 
-            {earnedBadges.length > 0 && (
-              <div className="rail-panel">
-                <p className="rail-label">Badges</p>
-                <div className="rail-badges">
-                  {earnedBadges.map(b => (
-                    <div key={b.id} className="rail-badge" title={b.description}>
-                      <span className="rail-badge-icon">{b.icon}</span>
-                      <span className="rail-badge-name">{b.title}</span>
-                    </div>
-                  ))}
+            <div className="rail-panel">
+              <p className="rail-label">
+                Badges
+                {earned.length > 0 && (
+                  <span className="rail-badge-count">{earned.length}</span>
+                )}
+              </p>
+              {earned.length > 0 && (
+                <div className="badge-grid">
+                  {earned.map(b => <BadgeItem key={b.id} badge={b} locked={false} />)}
                 </div>
-              </div>
-            )}
+              )}
+              {locked.length > 0 && (
+                <div className="badge-grid badge-grid--locked">
+                  {locked.map(b => <BadgeItem key={b.id} badge={b} locked={true} />)}
+                </div>
+              )}
+              {earned.length === 0 && locked.length === 0 && (
+                <p className="rail-no-streak">Complete goals and build streaks to earn badges.</p>
+              )}
+            </div>
           </aside>
         </div>
       </div>
