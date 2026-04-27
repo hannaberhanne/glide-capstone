@@ -1,59 +1,155 @@
+/* ─── Canonical design tokens ───────────────────────── */
 :root {
-  --bg-color: #f5f1e8;
-  --text-color: #3e3731;
-  --highlight-color: #9caf88;
-  --accent-color: #f1f1f1;
-  --achievement-color: #a58f1c;
+  /* Color */
+  --glide-bg-app:     #f3ede3;
+  --glide-bg-paper:   #fbf7f0;
+  --glide-bg-paper-2: #f1e8da;
+  --glide-bg-panel:   #dfd5c4;
+  --glide-ink:        #2e261f;
+  --glide-ink-muted:  #6c5c4b;
+  --glide-moss:        #7d9577;
+  --glide-moss-strong: #5e7156;
+  --glide-gold:        #b28a1e;
+  --glide-terracotta:  #a45c46;
+  --glide-line:        rgba(46, 38, 31, 0.1);
+  --glide-line-strong: rgba(46, 38, 31, 0.16);
+  --glide-success:     #6b8f71;
+  --glide-alert:       #f5cb5c;
 
-  --card-bg: #faf7f2;
-  --card-border: #e0d8cd;
-  --text-muted: #7a6e65;
-  --accent: #8b6b5a;
-  --accent-soft: rgba(156, 175, 136, 0.15);
-  --bg-secondary: #ede8df;
-  --color-green: #4caf50;
-  --color-red: #e53935;
-  --color-gold: #a58f1c;
-  --shadow-soft: 0 2px 12px rgba(62, 55, 49, 0.08);
+  /* Typography */
+  --font-display: "Libre Baskerville", serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  --text-hero: 34px;
+  --text-h1:   28px;
+  --text-h2:   22px;
+  --text-h3:   18px;
+  --text-body: 14px;
+  --text-meta: 12px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 56px;
+
+  /* Radius */
+  --radius-sm:   12px;
+  --radius-md:   16px;
+  --radius-lg:   22px;
+  --radius-xl:   28px;
+  --radius-pill: 999px;
+
+  /* Shadow */
+  --shadow-soft:  0 8px 24px rgba(46, 38, 31, 0.06);
+  --shadow-panel: 0 18px 32px rgba(46, 38, 31, 0.06);
+  --shadow-focus: 0 0 0 4px rgba(125, 149, 119, 0.14);
+
+  /* ─── Legacy aliases ─── consumed by existing component CSS */
+  --bg-color:       var(--glide-bg-app);
+  --text-color:     var(--glide-ink);
+  --highlight-color: var(--glide-moss);
+  --achievement-color: var(--glide-gold);
+  --card-bg:        var(--glide-bg-paper);
+  --card-border:    var(--glide-line);
+  --text-muted:     var(--glide-ink-muted);
+  --bg-secondary:   var(--glide-bg-paper-2);
+  --color-green:    var(--glide-success);
+  --color-gold:     var(--glide-gold);
+  --shell-page-bg:  var(--glide-bg-app);
+  --border-default: var(--glide-line);
+  --border-strong:  var(--glide-line-strong);
+  --shadow-medium:  var(--shadow-panel);
+  /* standalone — no clean glide mapping */
+  --accent:         #8b6b5a;
+  --accent-color:   #f1f1f1;
+  --accent-soft:    rgba(125, 149, 119, 0.14);
+  --color-red:      #e53935;
+  --border-subtle:  rgba(46, 38, 31, 0.08);
+  --shadow-strong:  0 18px 36px rgba(46, 38, 31, 0.14);
+  --surface-subtle:        rgba(251, 247, 240, 0.48);
+  --surface-subtle-soft:   rgba(251, 247, 240, 0.42);
+  --surface-subtle-strong: rgba(251, 247, 240, 0.68);
+  --surface-subtle-solid:  rgba(251, 247, 240, 0.78);
+  --text-soft:        rgba(108, 92, 75, 0.78);
+  --text-soft-strong: rgba(108, 92, 75, 0.86);
 }
 
 html.dark-mode {
-  --bg-color: #3e3731;
-  --text-color: #f5f1e8;
-  --highlight-color: #9caf88;
-  --accent-color: #313131;
-  --achievement-color: #d4a574;
+  /* Color */
+  --glide-bg-app:     #2b241e;
+  --glide-bg-paper:   #362d26;
+  --glide-bg-paper-2: #544437;
+  --glide-bg-panel:   #3a3028;
+  --glide-ink:        #f5efe6;
+  --glide-ink-muted:  #c6b8a8;
+  --glide-moss:        #8ea786;
+  --glide-moss-strong: #9bb492;
+  --glide-gold:        #d2ab3c;
+  --glide-terracotta:  #d78a6d;
+  --glide-line:        rgba(245, 239, 230, 0.12);
+  --glide-line-strong: rgba(245, 239, 230, 0.18);
+  --glide-success:     #8ea786;
+  --glide-alert:       #f5cb5c;
 
-  --card-bg: #352b24;
-  --card-border: #4a3c32;
-  --text-muted: #b0a090;
-  --accent: #8b6b5a;
-  --accent-soft: rgba(156, 175, 136, 0.15);
-  --bg-secondary: #3d3028;
-  --color-green: #66bb6a;
-  --color-red: #ef5350;
-  --color-gold: #d4a574;
-  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
+  /* Shadow */
+  --shadow-soft:  0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-panel: 0 18px 32px rgba(0, 0, 0, 0.24);
+  --shadow-focus: 0 0 0 4px rgba(142, 167, 134, 0.2);
+
+  /* Standalone overrides */
+  --accent-color:   #313131;
+  --color-red:      #ef5350;
+  --border-subtle:  rgba(245, 239, 230, 0.08);
+  --shadow-strong:  0 18px 36px rgba(0, 0, 0, 0.34);
+  --surface-subtle:        rgba(53, 43, 36, 0.52);
+  --surface-subtle-soft:   rgba(53, 43, 36, 0.42);
+  --surface-subtle-strong: rgba(53, 43, 36, 0.72);
+  --surface-subtle-solid:  rgba(53, 43, 36, 0.84);
+  --text-soft:        rgba(198, 184, 168, 0.8);
+  --text-soft-strong: rgba(213, 201, 187, 0.88);
 }
 
 html.high-contrast {
-  --bg-color: #000;
-  --text-color: #fff;
-  --highlight-color: #ff0;
-  --achievement-color: #ff0;
+  /* Color */
+  --glide-bg-app:     #000;
+  --glide-bg-paper:   #000;
+  --glide-bg-paper-2: #000;
+  --glide-bg-panel:   #000;
+  --glide-ink:        #fff;
+  --glide-ink-muted:  #fff;
+  --glide-moss:        #ff0;
+  --glide-moss-strong: #ff0;
+  --glide-gold:        #ff0;
+  --glide-terracotta:  #ff0;
+  --glide-line:        rgba(255, 255, 255, 0.5);
+  --glide-line-strong: #fff;
+  --glide-success:     #0f0;
+  --glide-alert:       #ff0;
 
-  --card-bg: #000;
-  --card-border: #fff;
-  --text-muted: #fff;
-  --accent: #ff0;
-  --accent-soft: rgba(255, 255, 0, 0.15);
-  --bg-secondary: #000;
-  --color-green: #0f0;
-  --color-red: #f00;
-  --color-gold: #ff0;
-  --shadow-soft: none;
+  /* Shadow */
+  --shadow-soft:  none;
+  --shadow-panel: none;
+  --shadow-focus: 0 0 0 3px #ff0;
+
+  /* Standalone overrides */
+  --accent:         #ff0;
+  --accent-soft:    rgba(255, 255, 0, 0.15);
+  --accent-color:   #000;
+  --color-red:      #f00;
+  --border-subtle:  rgba(255, 255, 255, 0.5);
+  --shadow-strong:  none;
+  --surface-subtle:        rgba(255, 255, 0, 0.12);
+  --surface-subtle-soft:   rgba(255, 255, 0, 0.08);
+  --surface-subtle-strong: rgba(255, 255, 0, 0.18);
+  --surface-subtle-solid:  rgba(255, 255, 0, 0.24);
+  --text-soft:        #fff;
+  --text-soft-strong: #fff;
 }
 
 .error {
-  color: #e53935;
+  color: var(--color-red);
 }

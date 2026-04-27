@@ -28,7 +28,7 @@
   flex: 0 0 70px;
   border-radius: 16px;
   background: var(--card-bg);
-  border: 1px solid rgba(46, 38, 31, 0.08);
+  border: 1px solid var(--border-subtle);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -93,9 +93,9 @@
   gap: 8px;
   align-self: flex-start;
   padding: 6px;
-  border: 1px solid rgba(46, 38, 31, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 16px;
-  background: rgba(251, 247, 240, 0.72);
+  background: var(--surface-subtle-solid);
 }
 
 .settings-tab {
@@ -114,13 +114,13 @@
 
 .settings-tab:hover {
   color: var(--text-color);
-  background: rgba(251, 247, 240, 0.62);
+  background: var(--surface-subtle-strong);
 }
 
 .settings-tab.active {
   background: var(--card-bg);
   color: var(--text-color);
-  box-shadow: 0 1px 0 rgba(46, 38, 31, 0.06);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--text-color) 10%, transparent);
 }
 
 .settings-content {
@@ -129,7 +129,7 @@
 
 .settings-panel {
   background: var(--card-bg);
-  border: 1px solid rgba(46, 38, 31, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 24px;
   padding: 30px;
   display: flex;
@@ -149,7 +149,7 @@
   height: 92px;
   border-radius: 18px;
   background: var(--bg-secondary);
-  border: 1px solid rgba(46, 38, 31, 0.1);
+  border: 1px solid var(--border-default);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -207,7 +207,7 @@
   width: 100%;
   border-radius: 14px;
   padding: 14px 16px;
-  border: 1px solid rgba(46, 38, 31, 0.1);
+  border: 1px solid var(--border-default);
   background: color-mix(in srgb, var(--card-bg) 78%, var(--bg-secondary) 22%);
   color: var(--text-color);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
@@ -306,7 +306,7 @@
 .settings-preference-list {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid rgba(46, 38, 31, 0.08);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .settings-preference-row {
@@ -315,7 +315,7 @@
   align-items: center;
   gap: 20px;
   padding: 16px 0;
-  border-bottom: 1px solid rgba(46, 38, 31, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .settings-preference-row-stack {
@@ -355,7 +355,7 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  border: 1px solid rgba(46, 38, 31, 0.1);
+  border: 1px solid var(--border-default);
   background: color-mix(in srgb, var(--card-bg) 78%, var(--bg-secondary) 22%);
   color: var(--text-color);
   font-size: 22px;
@@ -383,7 +383,7 @@
 .settings-info-card,
 .badge-card {
   background: var(--bg-secondary);
-  border: 1px solid rgba(46, 38, 31, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 18px;
 }
 
@@ -465,7 +465,7 @@
 .settings-btn-secondary {
   background: var(--bg-secondary);
   color: var(--text-color);
-  border: 1px solid rgba(46, 38, 31, 0.1);
+  border: 1px solid var(--border-default);
 }
 
 .settings-canvas-actions {
@@ -476,7 +476,7 @@
 }
 
 .settings-link-danger {
-  color: #a94442;
+  color: var(--color-red);
 }
 
 .student-header {

@@ -1,318 +1,402 @@
-/* ─── Backdrop ───────────────────────────────────── */
-.add-goal-backdrop {
+/* ─── Backdrop ───────────────────────────────────────── */
+.ag-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(62, 55, 49, 0.45);
+  background: rgba(46, 38, 31, 0.42);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: backdrop-in 0.15s ease;
+  padding: 24px;
+  animation: ag-fade-in 0.15s ease;
 }
 
-@keyframes backdrop-in {
+@keyframes ag-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
-/* ─── Popup card ─────────────────────────────────── */
-.add-goal-popup {
-  background: var(--card-bg, #FAF7F2);
-  border: 1px solid var(--card-border, #E0D8CD);
-  border-radius: 14px;
-  padding: 1.75rem;
+/* ─── Popup ──────────────────────────────────────────── */
+.ag-popup {
+  background: var(--glide-bg-paper);
+  border: 1px solid var(--glide-line);
+  border-radius: 18px;
   width: 100%;
-  max-width: 800px;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  box-shadow: 0 8px 32px rgba(62, 55, 49, 0.18);
-  animation: popup-in 0.18s ease;
+  box-shadow: var(--shadow-panel);
+  animation: ag-slide-in 0.18s ease;
 }
 
-@keyframes popup-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+@keyframes ag-slide-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ─── Header ─────────────────────────────────────── */
-.add-goal-header {
+/* ─── Header ─────────────────────────────────────────── */
+.ag-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 22px 28px 0;
 }
 
-.add-goal-title {
-  font-size: 1.15rem;
+.ag-title {
+  font-family: var(--font-display);
+  font-size: 20px;
   font-weight: 700;
-  color: var(--text-color, #3E3731);
+  color: var(--glide-ink);
   margin: 0;
 }
 
-.add-goal-close {
+.ag-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
-  border: none;
-  font-size: 1rem;
-  color: var(--text-muted, #7A6E65);
+  border: 1px solid var(--glide-line);
+  border-radius: 50%;
+  color: var(--glide-ink-muted);
+  font-size: 16px;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.add-goal-close:hover {
-  background: var(--bg-secondary, #EDE8DF);
-  color: var(--text-color, #3E3731);
+.ag-close:hover {
+  background: var(--glide-bg-panel);
+  border-color: var(--glide-line-strong);
 }
 
-/* ─── Fields ─────────────────────────────────────── */
-.add-goal-field {
+/* ─── Body: two columns ──────────────────────────────── */
+.ag-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  padding: 24px 28px;
+}
+
+.ag-col-left,
+.ag-col-right {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 22px;
 }
 
-.add-goal-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+/* ─── Field ──────────────────────────────────────────── */
+.ag-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ag-label {
+  font-size: 11px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted, #7A6E65);
+  letter-spacing: 0.1em;
+  color: var(--glide-ink-muted);
 }
 
-.add-goal-input {
-  background: var(--bg-color, #F5F1E8);
-  border: 1px solid var(--card-border, #E0D8CD);
-  border-radius: 8px;
-  padding: 0.6rem 0.85rem;
-  font-size: 0.95rem;
-  font-family: inherit;
-  color: var(--text-color, #3E3731);
+.ag-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--glide-line);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--glide-ink);
+  background: var(--glide-bg-app);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.add-goal-input:focus {
-  border-color: var(--highlight-color);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+.ag-input:focus {
+  border-color: var(--glide-moss);
+  box-shadow: var(--shadow-focus);
 }
 
-.add-goal-input::placeholder {
-  color: var(--text-muted, #7A6E65);
-  opacity: 0.7;
+.ag-input::placeholder { color: var(--glide-ink-muted); opacity: 0.6; }
+
+/* ─── Cadence pills ──────────────────────────────────── */
+.ag-cadence {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-/* ─── Color swatches ─────────────────────────────── */
-.add-goal-swatches {
+.ag-cadence-pill {
+  padding: 8px 16px;
+  border: 1px solid var(--glide-line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--glide-ink-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ag-cadence-pill:hover:not(.active) {
+  background: var(--glide-bg-panel);
+  border-color: var(--glide-line-strong);
+  color: var(--glide-ink);
+}
+
+.ag-cadence-pill.active {
+  font-weight: 700;
+}
+
+/* ─── Color swatches ─────────────────────────────────── */
+.ag-swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
-.add-goal-swatch {
-  width: 28px;
-  height: 28px;
+.ag-swatch {
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: none;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-  outline: none;
+  transition: transform 0.15s ease;
 }
 
-.add-goal-swatch:hover {
-  transform: scale(1.15);
+.ag-swatch:hover { transform: scale(1.15); }
+.ag-swatch.selected { transform: scale(1.18); }
+
+/* ─── Preview card ───────────────────────────────────── */
+.ag-preview-card {
+  border: 1px solid var(--glide-line);
+  border-top: 4px solid transparent;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.add-goal-swatch.selected {
-  border-color: var(--text-color, #3E3731);
-  transform: scale(1.18);
-  box-shadow: 0 0 0 2px var(--card-bg, #FAF7F2);
+.ag-preview-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--glide-ink);
+  margin: 0;
+  min-height: 24px;
 }
 
-/* ─── Preview card ───────────────────────────────── */
-.add-goal-preview {
-  border-radius: 8px;
-  overflow: hidden;
-  border: 2px solid transparent;
-  margin-top: 0.25rem;
-}
-
-.add-goal-preview-header {
-  padding: 0.55rem 0.85rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: background-color 0.2s ease;
-}
-
-/* ─── Error ──────────────────────────────────────── */
-.add-goal-error {
-  font-size: 0.85rem;
-  color: var(--color-red, #E53935);
+.ag-preview-cadence {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--glide-ink-muted);
   margin: 0;
 }
 
-/* ─── Action buttons ─────────────────────────────── */
-.add-goal-actions {
+.ag-preview-dots {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.25rem;
+  gap: 3px;
+  margin-top: 2px;
 }
 
-.add-goal-btn-cancel {
-  background: none;
-  border: 1px solid var(--card-border, #E0D8CD);
-  border-radius: 8px;
-  padding: 0.55rem 1.1rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-  color: var(--text-muted, #7A6E65);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+.ag-preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--glide-line-strong);
+  flex-shrink: 0;
 }
 
-.add-goal-btn-cancel:hover {
-  background: var(--bg-secondary, #EDE8DF);
-  color: var(--text-color, #3E3731);
-}
+/* ─── Tasks section ──────────────────────────────────── */
+.ag-field--tasks { flex: 1; }
 
-.add-goal-btn-submit {
-  border: none;
-  border-radius: 8px;
-  padding: 0.55rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: #fff;
-  cursor: pointer;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.add-goal-btn-submit:hover:not(:disabled) {
-  opacity: 0.88;
-  transform: translateY(-1px);
-}
-
-.add-goal-btn-submit:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-
-/* ─── Suggest button ─────────────────────────────── */
-.add-goal-btn-suggest {
-  background: none;
-  border: 1px dashed var(--card-border, #E0D8CD);
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  font-family: inherit;
-  font-weight: 600;
-  color: var(--text-muted, #7A6E65);
-  cursor: pointer;
-  align-self: flex-start;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.add-goal-btn-suggest:hover:not(:disabled) {
-  background: var(--bg-secondary, #EDE8DF);
-  color: var(--text-color, #3E3731);
-  border-color: var(--text-muted, #7A6E65);
-}
-
-.add-goal-btn-suggest:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* ─── Task list ──────────────────────────────────── */
-.add-goal-tasks {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.add-goal-task-row {
+.ag-tasks-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
 }
 
-
-.add-goal-task-xp {
+.ag-btn-suggest {
   background: none;
-  border: none;
-  font-size: 0.8rem;
-  font-family: inherit;
-  color: var(--text-muted, #7A6E65);
+  border: 1px dashed var(--glide-line-strong);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--glide-ink-muted);
   cursor: pointer;
-  outline: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.ag-btn-suggest:hover:not(:disabled) {
+  border-color: var(--glide-ink-muted);
+  color: var(--glide-ink);
+}
+
+.ag-btn-suggest:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ag-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ag-task-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ag-task-bullet {
+  font-size: 13px;
+  color: var(--glide-ink-muted);
   flex-shrink: 0;
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 0.2rem 0;
+  width: 12px;
+  text-align: center;
 }
 
-.add-goal-task-xp:focus {
-  color: var(--text-color, #3E3731);
-
-}
-
-.add-goal-task-remove {
-  background: none;
-  border: none;
-  font-size: 0.85rem;
-  color: var(--text-muted, #7A6E65);
-  cursor: pointer;
-  padding: 0.25rem 0.4rem;
-  border-radius: 6px;
-  flex-shrink: 0;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.add-goal-task-remove:hover {
-  background: var(--bg-secondary, #EDE8DF);
-  color: var(--color-red, #E53935);
-}
-
-/* ─── Add task button ────────────────────────────── */
-.add-goal-btn-add-task {
-  background: none;
-  border: 1px dashed var(--card-border, #E0D8CD);
-  border-radius: 8px;
-  padding: 0.45rem 0.85rem;
-  font-size: 0.82rem;
-  font-family: inherit;
-  color: var(--text-muted, #7A6E65);
-  cursor: pointer;
-  align-self: flex-start;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.add-goal-btn-add-task:hover {
-  background: var(--bg-secondary, #EDE8DF);
-  color: var(--text-color, #3E3731);
-}
-
-.add-goal-task-input {
+.ag-task-input {
   flex: 1;
   min-width: 0;
   background: none;
   border: none;
-  border-bottom: 1px solid var(--card-border, #E0D8CD);
+  border-bottom: 1px solid var(--glide-line);
   border-radius: 0;
-  padding: 0.4rem 0.25rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-  color: var(--text-color, #3E3731);
+  padding: 6px 2px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--glide-ink);
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
-.add-goal-task-input:focus {
-  border-bottom-color: var(--highlight-color);
-  box-shadow: none;
+.ag-task-input:focus { border-bottom-color: var(--glide-moss); }
+.ag-task-input::placeholder { color: var(--glide-ink-muted); opacity: 0.5; }
+
+.ag-task-xp {
+  background: none;
+  border: 1px solid var(--glide-line);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--glide-ink-muted);
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
 }
+
+.ag-task-remove {
+  background: none;
+  border: none;
+  color: var(--glide-ink-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.ag-task-remove:hover { color: var(--glide-terracotta); }
+
+.ag-add-task {
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--glide-ink-muted);
+  cursor: pointer;
+  padding: 6px 0;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+
+.ag-add-task:hover { color: var(--glide-ink); }
+
+/* ─── Footer ─────────────────────────────────────────── */
+.ag-footer {
+  padding: 0 28px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--glide-line);
+  padding-top: 18px;
+}
+
+.ag-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ag-btn-cancel {
+  background: transparent;
+  border: 1px solid var(--glide-line);
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--glide-ink-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ag-btn-cancel:hover {
+  background: var(--glide-bg-panel);
+  border-color: var(--glide-line-strong);
+}
+
+.ag-btn-submit {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 10px 24px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.ag-btn-submit:hover:not(:disabled) { opacity: 0.88; }
+.ag-btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ─── Responsive ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  .ag-body { grid-template-columns: 1fr; }
+  .ag-popup { border-radius: 14px; }
+}
+
+/* ─── High contrast ──────────────────────────────────── */
+html.high-contrast .ag-popup { background: #000; border-color: #fff; }
+html.high-contrast .ag-title,
+html.high-contrast .ag-label { color: #fff; }
+html.high-contrast .ag-input { background: #000; color: #fff; border-color: #fff; }
+html.high-contrast .ag-btn-submit { background: #ff0 !important; color: #000; }
+html.high-contrast .ag-btn-cancel { border-color: #fff; color: #fff; }
+html.high-contrast .ag-cadence-pill { border-color: #fff; color: #fff; background: #000; }
+html.high-contrast .ag-cadence-pill.active { background: #ff0 !important; border-color: #ff0; color: #000; }
+html.high-contrast .ag-preview-card { background: #000 !important; border-color: #fff; }
+html.high-contrast .ag-preview-title,
+html.high-contrast .ag-preview-cadence { color: #fff; }
+html.high-contrast .ag-preview-dot { background: #555; }
+html.high-contrast .ag-task-input { color: #fff; border-bottom-color: #fff; }
+html.high-contrast .ag-task-bullet,
+html.high-contrast .ag-add-task { color: #fff; }
+html.high-contrast .ag-task-xp { border-color: #fff; color: #fff; background: #000; }
+html.high-contrast .ag-task-remove { color: #fff; }
+html.high-contrast .ag-btn-suggest { border-color: #fff; color: #fff; }
+html.high-contrast .ag-footer { border-top-color: #fff; }
