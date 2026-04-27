@@ -15,6 +15,18 @@
   --color-red: #e53935;
   --color-gold: #a58f1c;
   --shadow-soft: 0 2px 12px rgba(62, 55, 49, 0.08);
+  --shell-page-bg: #f3ede3;
+  --border-subtle: rgba(46, 38, 31, 0.08);
+  --border-default: rgba(46, 38, 31, 0.1);
+  --border-strong: rgba(46, 38, 31, 0.12);
+  --surface-subtle: rgba(251, 247, 240, 0.48);
+  --surface-subtle-soft: rgba(251, 247, 240, 0.42);
+  --surface-subtle-strong: rgba(251, 247, 240, 0.68);
+  --surface-subtle-solid: rgba(251, 247, 240, 0.78);
+  --text-soft: rgba(108, 92, 75, 0.78);
+  --text-soft-strong: rgba(108, 92, 75, 0.86);
+  --shadow-medium: 0 10px 22px rgba(46, 38, 31, 0.08);
+  --shadow-strong: 0 18px 36px rgba(46, 38, 31, 0.14);
 }
 
 html.dark-mode {
@@ -34,6 +46,18 @@ html.dark-mode {
   --color-red: #ef5350;
   --color-gold: #d4a574;
   --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --shell-page-bg: #2b241e;
+  --border-subtle: rgba(245, 239, 230, 0.12);
+  --border-default: rgba(245, 239, 230, 0.16);
+  --border-strong: rgba(245, 239, 230, 0.22);
+  --surface-subtle: rgba(53, 43, 36, 0.52);
+  --surface-subtle-soft: rgba(53, 43, 36, 0.42);
+  --surface-subtle-strong: rgba(53, 43, 36, 0.72);
+  --surface-subtle-solid: rgba(53, 43, 36, 0.84);
+  --text-soft: rgba(198, 184, 168, 0.8);
+  --text-soft-strong: rgba(213, 201, 187, 0.88);
+  --shadow-medium: 0 10px 22px rgba(0, 0, 0, 0.24);
+  --shadow-strong: 0 18px 36px rgba(0, 0, 0, 0.34);
 }
 
 html.high-contrast {
@@ -52,6 +76,18 @@ html.high-contrast {
   --color-red: #f00;
   --color-gold: #ff0;
   --shadow-soft: none;
+  --shell-page-bg: #000;
+  --border-subtle: rgba(255, 255, 255, 0.5);
+  --border-default: rgba(255, 255, 255, 0.7);
+  --border-strong: #fff;
+  --surface-subtle: rgba(255, 255, 0, 0.12);
+  --surface-subtle-soft: rgba(255, 255, 0, 0.08);
+  --surface-subtle-strong: rgba(255, 255, 0, 0.18);
+  --surface-subtle-solid: rgba(255, 255, 0, 0.24);
+  --text-soft: #fff;
+  --text-soft-strong: #fff;
+  --shadow-medium: none;
+  --shadow-strong: none;
 }
 
 .error {

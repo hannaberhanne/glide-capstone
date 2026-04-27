@@ -6,7 +6,7 @@
 }
 
 .app-shell--today {
-  background: var(--bg-color);
+  background: var(--shell-page-bg);
 }
 
 .app-shell--compact {
@@ -21,8 +21,8 @@
   padding: 0 0 18px;
   display: flex;
   flex-direction: column;
-  background: var(--bg-secondary);
-  border-right: 1px solid rgba(46, 38, 31, 0.08);
+  background: color-mix(in srgb, var(--bg-secondary) 76%, var(--shell-page-bg) 24%);
+  border-right: 1px solid var(--border-subtle);
   z-index: 55;
   transition: width 180ms ease;
 }
@@ -41,17 +41,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(46, 38, 31, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: rgba(128, 128, 128, 0.12);
-  color: var(--text-muted);
+  background: var(--surface-subtle);
+  color: var(--text-soft);
   cursor: pointer;
   transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .side-collapse:hover {
-  background: rgba(128, 128, 128, 0.2);
-  border-color: rgba(128, 128, 128, 0.24);
+  background: var(--surface-subtle-solid);
+  border-color: var(--border-strong);
   color: var(--text-color);
 }
 
@@ -72,18 +72,18 @@
   align-items: center;
   gap: 11px;
   border-radius: 12px;
-  color: var(--text-muted);
+  color: var(--text-soft-strong);
   text-decoration: none;
   transition: background-color 140ms ease, color 140ms ease;
 }
 
 .side-nav-item:hover {
-  background: rgba(128, 128, 128, 0.12);
+  background: var(--surface-subtle-soft);
   color: var(--text-color);
 }
 
 .side-nav-item.active {
-  background: rgba(128, 128, 128, 0.2);
+  background: var(--surface-subtle-strong);
   color: var(--text-color);
 }
 
@@ -95,7 +95,7 @@
   bottom: 6px;
   width: 2px;
   border-radius: 999px;
-  background: color-mix(in srgb, #5e7156 72%, #2e261f 28%);
+  background: var(--highlight-color);
 }
 
 .side-nav-icon {
@@ -121,7 +121,7 @@
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: #7d9577;
+  background: var(--highlight-color);
   flex: 0 0 6px;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .side-nav-item-settings {
-  color: var(--text-muted);
+  color: var(--text-soft);
 }
 
 .app-shell--compact .side-nav,
@@ -173,7 +173,7 @@
 .app-shell--today .shell-frame,
 .app-shell--today .main-content,
 .app-shell--today .app-footer {
-  background: var(--bg-color);
+  background: var(--shell-page-bg);
 }
 
 .app-footer {
@@ -210,18 +210,6 @@ html.high-contrast .side-nav-item.active {
 html.high-contrast .side-nav-item.active::before,
 html.high-contrast .side-nav-dot {
   background: yellow;
-}
-
-html.dark-mode .side-spine {
-  border-color: rgba(255, 255, 255, 0.07);
-}
-
-html.dark-mode .side-collapse {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-html.dark-mode .side-nav-item.active::before {
-  background: color-mix(in srgb, #9caf88 72%, #f5f1e8 28%);
 }
 
 @media (max-width: 1020px) {

@@ -1136,6 +1136,223 @@ html.dark-mode .dash {
   --today-line-strong: rgba(245, 239, 230, 0.18);
 }
 
+html.dark-mode .today-sheet-date,
+html.dark-mode .today-section-label {
+  color: rgba(245, 239, 230, 0.74);
+}
+
+html.dark-mode .today-page-icons,
+html.dark-mode .today-task-meta-item + .today-task-meta-item::before,
+html.dark-mode .today-task-edit,
+html.dark-mode .today-task-remove,
+html.dark-mode .today-empty-note,
+html.dark-mode .today-inline-input::placeholder,
+html.dark-mode .rail-calendar-weekdays span {
+  color: rgba(198, 184, 168, 0.68);
+}
+
+html.dark-mode .today-sheet {
+  border-color: var(--today-line);
+}
+
+html.dark-mode .today-sheet::before {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html.dark-mode .today-section-primary .today-section-label,
+html.dark-mode .today-section-upcoming .today-section-label,
+html.dark-mode .today-planner-handoff-link,
+html.dark-mode .rail-section-link,
+html.dark-mode .rail-level-chip,
+html.dark-mode .rail-calendar-date,
+html.dark-mode .today-xp-burst {
+  color: rgba(245, 239, 230, 0.82);
+}
+
+html.dark-mode .today-section-upcoming::before,
+html.dark-mode .rail-note-block::before,
+html.dark-mode .rail-calendar::before {
+  background: linear-gradient(
+    90deg,
+    rgba(245, 239, 230, 0.06) 0%,
+    rgba(245, 239, 230, 0.16) 16%,
+    rgba(245, 239, 230, 0.16) 84%,
+    rgba(245, 239, 230, 0.06) 100%
+  );
+}
+
+html.dark-mode .today-task-row {
+  border-bottom-color: var(--today-line);
+}
+
+html.dark-mode .today-task-check {
+  border-color: var(--today-accent);
+}
+
+html.dark-mode .today-task-check:hover {
+  background: rgba(142, 167, 134, 0.14);
+}
+
+html.dark-mode .today-task-check.checked {
+  background: var(--today-accent);
+  border-color: var(--today-accent);
+  box-shadow: 0 0 0 4px rgba(142, 167, 134, 0.16);
+}
+
+html.dark-mode .today-task-check-empty,
+html.dark-mode .today-task-check-empty:hover {
+  border-color: rgba(198, 184, 168, 0.26);
+}
+
+html.dark-mode .today-task-title.has-strike::after {
+  background: rgba(245, 239, 230, 0.36);
+}
+
+html.dark-mode .today-task-source {
+  border-color: rgba(142, 167, 134, 0.48);
+  color: rgba(198, 223, 190, 0.92);
+  background: rgba(142, 167, 134, 0.14);
+}
+
+html.dark-mode .today-task-edit:hover,
+html.dark-mode .today-task-remove:hover,
+html.dark-mode .today-empty-note:hover {
+  color: rgba(245, 239, 230, 0.86);
+}
+
+html.dark-mode .today-rail {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 233, 180, 0.08) 0, rgba(255, 233, 180, 0) 34%),
+    radial-gradient(circle at 82% 72%, rgba(15, 12, 10, 0.2) 0, rgba(15, 12, 10, 0) 42%),
+    linear-gradient(180deg, #6d573f 0%, #5a4737 100%);
+  border-color: rgba(245, 239, 230, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -14px 28px rgba(15, 12, 10, 0.16),
+    0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+html.dark-mode .today-rail::before {
+  background:
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 244, 220, 0.018) 0 2px,
+      rgba(255, 244, 220, 0) 2px 14px
+    ),
+    repeating-linear-gradient(
+      12deg,
+      rgba(255, 241, 212, 0.015) 0 1px,
+      rgba(255, 241, 212, 0) 1px 12px
+    );
+}
+
+html.dark-mode .rail-section-label,
+html.dark-mode .rail-schedule-time,
+html.dark-mode .rail-level-xp {
+  color: rgba(245, 239, 230, 0.62);
+}
+
+html.dark-mode .rail-schedule-item {
+  background: rgba(54, 45, 38, 0.34);
+  border-color: rgba(245, 239, 230, 0.1);
+}
+
+html.dark-mode .rail-schedule-chip,
+html.dark-mode .rail-schedule-state {
+  background: rgba(54, 45, 38, 0.6);
+  border-color: rgba(245, 239, 230, 0.1);
+  color: rgba(245, 239, 230, 0.74);
+}
+
+html.dark-mode .rail-schedule-action {
+  border-color: rgba(245, 239, 230, 0.14);
+  background: rgba(15, 12, 10, 0.88);
+  color: var(--today-ink);
+}
+
+html.dark-mode .rail-note {
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 242, 182, 0.18) 0, rgba(255, 242, 182, 0) 34%),
+    linear-gradient(180deg, #b6a55b 0%, #9f9050 100%);
+  border-color: rgba(255, 232, 140, 0.22);
+  box-shadow:
+    0 12px 20px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+html.dark-mode .rail-note::before {
+  background:
+    linear-gradient(180deg, rgba(222, 208, 166, 0.84) 0%, rgba(187, 173, 137, 0.72) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 6px, rgba(46, 38, 31, 0.04) 6px 12px);
+  border-color: rgba(255, 232, 140, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.16);
+}
+
+html.dark-mode .rail-note-input {
+  color: rgba(62, 49, 15, 0.92);
+  caret-color: rgba(62, 49, 15, 0.84);
+}
+
+html.dark-mode .rail-note-input::placeholder {
+  color: rgba(62, 49, 15, 0.62);
+}
+
+html.dark-mode .rail-level-ruler-line {
+  background: rgba(245, 239, 230, 0.2);
+}
+
+html.dark-mode .rail-level-ruler-tick {
+  background: rgba(245, 239, 230, 0.34);
+}
+
+html.dark-mode .rail-level-ruler-tick-minor {
+  background: rgba(245, 239, 230, 0.22);
+}
+
+html.dark-mode .rail-level-ruler-marker {
+  background: rgba(245, 239, 230, 0.74);
+}
+
+html.dark-mode .rail-calendar-day.is-banded::before {
+  background: rgba(54, 45, 38, 0.42);
+}
+
+html.dark-mode .rail-calendar-day.is-streak::after {
+  background: rgba(142, 167, 134, 0.16);
+}
+
+html.dark-mode .rail-calendar-day:not(.is-month) .rail-calendar-date,
+html.dark-mode .rail-calendar-day.is-previous-month .rail-calendar-date,
+html.dark-mode .rail-calendar-day.is-next-month .rail-calendar-date {
+  color: rgba(198, 184, 168, 0.24);
+}
+
+html.dark-mode .rail-calendar-check {
+  color: rgba(198, 223, 190, 0.96);
+  text-shadow: 0.4px 0 rgba(198, 223, 190, 0.18);
+}
+
+html.dark-mode .rail-calendar-check.is-streak-check {
+  color: rgba(198, 223, 190, 1);
+  text-shadow:
+    0.4px 0 rgba(198, 223, 190, 0.22),
+    0 0 8px rgba(142, 167, 134, 0.1);
+}
+
+html.dark-mode .rail-calendar-miss {
+  color: rgba(221, 161, 137, 0.92);
+  text-shadow: 0.4px 0 rgba(221, 161, 137, 0.18);
+}
+
+html.dark-mode .today-xp-burst {
+  background: rgba(54, 45, 38, 0.94);
+  border-color: rgba(210, 171, 60, 0.2);
+  color: rgba(255, 224, 122, 0.96);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
 html.high-contrast .dash {
   --today-bg: #000;
   --today-sheet-bg: #000;
