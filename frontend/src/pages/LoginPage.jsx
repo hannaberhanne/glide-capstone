@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
 import AuthLogo from "../components/AuthLogo";
 import AlertBanner from "../components/AlertBanner.jsx";
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function LoginPage() {
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -13,13 +14,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [banner, setBanner] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const canSubmit = email.trim() !== "" && password.trim() !== "";
+
+  const handleToggle = () => setShowPassword(prev => !prev);
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit || loading) return;
     setLoading(true);
+
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
@@ -82,19 +88,22 @@ export default function LoginPage() {
           <label className="login-label">
             <span className="login-label-text">Password</span>
             <input
-              className="login-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
+                className="login-input"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
             />
+            <span className="password-toggle" onClick={handleToggle}>
+  {showPassword ? <FiEye /> : <FiEyeOff />}
+</span>
           </label>
 
           {banner && (
-            <AlertBanner
-              message={banner.message}
-              type={banner.type}
-              onClose={() => setBanner(null)}
+              <AlertBanner
+                  message={banner.message}
+                  type={banner.type}
+                  onClose={() => setBanner(null)}
             />
           )}
 
