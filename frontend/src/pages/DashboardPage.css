@@ -129,11 +129,11 @@
 }
 
 .today-section-primary {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 
 .today-section + .today-section {
-  padding-top: 10px;
+  padding-top: 15px;
 }
 
 .today-section-head {

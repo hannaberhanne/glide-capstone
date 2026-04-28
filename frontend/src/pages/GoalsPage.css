@@ -175,12 +175,16 @@
   padding: 20px 22px;
   cursor: pointer;
   animation: card-in 220ms ease-out both;
-  transition: transform 200ms ease, box-shadow 500ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
   overflow: visible;
   box-shadow: none;
 }
 
-.goal-card:hover { transform: translateY(-2px); }
+.goal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px -4px color-mix(in srgb, var(--card-color, #888) 35%, transparent);
+}
+.goal-card:hover .goal-edit-hint { opacity: 0.8; }
 
 .goal-card--glow { box-shadow: 0 0 0 3px rgba(125, 149, 119, 0.28); }
 
@@ -234,7 +238,7 @@
 
 /* ─── Title ──────────────────────────────────────────── */
 .goal-card-title {
-  font-family: var(--font-display);
+  font-family: var(--font-display), serif;
   font-size: 20px;
   font-weight: 700;
   color: var(--glide-ink);
@@ -366,30 +370,49 @@
   margin: 6px 0;
 }
 
+/* Make tasks look clickable */
 .goal-task-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
+  display: flex;         /* ← add */
+  align-items: center;  /* ← add */
+  gap: 5px;            /* ← was implicit, now explicit — increase from ~4px to 10px */
   cursor: pointer;
-  border-radius: 4px;
-  transition: opacity 0.15s ease;
+  border-radius: 6px;
+  padding: 5px 6px;
+  margin: 0 -6px;
+  transition: background 0.12s ease;
+  user-select: none;
 }
 
-.goal-task-item:not(.goal-task-item--done):hover { opacity: 0.7; }
-
-.goal-task-item--done {
-  opacity: 0.38;
-  cursor: default;
+.goal-task-item:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-.goal-task-item--done .goal-task-name { text-decoration: line-through; }
-
+/* The dash becomes a checkbox-like circle on hover */
 .goal-task-mark {
-  font-size: 12px;
-  width: 16px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 10px;
   flex-shrink: 0;
+  transition: background 0.12s ease;
+}
+
+.goal-task-item:hover .goal-task-mark {
+  background: currentColor;
+}
+
+/* Done tasks */
+.goal-task-item--done {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.goal-task-item--done:hover {
+  background: none;
 }
 
 .goal-task-name {
@@ -413,7 +436,7 @@
   pointer-events: none;
 }
 
-.goal-card:hover .goal-edit-hint { opacity: 0.65; }
+.goal-card:hover { transform: translateY(-2px); }
 
 /* ─── XP float ───────────────────────────────────────── */
 .xp-float {

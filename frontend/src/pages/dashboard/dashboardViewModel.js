@@ -154,7 +154,7 @@ export const getDashboardTaskBuckets = ({ tasks, today }) => {
   const parseCompletedDate = (task) =>
     parseMaybeDate(task?.completedAt || task?.lastCompleted || task?.updatedAt);
 
-  const incompleteTasks = tasks.filter((task) => !task.isComplete && !task.completedToday && !task.goalId);
+  const incompleteTasks = tasks.filter((task) => !task.isComplete && !task.completedToday); // && !task.goalId
   const sortedOpenTasks = sortOpenTasks(incompleteTasks, parseDueDate);
 
   const overdueTasks = sortedOpenTasks.filter((task) => {
