@@ -69,15 +69,20 @@ class CanvasService {
 
     async getCoursesWithAssignments() {
         const courses = await this.getCourses();
-
-        const coursesWithAssignments = [];  // array
+        const now = new Date();
+        const coursesWithAssignments = [];
 
         for (const course of courses) {
             const assignments = await this.getAssignments(course.canvasId);
 
+            const upcomingAssignments = assignments.filter(a => {
+                if (!a.dueDate) return true;
+                return new Date(a.dueDate) >= now;
+            });
+
             coursesWithAssignments.push({
                 ...course,
-                assignments
+                assignments: upcomingAssignments
             });
         }
 

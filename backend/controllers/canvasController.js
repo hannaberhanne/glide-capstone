@@ -133,6 +133,7 @@ const syncCanvas = async (req, res) => {
       }
 
       for (const assignmentData of courseData.assignments || []) {
+
         const existingAssignmentQuery = await db.collection('assignments')
           .where('userId', '==', uid)
           .where('canvasId', '==', assignmentData.canvasId)
