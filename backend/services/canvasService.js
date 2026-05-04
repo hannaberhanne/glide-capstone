@@ -119,7 +119,6 @@ class CanvasService {
         return coursesWithAssignments;
     }
 
-
 }
 
 export default CanvasService;

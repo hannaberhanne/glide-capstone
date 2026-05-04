@@ -1,7 +1,6 @@
 import { admin, db } from '../config/firebase.js';
 import { buildTaskCompletionOutcome, normalizeXpValue } from '../domain/completion.js';
 import { getXpFromAI } from '../domain/taskXp.js';
-import { FieldValue } from 'firebase-admin/firestore';
 
 function todayDateString() {
   const now = new Date();
@@ -40,42 +39,28 @@ function normalizeEstimatedMinutes({ estimatedMinutes, estimatedTime }) {
 // get all tasks for the current user.
 const getTasks = async (req, res) => {
     try {
-        const userId = req.user.uid;
+        const uid = req.user.uid;
 
-        const snapshot = await db
-            .collection('tasks')
-            .where('userId', '==', userId)
+        const snapshot = await db.collection('tasks')
+            .where('userId', '==', uid)
             .get();
 
-        const now = new Date();
-        const cutoff = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
+        const today = todayDateString();
 
-        const batch = db.batch();
-        const tasks = [];
-        let staleCount = 0;
-
-        snapshot.forEach((doc) => {
-            const task = { taskId: doc.id, ...doc.data() };
-            const dueAt = task.dueAt ? new Date(task.dueAt) : null;
-
-            if (dueAt && dueAt < cutoff) {
-                // Queue for deletion, don't include in response
-                batch.delete(doc.ref);
-                staleCount++;
-            } else {
-                tasks.push(task);
-            }
+        const tasks = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                taskId: doc.id,
+                ...data,
+                completedToday: data.lastCompleted === today,
+            };
         });
 
-        if (staleCount > 0) {
-            await batch.commit();
-            console.log(`Cleaned up ${staleCount} stale task(s) for user ${userId}`);
-        }
+        res.json(tasks);
 
-        return res.status(200).json({ tasks });
-    } catch (error) {
-        console.error('getTasks error:', error);
-        return res.status(500).json({ error: 'Failed to fetch tasks' });
+    } catch (err) {
+        console.error('Get tasks error:', err.message);
+        res.status(500).json({ error: 'Failed to fetch tasks' });
     }
 };
 
