@@ -3,6 +3,7 @@ import { db, admin } from '../config/firebase.js';
 import { queueCanvasWorkloadChangeNotification } from '../services/notificationService.js';
 import {
   deleteCanvasTasksForUser,
+  deleteStaleCanvasTask,
   getCanvasTaskCount,
   upsertCanvasTaskFromAssignment
 } from '../services/canvasTaskSyncService.js';
@@ -91,8 +92,11 @@ const syncCanvas = async (req, res) => {
     let tasksUpdated = 0;
     let tasksUnchanged = 0;
     let materialTaskChanges = 0;
+    let staleAssignmentsDeleted = 0;
+    let staleTasksDeleted = 0;
 
     for (const courseData of coursesWithAssignments) {
+
       // upsert course by canvasId for this user
       const existingCourseQuery = await db.collection('courses')
         .where('userId', '==', uid)
@@ -193,6 +197,28 @@ const syncCanvas = async (req, res) => {
           materialTaskChanges++;
         }
       }
+
+      // After the assignments for-loop, still inside the courses for-loop
+      if (courseData.staleAssignmentIds?.length > 0) {
+        for (const staleCanvasId of courseData.staleAssignmentIds) {
+          // Find and delete the assignment doc
+          const staleAssignmentQuery = await db.collection('assignments')
+              .where('userId', '==', uid)
+              .where('canvasId', '==', staleCanvasId)
+              .get();
+
+          if (!staleAssignmentQuery.empty) {
+            const batch = db.batch();
+            staleAssignmentQuery.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            staleAssignmentsDeleted += staleAssignmentQuery.size;
+          }
+          staleTasksDeleted++;
+
+          // Delete linked canvas tasks too
+          staleTasksDeleted += await deleteStaleCanvasTask(uid, staleCanvasId);
+        }
+      }
     }
 
     const planTriggered = false;
@@ -209,6 +235,8 @@ const syncCanvas = async (req, res) => {
       tasksUpdated,
       tasksUnchanged,
       materialTaskChanges,
+      staleAssignmentsDeleted,
+      staleTasksDeleted,
       planTriggered,
       plannedStartDate,
       plannedEndDate,

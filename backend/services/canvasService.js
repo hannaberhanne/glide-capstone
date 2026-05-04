@@ -70,24 +70,55 @@ class CanvasService {
     async getCoursesWithAssignments() {
         const courses = await this.getCourses();
         const now = new Date();
+
+        // Window bounds
+        const sevenDaysAhead = new Date(now);
+        sevenDaysAhead.setDate(now.getDate() + 7);
+
+        const twoDaysAgo = new Date(now);
+        twoDaysAgo.setDate(now.getDate() - 2);
+
         const coursesWithAssignments = [];
 
         for (const course of courses) {
             const assignments = await this.getAssignments(course.canvasId);
 
-            const upcomingAssignments = assignments.filter(a => {
-                if (!a.dueDate) return true;
-                return new Date(a.dueDate) >= now;
-            });
+            // Partition into keep vs. stale
+            const keepAssignments = [];
+            const staleAssignmentIds = []; // canvasIds of assignments to delete from DB
+
+            for (const a of assignments) {
+                if (!a.dueDate) {
+                    // No due date — include it, don't delete
+                    keepAssignments.push(a);
+                    continue;
+                }
+
+                const due = new Date(a.dueDate);
+
+                if (due >= now && due <= sevenDaysAhead) {
+                    // Upcoming within the week ✅
+                    keepAssignments.push(a);
+                } else if (due >= twoDaysAgo && due < now) {
+                    // Past due but within 2 days ✅
+                    keepAssignments.push(a);
+                } else if (due < twoDaysAgo) {
+                    // Past due more than 2 days — mark for deletion ❌
+                    staleAssignmentIds.push(a.canvasId);
+                }
+                // due > sevenDaysAhead: too far in the future, just exclude silently
+            }
 
             coursesWithAssignments.push({
                 ...course,
-                assignments: upcomingAssignments
+                assignments: keepAssignments,
+                staleAssignmentIds, // pass this up to the controller
             });
         }
 
         return coursesWithAssignments;
     }
+
 
 }
 
