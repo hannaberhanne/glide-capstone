@@ -38,7 +38,7 @@ function normalizeEstimatedMinutes({ estimatedMinutes, estimatedTime }) {
 }
 
 // get all tasks for the current user.
-export const getTasks = async (req, res) => {
+const getTasks = async (req, res) => {
     try {
         const userId = req.user.uid;
 
