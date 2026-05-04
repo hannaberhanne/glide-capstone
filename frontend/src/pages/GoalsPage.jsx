@@ -70,10 +70,13 @@ function GoalHeatmap({ completionHistory, color }) {
 
 function BadgeItem({ badge, locked }) {
   return (
-    <div className={`badge-item${locked ? " badge-item--locked" : ""}`} title={badge.description}>
+    <div className={`badge-item${locked ? " badge-item--locked" : ""}`}>
       <div className="badge-item-svg" dangerouslySetInnerHTML={{ __html: badge.svg }} />
       <span className="badge-item-label">{badge.label}</span>
-      {locked && <span className="badge-item-hint">{badge.description}</span>}
+      {locked
+        ? <span className="badge-item-hint">{badge.description}</span>
+        : <span className="badge-item-tooltip">{badge.description}</span>
+      }
     </div>
   );
 }
