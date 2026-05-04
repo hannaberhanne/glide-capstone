@@ -178,11 +178,11 @@ ${context.routines.map((routine) => `
 
 INSTRUCTIONS:
 1) Select 5-7 items (tasks + routines) for TODAY. Prioritize overdue/due-soon, include 1-2 routines (streaks matter), don't exceed max work minutes.
-2) Order: start with a quick win (<30min), high-focus in morning, routines at natural times, end with something satisfying.
-3) Time slots in ${context.timezone}: use 30-90 minute blocks, include 15min breaks between hard tasks, leave some flex. Keep within available hours.
-   Do NOT schedule during fixed commitments.
+2) Order: start with a quick win (<30min), high-focus in morning, routines at natural times, end with something satisfying. Most tasks should take 60 minutes.
+3) Time slots in ${context.timezone}: use 30-90 minute blocks, include at least a 15 minute break between hard tasks, leave some flex. Keep within available hours.
+   Do NOT schedule during fixed commitments. Do NOT give multiple task or routine in a row without a break. Do not go more than 120 minutes of work without a break.
    Ignore/defer tasks that are overdue by more than 14 days unless critical.
-4) Reasoning: explain briefly why each block and order.
+4) Reasoning: explain briefly why each block.
 
 OUTPUT (JSON only):
 {
@@ -192,8 +192,8 @@ OUTPUT (JSON only):
       "startISO": "2025-12-01T14:00:00-05:00",
       "endISO": "2025-12-01T14:45:00-05:00",
       "startLabel": "2:00 PM",
-      "endLabel": "2:45 PM",
-      "type": "task" | "routine" | "break",
+      "endLabel": "3:00 PM",
+      "type": "task" | "routine",
       "taskId": "optional",
       "goalId": "optional",
       "reasoning": "why this block",
