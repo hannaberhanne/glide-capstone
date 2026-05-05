@@ -266,31 +266,24 @@ export default function PlannerPage() {
   };
 
   const handleCompleteScheduleBlock = async (blockId) => {
+    const block = scheduleBlocks.find((b) => b.blockId === blockId);
     try {
-      const data = await completeScheduleBlock(blockId, viewModel.selectedDay.key);
-      await fetchTasks();
-
-      if (data?.xpGained > 0) {
-        setBanner({
-          message: `Completed. +${Math.round(data.xpGained)} XP.`,
-          type: "success",
-        });
-      } else if (data?.underlyingAlready) {
-        setBanner({
-          message: "Block closed. The underlying work was already complete.",
-          type: "info",
-        });
+      if (block?.taskId) {
+        await updateTask(block.taskId, { dueAt: viewModel.selectedDay.date });
+        await removeScheduleBlock(blockId);
+        await fetchTasks();
+        setBanner({ message: "Added to your day.", type: "success" });
       } else {
-        setBanner({
-          message: "Block completed.",
-          type: "success",
-        });
+        const data = await completeScheduleBlock(blockId, viewModel.selectedDay.key);
+        await fetchTasks();
+        if (data?.xpGained > 0) {
+          setBanner({ message: `Completed. +${Math.round(data.xpGained)} XP.`, type: "success" });
+        } else {
+          setBanner({ message: "Block completed.", type: "success" });
+        }
       }
     } catch (err) {
-      setBanner({
-        message: err?.message || "Unable to complete that block.",
-        type: "error",
-      });
+      setBanner({ message: err?.message || "Unable to accept that block.", type: "error" });
     }
   };
 

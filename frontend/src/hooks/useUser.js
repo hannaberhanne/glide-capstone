@@ -43,9 +43,8 @@ export default function useUser() {
       const uid = auth.currentUser.uid;
       const userData = await apiClient.get(`/api/users/${uid}`);
       setUser(userData);
-      if (Array.isArray(userData) && userData[0]?.totalXP !== undefined) {
-        setXp(userData[0].totalXP || 0);
-      }
+      const record = Array.isArray(userData) ? userData[0] : userData;
+      setXp(record?.totalXP || 0);
       await fillProfileGaps(userData);
     } catch (err) {
       console.error("Failed to fetch user:", err);

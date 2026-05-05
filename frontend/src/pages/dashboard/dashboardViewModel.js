@@ -180,7 +180,7 @@ export const getDashboardTaskBuckets = ({ tasks, today }) => {
     return due ? startOfDay(due) > today : false;
   });
 
-  const undatedTasks = sortedOpenTasks.filter((task) => !parseDueDate(task));
+  const undatedTasks = sortedOpenTasks.filter((task) => !parseDueDate(task) && task.category !== "academic");
 
   const completedTasks = tasks
     .filter((task) => task.isComplete || task.completedToday)
