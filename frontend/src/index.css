@@ -398,6 +398,28 @@ html.high-contrast .glide-btn-ghost:hover { background: rgba(255, 255, 0, 0.12);
 .glide-auth-field {
   display: grid;
   gap: var(--space-2);
+  position: relative;
+}
+
+.glide-auth-field:has(.password-toggle) .glide-auth-input {
+  padding-right: 42px;
+}
+
+.password-toggle {
+  position: absolute;
+  bottom: 13px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  color: var(--glide-ink-muted);
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.password-toggle:hover {
+  color: var(--glide-ink);
 }
 
 .glide-auth-field--full {

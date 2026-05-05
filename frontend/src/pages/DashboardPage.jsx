@@ -99,10 +99,6 @@ export default function DashboardPage() {
     () => buildStreakCalendar({ completedTasks, today }),
     [completedTasks, today]
   );
-  const taskById = useMemo(
-    () => new Map(tasks.map((task) => [task.taskId, task])),
-    [tasks]
-  );
   const scheduledTaskBlockById = useMemo(() => {
     const entries = scheduleBlocks
       .filter((block) => block.type !== "break" && block.status !== "completed" && block.taskId)
@@ -110,39 +106,13 @@ export default function DashboardPage() {
     return new Map(entries);
   }, [scheduleBlocks]);
   const dashboardTodayTasks = useMemo(() => {
-    const byId = new Map(
-      todayTasks.map((task) => {
-        const block = scheduledTaskBlockById.get(task.taskId);
-        return [
-          task.taskId,
-          block
-            ? {
-                ...task,
-                scheduledBlockId: block.blockId,
-                scheduledStartTime: block.startTime,
-                scheduledReasoning: block.reasoning,
-              }
-            : task,
-        ];
-      })
-    );
-
-    scheduleBlocks.forEach((block) => {
-      if (block.type === "break" || block.status === "completed" || !block.taskId || byId.has(block.taskId)) {
-        return;
-      }
-      const task = taskById.get(block.taskId);
-      if (!task || task.isComplete || task.completedToday || dismissedTasks.has(task.taskId)) return;
-      byId.set(task.taskId, {
-        ...task,
-        scheduledBlockId: block.blockId,
-        scheduledStartTime: block.startTime,
-        scheduledReasoning: block.reasoning,
-      });
+    return todayTasks.map((task) => {
+      const block = scheduledTaskBlockById.get(task.taskId);
+      return block
+        ? { ...task, scheduledBlockId: block.blockId, scheduledStartTime: block.startTime, scheduledReasoning: block.reasoning }
+        : task;
     });
-
-    return [...byId.values()];
-  }, [dismissedTasks, scheduleBlocks, scheduledTaskBlockById, taskById, todayTasks]);
+  }, [todayTasks, scheduledTaskBlockById]);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
