@@ -289,6 +289,21 @@
   color: var(--glide-ink);
 }
 
+.rail-badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #22c55e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+
 .settings-muted-text {
   margin: 0;
   font-size: 15px;

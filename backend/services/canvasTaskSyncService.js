@@ -169,3 +169,18 @@ export async function deleteCanvasTasksForUser(uid) {
 
   return canvasTaskRefs.length;
 }
+
+export async function deleteStaleCanvasTask(uid, canvasAssignmentId) {
+  const snap = await db.collection('tasks')
+      .where('canvasAssignmentId', '==', canvasAssignmentId)
+      .get();
+
+  const userTasks = snap.docs.filter(doc => doc.data().userId === uid);
+  if (userTasks.length === 0) return 0;
+
+  const batch = db.batch();
+  userTasks.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+
+  return userTasks.length;
+}

@@ -7,6 +7,7 @@ import {
   updatePassword as updateFirebasePassword,
 } from "firebase/auth";
 import { apiClient } from "../lib/apiClient.js";
+import { computeBadges } from "../utils/badgeSystem.js";
 import useCanvasStatus from "../hooks/useCanvasStatus";
 import useNotificationRegistration from "../hooks/useNotificationRegistration.js";
 import useUser from "../hooks/useUser";
@@ -15,6 +16,21 @@ import useAccessibilityPrefs, {
 } from "../hooks/useAccessibilityPrefs";
 import PixelIcon from "../components/PixelIcon.jsx";
 import "./SettingsPage.css";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+function BadgeItem({ badge, locked }) {
+  return (
+    <div className={`badge-item${locked ? " badge-item--locked" : ""}`}>
+      <div className="badge-item-svg" dangerouslySetInnerHTML={{ __html: badge.svg }} />
+      <span className="badge-item-label">{badge.label}</span>
+      {locked
+        ? <span className="badge-item-hint">{badge.description}</span>
+        : <span className="badge-item-tooltip">{badge.description}</span>
+      }
+    </div>
+  );
+}
 
 const OVERRIDE_PATTERNS = {
   academic: "academic",
@@ -196,11 +212,36 @@ export default function SettingsPage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [canvasMessage, setCanvasMessage] = useState("");
   const [pushMessage, setPushMessage] = useState("");
+  const [goals, setGoals] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   const avatarPattern = useMemo(
     () => resolvePattern(form.major, userRecord?.category),
     [form.major, userRecord?.category]
   );
+
+  useEffect(() => {
+    if (activeTab !== "progress") return;
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (!firebaseUser) return;
+      try {
+        const token = await firebaseUser.getIdToken();
+        const headers = { Authorization: `Bearer ${token}` };
+        const [gr, tr] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/goals`, { headers, credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/tasks`, { headers, credentials: "include" }),
+        ]);
+        const [gd, td] = await Promise.all([gr.json(), tr.json()]);
+        if (gr.ok && tr.ok) {
+          setTasks(td);
+          setGoals(gd.map((g) => ({ ...g, taskDetails: td.filter((t) => t.goalId === g.goalId) })));
+        }
+      } catch (err) {
+        console.error("Failed to load goals/tasks for badges:", err);
+      }
+    });
+    return () => unsubscribe();
+  }, [activeTab]);
 
   useEffect(() => {
     setForm(getInitialProfileForm(userRecord));
@@ -539,7 +580,9 @@ export default function SettingsPage() {
     </section>
   );
 
-  const renderProgressTab = () => (
+  const renderProgressTab = () => {
+    const { earned, locked } = computeBadges({ xp, level: userRecord?.level ?? 0, goals, tasks });
+    return (
     <section className="settings-panel">
       <div className="settings-panel-header">
         <div>
@@ -571,19 +614,33 @@ export default function SettingsPage() {
       </div>
 
       <div className="settings-section">
-        <h3 className="settings-section-title">Badges</h3>
-        <div className="badge-grid">
-          {(userRecord?.badges?.length ? userRecord.badges : ["No badges unlocked yet"]).map(
-            (badge, index) => (
-              <div className="badge-card" key={index}>
-                {badge}
-              </div>
-            )
+        <h3 className="settings-section-title">
+          Badges
+          {earned.length > 0 && (
+            <span className="rail-badge-count">{earned.length}</span>
           )}
-        </div>
+        </h3>
+        {earned.length > 0 && (
+          <div className="badge-grid">
+            {earned.map((b) => (
+              <BadgeItem key={b.id} badge={b} locked={false} />
+            ))}
+          </div>
+        )}
+        {locked.length > 0 && (
+          <div className="badge-grid badge-grid--locked">
+            {locked.map((b) => (
+              <BadgeItem key={b.id} badge={b} locked={true} />
+            ))}
+          </div>
+        )}
+        {earned.length === 0 && locked.length === 0 && (
+          <p className="settings-muted-text">Complete goals and build streaks to earn badges.</p>
+        )}
       </div>
     </section>
-  );
+    );
+  };
 
   const renderPreferencesTab = () => (
     <section className="settings-panel">
@@ -736,129 +793,6 @@ export default function SettingsPage() {
                 onChange={() => toggleNotificationPref("notifyMajorReplans")}
               />
             </label>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="settings-section-title">Appearance</h3>
-          <div className="settings-preference-list">
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">Theme</span>
-              <select
-                className="settings-select"
-                value={accessibilityPrefs.theme}
-                onChange={(e) => updateAccessibilityPref("theme", e.target.value)}
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">Task color</span>
-              <select
-                className="settings-select"
-                value={prefs.taskColor}
-                onChange={(e) => updatePref("taskColor", e.target.value)}
-              >
-                <option value="purple">Purple</option>
-                <option value="blue">Blue</option>
-                <option value="green">Green</option>
-                <option value="orange">Orange</option>
-              </select>
-            </div>
-
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">Goal color</span>
-              <select
-                className="settings-select"
-                value={prefs.goalColor}
-                onChange={(e) => updatePref("goalColor", e.target.value)}
-              >
-                <option value="blue">Blue</option>
-                <option value="purple">Purple</option>
-                <option value="green">Green</option>
-                <option value="orange">Orange</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="settings-section-title">Task Defaults</h3>
-          <div className="settings-preference-list">
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">Default priority</span>
-              <select
-                className="settings-select"
-                value={prefs.defaultPriority}
-                onChange={(e) => updatePref("defaultPriority", e.target.value)}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="settings-section-title">Accessibility</h3>
-          <div className="settings-preference-list">
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">Font scale</span>
-              <div className="settings-font-scale">
-                <button type="button" className="settings-font-btn" onClick={decreaseFontScale}>
-                  −
-                </button>
-                <span className="settings-font-value">{accessibilityPrefs.fontScale}%</span>
-                <button type="button" className="settings-font-btn" onClick={increaseFontScale}>
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">High contrast</span>
-              <select
-                className="settings-select"
-                value={accessibilityPrefs.highContrast ? "on" : "off"}
-                onChange={(e) =>
-                  updateAccessibilityPref("highContrast", e.target.value === "on")
-                }
-              >
-                <option value="off">Off</option>
-                <option value="on">On</option>
-              </select>
-            </div>
-
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">Highlight links</span>
-              <select
-                className="settings-select"
-                value={accessibilityPrefs.highlightLinks ? "on" : "off"}
-                onChange={(e) =>
-                  updateAccessibilityPref("highlightLinks", e.target.value === "on")
-                }
-              >
-                <option value="off">Off</option>
-                <option value="on">On</option>
-              </select>
-            </div>
-
-            <div className="settings-preference-row">
-              <span className="settings-preference-label">Reduce motion</span>
-              <select
-                className="settings-select"
-                value={accessibilityPrefs.reduceMotion ? "on" : "off"}
-                onChange={(e) =>
-                  updateAccessibilityPref("reduceMotion", e.target.value === "on")
-                }
-              >
-                <option value="off">Off</option>
-                <option value="on">On</option>
-              </select>
-            </div>
           </div>
         </div>
 

@@ -1009,3 +1009,22 @@ html.reduce-motion .notes-card {
     padding-top: 0;
   }
 }
+
+/* ─── Dark mode overrides ────────────────────────────── */
+html.dark-mode .notes-card span {
+  color: rgba(245, 239, 230, 0.5);
+}
+
+html.dark-mode .notes-dots button {
+  background: rgba(245, 239, 230, 0.2);
+}
+
+html.dark-mode .mock-rail i {
+  background: linear-gradient(90deg, var(--glide-gold) 0 58%, rgba(245, 239, 230, 0.1) 58%);
+}
+
+html.dark-mode .mini-preview {
+  background: var(--glide-bg-panel);
+  border-color: var(--glide-line);
+  color: var(--glide-ink);
+}

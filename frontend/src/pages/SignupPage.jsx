@@ -5,6 +5,7 @@ import { auth } from "../config/firebase.js";
 import { apiClient } from "../lib/apiClient.js";
 import "./SignupPage.css";
 import AlertBanner from "../components/AlertBanner.jsx";
+import {FiEye, FiEyeOff} from "react-icons/fi";
 
 export default function SignupPage() {
   const nav = useNavigate();
@@ -15,6 +16,8 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [banner, setBanner] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +28,9 @@ export default function SignupPage() {
       password !== "" &&
       password.length >= 6 &&
       password === confirmPassword;
+
+  const handleToggle = () => setShowPassword(prev => !prev);
+  const handleConfirmToggle = () => setShowConfirmPassword(prev => !prev);
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -120,20 +126,26 @@ export default function SignupPage() {
             <span className="glide-auth-label">Password</span>
             <input
               className="glide-auth-input"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <span className="password-toggle" onClick={handleToggle}>
+              {showPassword ? <FiEye /> : <FiEyeOff />}
+            </span>
           </label>
 
           <label className="glide-auth-field">
             <span className="glide-auth-label">Confirm Password</span>
             <input
               className="glide-auth-input"
-              type="password"
+              type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
+            <span className="password-toggle" onClick={handleConfirmToggle}>
+              {showConfirmPassword ? <FiEye /> : <FiEyeOff />}
+            </span>
           </label>
           </div>
 

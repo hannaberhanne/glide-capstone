@@ -710,3 +710,75 @@ html.high-contrast .goals-add-row:hover {
   border-color: #ff0;
   color: #ff0;
 }
+
+/* ─── Task clickable hover ───────────────────────────── */
+.goal-task-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.goal-task-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 10px;
+  flex-shrink: 0;
+  transition: background 0.12s ease;
+}
+
+.goal-task-item:hover .goal-task-mark {
+  background: currentColor;
+}
+
+.goal-task-item--done {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.goal-task-item--done:hover {
+  background: none;
+}
+
+/* ─── Badge tooltips ─────────────────────────────────── */
+.badge-item-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--glide-ink);
+  color: var(--glide-bg-paper);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 6px;
+  z-index: 100;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.badge-item-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--glide-ink);
+}
+
+.badge-item:not(.badge-item--locked) {
+  position: relative;
+  cursor: default;
+}
+
+.badge-item:not(.badge-item--locked):hover .badge-item-tooltip {
+  visibility: visible;
+  opacity: 1;
+}

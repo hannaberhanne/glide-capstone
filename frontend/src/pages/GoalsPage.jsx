@@ -6,6 +6,7 @@ import EditGoal from "../components/EditGoal.jsx";
 import AlertBanner from "../components/AlertBanner";
 import { auth } from "../config/firebase.js";
 import useUser from "../hooks/useUser.js";
+import useTasks from "../hooks/useTasks";
 import { computeBadges } from "../utils/badgeSystem.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -69,10 +70,13 @@ function GoalHeatmap({ completionHistory, color }) {
 
 function BadgeItem({ badge, locked }) {
   return (
-    <div className={`badge-item${locked ? " badge-item--locked" : ""}`} title={badge.description}>
+    <div className={`badge-item${locked ? " badge-item--locked" : ""}`}>
       <div className="badge-item-svg" dangerouslySetInnerHTML={{ __html: badge.svg }} />
       <span className="badge-item-label">{badge.label}</span>
-      {locked && <span className="badge-item-hint">{badge.description}</span>}
+      {locked
+        ? <span className="badge-item-hint">{badge.description}</span>
+        : <span className="badge-item-tooltip">{badge.description}</span>
+      }
     </div>
   );
 }
@@ -114,6 +118,7 @@ function GoalCard({ goal, onDelete, onEdit, onTaskComplete, mountDelay }) {
         borderTopColor: goal.color,
         backgroundColor: `${goal.color}1c`,
         animationDelay: `${mountDelay}ms`,
+        '--card-color': goal.color,
       }}
       onClick={() => onEdit(goal)}
     >
@@ -181,7 +186,7 @@ function GoalCard({ goal, onDelete, onEdit, onTaskComplete, mountDelay }) {
               onClick={e => handleMark(e, task)}
             >
               <span className="goal-task-mark" style={{ color: goal.color }}>
-                {pending === task.taskId ? '·' : '—'}
+                {pending === task.taskId ? '·' : ''}
               </span>
               <span className="goal-task-name">{task.title}</span>
             </li>
@@ -242,7 +247,8 @@ function EmptyGoals({ onAdd }) {
 }
 
 export default function GoalsPage() {
-  const { user, xp } = useUser();
+  const { user, xp, setXp, refreshUser } = useUser();
+  const { completeTask } = useTasks();
   const [quote, setQuote]         = useState(null);
   const [banner, setBanner]       = useState(null);
   const [goals, setGoals]         = useState([]);
@@ -292,56 +298,60 @@ export default function GoalsPage() {
 
   const handleTaskComplete = useCallback(async task => {
     try {
-      const token = await auth.currentUser?.getIdToken();
-      // Goal tasks use lastCompleted for daily reset — don't use /complete (sets isComplete permanently)
-      const res = await fetch(`${API_BASE_URL}/api/tasks/${task.taskId}`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ lastCompleted: TODAY }),
-      });
-      if (!res.ok) return null;
+      const data = await completeTask(task.taskId);
+      if (!data?.success) return null;
+
+      if (typeof data.newTotalXP === "number") {
+        setXp(data.newTotalXP);
+      }
+
       setGoals(prev => prev.map(g => {
         if (g.goalId !== task.goalId) return g;
         return {
           ...g,
           taskDetails: (g.taskDetails || []).map(t =>
-            t.taskId === task.taskId ? { ...t, lastCompleted: TODAY } : t
+              t.taskId === task.taskId ? { ...t, lastCompleted: TODAY } : t
           ),
         };
       }));
-      return task.xpValue || 10;
+
+      refreshUser();
+      return data.xpGained || task.xpValue || 10;
     } catch (err) {
       console.error("Complete task error:", err);
       return null;
     }
-  }, []);
+  }, [completeTask, setXp, refreshUser]);
 
   const refreshTasks = async () => {
     const token = await auth.currentUser?.getIdToken();
-    if (!token) return;
+    if (!token) return [];
     const res = await fetch(`${API_BASE_URL}/api/tasks`, {
       headers: { Authorization: `Bearer ${token}` }, credentials: "include",
     });
     const td = await res.json();
-    if (!res.ok) return;
+    if (!res.ok) return [];
     setTasks(td);
     setGoals(prev => prev.map(g => ({ ...g, taskDetails: td.filter(t => t.goalId === g.goalId) })));
-  };
-
-  const handleGoalCreated = g => {
-    setGoals(prev => [...prev, { ...g, taskDetails: [] }]);
-    setBanner({ message: "Goal created." });
-    setShowAdd(false);
+    return td;  // ← return the fresh data
   };
 
   const handleGoalUpdated = async g => {
-    await refreshTasks();
+    const freshTasks = await refreshTasks();  // ← get fresh tasks synchronously from the fetch
     setGoals(prev => prev.map(p =>
-      p.goalId === g.goalId ? { ...g, taskDetails: tasks.filter(t => t.goalId === g.goalId) } : p
+        p.goalId === g.goalId
+            ? { ...g, taskDetails: freshTasks.filter(t => t.goalId === g.goalId) }  // ← use freshTasks, not tasks
+            : p
     ));
     setBanner({ message: "Goal updated." });
     setEditing(null);
+  };
+
+  const handleGoalCreated = async g => {
+    const freshTasks = await refreshTasks();
+    setGoals(prev => [...prev, { ...g, taskDetails: freshTasks.filter(t => t.goalId === g.goalId) }]);
+    setBanner({ message: "Goal created." });
+    setShowAdd(false);
   };
 
   const handleDelete = async id => {

@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
 import { apiClient } from "../lib/apiClient.js";
 import AlertBanner from "../components/AlertBanner.jsx";
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function LoginPage() {
   const nav = useNavigate();
@@ -12,13 +13,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [banner, setBanner] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const canSubmit = email.trim() !== "" && password.trim() !== "";
+
+  const handleToggle = () => setShowPassword(prev => !prev);
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit || loading) return;
     setLoading(true);
+
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
@@ -75,18 +81,21 @@ export default function LoginPage() {
             <span className="glide-auth-label">Password</span>
             <input
               className="glide-auth-input"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
             />
+            <span className="password-toggle" onClick={handleToggle}>
+  {showPassword ? <FiEye /> : <FiEyeOff />}
+</span>
           </label>
 
           {banner && (
-            <AlertBanner
-              message={banner.message}
-              type={banner.type}
-              onClose={() => setBanner(null)}
+              <AlertBanner
+                  message={banner.message}
+                  type={banner.type}
+                  onClose={() => setBanner(null)}
             />
           )}
 
