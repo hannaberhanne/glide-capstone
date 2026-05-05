@@ -195,6 +195,7 @@ const syncCanvas = async (req, res) => {
     }
 
     const planTriggered = false;
+    const planningSkippedReason = materialTaskChanges > 0 ? 'manual-replan-required' : 'no-material-task-changes';
     const plannedStartDate = null;
     const plannedEndDate = null;
     const blocksCreated = 0;
@@ -212,6 +213,7 @@ const syncCanvas = async (req, res) => {
       plannedStartDate,
       plannedEndDate,
       blocksCreated,
+      planningSkippedReason,
       tokenSource: canvasToken ? 'provided' : 'stored',
     };
 

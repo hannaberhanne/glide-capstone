@@ -14,6 +14,7 @@ export default function useSchedule() {
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [completingBlockId, setCompletingBlockId] = useState(null);
+  const [removingBlockId, setRemovingBlockId] = useState(null);
   const [scheduleError, setScheduleError] = useState("");
 
   const fetchBlocks = useCallback(async (dateKey) => {
@@ -94,15 +95,32 @@ export default function useSchedule() {
     }
   }, [fetchBlocks]);
 
+  const removeBlock = useCallback(async (blockId) => {
+    setRemovingBlockId(blockId);
+    try {
+      await apiClient.delete(`/api/schedule/blocks/${blockId}`);
+      setBlocks((prev) => prev.filter((b) => b.blockId !== blockId));
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to remove block:", err);
+      setScheduleError(err?.message || "Failed to remove schedule block.");
+      throw err;
+    } finally {
+      setRemovingBlockId(null);
+    }
+  }, []);
+
   return {
     blocks,
     scheduleLoading,
     generating,
     completingBlockId,
+    removingBlockId,
     scheduleError,
     fetchBlocks,
     generateSchedule,
     replanSchedule,
     completeBlock,
+    removeBlock,
   };
 }

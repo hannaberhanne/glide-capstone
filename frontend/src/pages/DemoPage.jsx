@@ -2,67 +2,119 @@ import "./DemoPage.css";
 import { Link } from "react-router-dom";
 
 export default function DemoPage() {
+  const year = new Date().getFullYear();
+
   return (
     <div className="demo-page">
-
-      {/* HEADER / SAME VIBE AS LANDING */}
       <header className="demo-header">
-        <Link to="/" className="demo-logo">
-  <span className="demo-logo-text">Glide</span>
-  <span className="demo-logo-plus">+</span>
-</Link>
-
-        <Link to="/login" className="demo-login-btn">
-          Log In
+        <Link to="/" className="demo-logo" aria-label="Glide+ home">
+          Glide<span>+</span>
         </Link>
+
+        <nav className="demo-nav" aria-label="Demo navigation">
+          <Link to="/">Home</Link>
+          <Link to="/login">Log in</Link>
+          <Link to="/signup">Sign up</Link>
+        </nav>
       </header>
 
-      {/* HERO PREVIEW */}
-      <section className="demo-hero">
-        <h1>Your Glide+ Preview</h1>
-        <p>See what your student life will look like — organized, clear, and stress-free.</p>
-      </section>
+      <main className="demo-main">
+        <section className="demo-hero">
+          <p className="demo-kicker">Product Demo</p>
+          <h1>Glide+ Preview</h1>
+          <p>
+            A quick look at the core workspace: today&apos;s plan, monthly planning, and goal progress.
+          </p>
+        </section>
 
-      {/* SCREENSHOTS / PLACEHOLDERS */}
-      <section className="demo-grid">
+        <section className="demo-showcase" aria-label="Glide+ feature previews">
+          <article className="demo-panel demo-panel--home">
+            <div className="demo-panel-copy">
+              <p className="demo-kicker">Home</p>
+              <h2>Today stays scannable.</h2>
+              <p>Tasks, XP, streak context, and quick notes live in one calm workspace.</p>
+            </div>
+            <div className="demo-window demo-home-preview" aria-hidden>
+              <div className="demo-window-head">
+                <span>Today</span>
+                <span>Tuesday, May 5</span>
+              </div>
+              <div className="demo-task-row is-strong">
+                <span />
+                <div>
+                  <strong>Complete assignment</strong>
+                  <small>Academic · Today</small>
+                </div>
+              </div>
+              <div className="demo-task-row">
+                <span />
+                <div>
+                  <strong>Review planner</strong>
+                  <small>Planning · Upcoming</small>
+                </div>
+              </div>
+              <div className="demo-note">Ideas, reminders, loose ends.</div>
+            </div>
+          </article>
 
-        <div className="demo-card">
-          <h3>Dashboard Overview</h3>
-          <div className="demo-img placeholder">
-            Dashboard Preview
-          </div>
-          <p>Your tasks, streaks, XP, and habits — all in one place.</p>
-        </div>
+          <article className="demo-panel demo-panel--planner">
+            <div className="demo-panel-copy">
+              <p className="demo-kicker">Planner</p>
+              <h2>Work moves into the month.</h2>
+              <p>Unscheduled tasks sit beside a calendar built for dragging, replanning, and review.</p>
+            </div>
+            <div className="demo-window demo-planner-preview" aria-hidden>
+              <div className="demo-backlog">
+                <span>Unscheduled</span>
+                <div />
+                <div />
+                <div />
+              </div>
+              <div className="demo-month">
+                {Array.from({ length: 20 }, (_, index) => (
+                  <span key={index} className={index === 7 ? "is-selected" : ""}>
+                    {index + 1}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </article>
 
-        <div className="demo-card">
-          <h3>Smart Planner</h3>
-          <div className="demo-img placeholder">
-            Planner Preview
-          </div>
-          <p>Auto-adjusting calendar that adapts when your schedule changes.</p>
-        </div>
+          <article className="demo-panel demo-panel--goals">
+            <div className="demo-panel-copy">
+              <p className="demo-kicker">Goals</p>
+              <h2>Progress has texture.</h2>
+              <p>Goal cards show task completion, streaks, badges, and XP without leaving the page.</p>
+            </div>
+            <div className="demo-window demo-goals-preview" aria-hidden>
+              <div className="demo-goal-card is-red">
+                <strong>Skater</strong>
+                <span />
+                <p>3 tasks · 0/3 today</p>
+              </div>
+              <div className="demo-goal-card is-gold">
+                <strong>Become a chef</strong>
+                <span />
+                <p>3 tasks · 0/3 today</p>
+              </div>
+              <div className="demo-badge-rail">
+                <span>Badges</span>
+                <div />
+                <div />
+                <div />
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
 
-        <div className="demo-card">
-          <h3>Goals & Habits</h3>
-          <div className="demo-img placeholder">
-            Goals Preview
-          </div>
-          <p>Track habits, set goals, and stay consistent with XP rewards.</p>
-        </div>
-
-      </section>
-
-      {/* CTA */}
-      <section className="demo-cta">
-        <h2>Ready to Try Glide+?</h2>
-        <p>Create your free account and start leveling up your student life.</p>
-
-        <div className="demo-cta-actions">
-          <Link to="/signup" className="demo-btn-primary">Get Started</Link>
-          <Link to="/" className="demo-btn-secondary">Back Home</Link>
-        </div>
-      </section>
-
+      <footer className="demo-footer">
+        <p>© {year} Glide+</p>
+        <nav aria-label="Demo footer">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+        </nav>
+      </footer>
     </div>
   );
 }

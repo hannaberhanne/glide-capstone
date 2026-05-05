@@ -44,8 +44,6 @@ export default function DashboardPage() {
   const { tasks, fetchTasks, addTask, updateTask, deleteTask, completeTask, loading } = useTasks();
   const {
     blocks: scheduleBlocks,
-    scheduleLoading,
-    completingBlockId,
     fetchBlocks: fetchSchedule,
     completeBlock: completeScheduleBlock,
   } = useSchedule();
@@ -55,6 +53,7 @@ export default function DashboardPage() {
   const [xpBursts, setXpBursts] = useState([]);
   const [banner, setBanner] = useState(null);
   const [railNote, setRailNote] = useState("");
+  const [noteSaveState, setNoteSaveState] = useState("saved");
   const xpAnchorRef = useRef(null);
   const location = useLocation();
   const noteHydratedRef = useRef(false);
@@ -64,7 +63,7 @@ export default function DashboardPage() {
 
   const userRecord = Array.isArray(user) ? user[0] : user;
   const displayName =
-    userRecord?.firstName || auth.currentUser?.displayName?.split(" ")[0] || "User";
+    userRecord?.firstName || auth.currentUser?.displayName?.split(" ")[0] || "";
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const todayKey = useMemo(() => toDayKey(today), [today]);
@@ -72,14 +71,12 @@ export default function DashboardPage() {
   const [dismissedTasks, setDismissedTasks] = useState(() =>
     loadDismissedTaskIds(`dismissed_tasks_${toDayKey(startOfDay(new Date()))}`)
   );
-  const todayStr = useMemo(
-    () =>
-      new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      }).format(new Date()),
-    []
+  const todayContext = useMemo(
+    () => ({
+      weekday: new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(today),
+      date: new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(today),
+    }),
+    [today]
   );
 
   const {
@@ -102,16 +99,61 @@ export default function DashboardPage() {
     () => buildStreakCalendar({ completedTasks, today }),
     [completedTasks, today]
   );
+  const taskById = useMemo(
+    () => new Map(tasks.map((task) => [task.taskId, task])),
+    [tasks]
+  );
+  const scheduledTaskBlockById = useMemo(() => {
+    const entries = scheduleBlocks
+      .filter((block) => block.type !== "break" && block.status !== "completed" && block.taskId)
+      .map((block) => [block.taskId, block]);
+    return new Map(entries);
+  }, [scheduleBlocks]);
+  const dashboardTodayTasks = useMemo(() => {
+    const byId = new Map(
+      todayTasks.map((task) => {
+        const block = scheduledTaskBlockById.get(task.taskId);
+        return [
+          task.taskId,
+          block
+            ? {
+                ...task,
+                scheduledBlockId: block.blockId,
+                scheduledStartTime: block.startTime,
+                scheduledReasoning: block.reasoning,
+              }
+            : task,
+        ];
+      })
+    );
+
+    scheduleBlocks.forEach((block) => {
+      if (block.type === "break" || block.status === "completed" || !block.taskId || byId.has(block.taskId)) {
+        return;
+      }
+      const task = taskById.get(block.taskId);
+      if (!task || task.isComplete || task.completedToday || dismissedTasks.has(task.taskId)) return;
+      byId.set(task.taskId, {
+        ...task,
+        scheduledBlockId: block.blockId,
+        scheduledStartTime: block.startTime,
+        scheduledReasoning: block.reasoning,
+      });
+    });
+
+    return [...byId.values()];
+  }, [dismissedTasks, scheduleBlocks, scheduledTaskBlockById, taskById, todayTasks]);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return `Good morning, ${displayName}!`;
-    if (hour < 17) return `Good afternoon, ${displayName}!`;
-    return `Good evening, ${displayName}!`;
+    const name = displayName ? `, ${displayName}` : "";
+    if (hour < 12) return `Good morning${name}!`;
+    if (hour < 17) return `Good afternoon${name}!`;
+    return `Good evening${name}!`;
   }, [displayName]);
 
   const formatDue = (task) =>
-    formatDueForToday({ task, parseDueDate, today, todayKey });
+    task.scheduledStartTime || formatDueForToday({ task, parseDueDate, today, todayKey });
 
   useEffect(() => {
     if (!location.state?.streakData) return;
@@ -142,6 +184,7 @@ export default function DashboardPage() {
     setRailNote(nextNote);
     lastSavedNoteRef.current = nextNote;
     noteHydratedRef.current = true;
+    setNoteSaveState("saved");
 
     if (typeof window !== "undefined") {
       window.localStorage.setItem("glide_today_rail_note", nextNote);
@@ -157,6 +200,8 @@ export default function DashboardPage() {
 
     if (railNote === lastSavedNoteRef.current) return;
 
+    setNoteSaveState("saving");
+
     if (noteSaveTimeoutRef.current) {
       window.clearTimeout(noteSaveTimeoutRef.current);
     }
@@ -165,9 +210,11 @@ export default function DashboardPage() {
       try {
         await apiClient.patch(`/api/users/${auth.currentUser.uid}`, { dashboardNote: railNote });
         lastSavedNoteRef.current = railNote;
+        setNoteSaveState("saved");
         noteSaveErrorShownRef.current = false;
       } catch (err) {
         console.error("Failed to save dashboard note:", err);
+        setNoteSaveState("error");
         if (!noteSaveErrorShownRef.current) {
           setBanner({ message: err?.message || "Failed to save your dashboard note.", type: "error" });
           noteSaveErrorShownRef.current = true;
@@ -191,7 +238,7 @@ export default function DashboardPage() {
 
   if (loading || userLoading) {
     return (
-      <div className="dash dash--loading" aria-label="Loading your workspace">
+      <div className="dash dash--loading glide-page" aria-label="Loading your workspace">
         <div className="dash-skeleton">
           <div className="skel skel-title" />
           <div className="skel skel-row" />
@@ -216,9 +263,9 @@ export default function DashboardPage() {
     const draftTitle = title.trim();
     if (!draftTitle) return;
 
-    await addTask({
+    const createdTask = await addTask({
       title: draftTitle,
-      category: "academic",
+      category: "",
       priority: "medium",
       description: "",
       dueAt: bucket === "today" ? today.toISOString() : null,
@@ -226,6 +273,8 @@ export default function DashboardPage() {
       isComplete: false,
     });
     await fetchTasks();
+    setEditingTask(createdTask);
+    setShowTaskModal(true);
   };
 
   const handleSubmitTask = async (payload) => {
@@ -255,7 +304,10 @@ export default function DashboardPage() {
 
   const handleCompleteTask = async (taskId, sourceRect) => {
     try {
-      const data = await completeTask(taskId);
+      const scheduledBlock = scheduledTaskBlockById.get(taskId);
+      const data = scheduledBlock
+        ? await completeScheduleBlock(scheduledBlock.blockId, todayKey)
+        : await completeTask(taskId);
       if (!data?.success) return;
 
       if (typeof data.newTotalXP === "number") {
@@ -309,57 +361,8 @@ export default function DashboardPage() {
     });
   };
 
-  const handleCompleteScheduleBlock = async (blockId, sourceNode) => {
-    const sourceRect = sourceNode?.getBoundingClientRect?.() || null;
-
-    try {
-      const data = await completeScheduleBlock(blockId, todayKey);
-      await fetchTasks();
-      await refreshUser();
-
-      if (typeof data?.newTotalXP === "number") {
-        setXp(data.newTotalXP);
-      }
-
-      if (
-        typeof window !== "undefined" &&
-        sourceRect &&
-        xpAnchorRef.current &&
-        Number(data?.xpGained) > 0
-      ) {
-        const targetRect = xpAnchorRef.current.getBoundingClientRect();
-        const burstId = `${blockId}-${Date.now()}`;
-        setXpBursts((prev) => [
-          ...prev,
-          {
-            id: burstId,
-            label: `+${Math.round(data.xpGained)} XP`,
-            startX: sourceRect.left + sourceRect.width / 2,
-            startY: sourceRect.top + sourceRect.height / 2,
-            endX: targetRect.left + targetRect.width * 0.7,
-            endY: targetRect.top + targetRect.height / 2,
-          },
-        ]);
-        window.setTimeout(() => {
-          setXpBursts((prev) => prev.filter((burst) => burst.id !== burstId));
-        }, 950);
-      }
-
-      if (data?.xpGained > 0) {
-        setBanner({ message: `Block completed. +${Math.round(data.xpGained)} XP.`, type: "success" });
-      } else if (data?.underlyingAlready) {
-        setBanner({ message: "Block closed. The underlying work was already complete.", type: "info" });
-      } else {
-        setBanner({ message: "Block completed.", type: "success" });
-      }
-    } catch (err) {
-      console.error("Failed to complete schedule block:", err);
-      setBanner({ message: err?.message || "Failed to complete that block.", type: "error" });
-    }
-  };
-
   return (
-    <div className="dash">
+    <div className="dash glide-page">
       {banner && (
         <AlertBanner
           message={banner.message}
@@ -372,31 +375,16 @@ export default function DashboardPage() {
         <h1 className="today-sheet-title" id="today-heading">
           {greeting}
         </h1>
-        <p className="today-sheet-date" aria-label="Today date">
-          {todayStr}
-        </p>
-        <div className="today-page-icons" aria-hidden>
-          <span className="today-page-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.4" />
-              <path
-                d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.3 3.3l1.4 1.4M11.3 11.3l1.4 1.4M12.7 3.3l-1.4 1.4M4.7 11.3l-1.4 1.4"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
+        <div className="today-context" aria-label={`Today is ${todayContext.weekday}, ${todayContext.date}`}>
+          <span className="today-context-mark" aria-hidden>
+            <svg width="19" height="19" viewBox="0 0 19 19" fill="none">
+              <path d="M9.5 3.1v1.7M9.5 14.2v1.7M3.1 9.5h1.7M14.2 9.5h1.7M5 5l1.2 1.2M12.8 12.8 14 14M14 5l-1.2 1.2M6.2 12.8 5 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="9.5" cy="9.5" r="2.6" stroke="currentColor" strokeWidth="1.5" />
             </svg>
           </span>
-          <span className="today-page-icon">
-            <svg width="18" height="16" viewBox="0 0 18 16" fill="none">
-              <path
-                d="M4.2 11.8h7.5a3.1 3.1 0 0 0 .2-6.2 4 4 0 0 0-7.7 1.1A2.7 2.7 0 0 0 4.2 11.8Z"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <span className="today-context-copy">
+            <span>{todayContext.weekday}</span>
+            <strong>{todayContext.date}</strong>
           </span>
         </div>
       </header>
@@ -405,7 +393,7 @@ export default function DashboardPage() {
         <div className="today-layout">
           <section className="today-sheet" aria-label="Today tasks">
             <UpcomingPanel
-              todayTasks={todayTasks}
+              todayTasks={dashboardTodayTasks}
               upcomingTasks={upcomingTasks}
               hasAnyTasks={incompleteTasks.length > 0}
               onComplete={handleCompleteTask}
@@ -424,13 +412,12 @@ export default function DashboardPage() {
             level={xpModel.level}
             nextLevel={xpModel.level + 1}
             currentLevelXP={xpModel.currentLevelXP}
+            xpForNext={xpModel.xpForNext}
+            xpToNext={xpModel.xpToNext}
             xpProgressPct={xpModel.progress}
             streakCalendar={streakCalendar}
-            scheduleBlocks={scheduleBlocks}
-            scheduleLoading={scheduleLoading}
-            completingBlockId={completingBlockId}
-            onCompleteScheduleBlock={handleCompleteScheduleBlock}
             railNote={railNote}
+            noteSaveState={noteSaveState}
             onRailNoteChange={setRailNote}
             xpAnchorRef={xpAnchorRef}
           />

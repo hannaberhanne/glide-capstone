@@ -22,21 +22,21 @@ export default function CanvasSetup() {
   const canvasSummary = canvasStatus?.lastSyncSummary || null;
   const connected = Boolean(canvasStatus?.hasToken);
   const planSummary = useMemo(() => {
-    if (!canvasSummary) return "No sync has run yet.";
+    if (!canvasSummary) return "Nothing has synced yet.";
     if (canvasSummary.materialTaskChanges > 0) {
-      return "Your Canvas sync changed the workload. Replan from Planner when you are ready.";
+      return "New Canvas work is in Glide+. Replan from Planner when you want it scheduled.";
     }
-    return "Last sync did not change the workload.";
+    return "No new Canvas work since the last sync.";
   }, [canvasSummary]);
 
   const handleSaveToken = async () => {
     if (!token.trim()) {
-      setMessage("Please enter your Canvas Access Token.");
+      setMessage("Paste a Canvas token first.");
       return;
     }
 
     if (!auth.currentUser) {
-      setMessage("You must be logged in to save your token.");
+      setMessage("Log in before connecting Canvas.");
       return;
     }
 
@@ -48,7 +48,7 @@ export default function CanvasSetup() {
       await apiClient.patch(`/api/users/${uid}`, { canvasToken: token.trim() });
       await refetchCanvasStatus();
 
-      setMessage("Canvas token saved successfully!");
+      setMessage("Canvas token saved.");
     } catch (err) {
       console.error("Failed to save token:", err);
       setMessage("Failed to save token. Try again.");
@@ -59,7 +59,7 @@ export default function CanvasSetup() {
 
   const handleSync = async () => {
     if (!auth.currentUser) {
-      setMessage("You must be logged in to sync.");
+      setMessage("Log in before syncing Canvas.");
       return;
     }
     setMessage("");
@@ -67,8 +67,8 @@ export default function CanvasSetup() {
       const data = await syncCanvas({ canvasToken: token.trim() || undefined });
       setMessage(
         data?.materialTaskChanges > 0
-          ? "Canvas synced. Your workload changed, so replan from Planner when you are ready."
-          : "Canvas synced successfully."
+          ? "Canvas synced. New work is ready in Planner."
+          : "Canvas is up to date."
       );
     } catch (err) {
       console.error("Sync failed:", err);
@@ -91,24 +91,21 @@ export default function CanvasSetup() {
   return (
     <div className="canvas-setup-container">
       <div className="canvas-setup-card">
-        <h2 className="canvas-setup-title">Canvas Sync Setup</h2>
+        <h2 className="canvas-setup-title">Connect Canvas</h2>
 
         <p className="canvas-setup-sub">
-          Connect your Canvas account to automatically pull assignments,
-          deadlines, and course information into Glide+.
+          Paste a Canvas access token and Glide+ will pull your courses and assignments into your workspace.
         </p>
 
         <ol className="canvas-setup-steps">
-          <li>Log into Canvas and open <strong>Account → Settings</strong>.</li>
-          <li>Scroll to <strong>Approved Integrations</strong>.</li>
-          <li>Click <strong>+ New Access Token</strong>.</li>
-          <li>Name it something like <em>Glide Sync</em> and generate the token.</li>
-          <li>Copy the token and paste it below.</li>
+          <li>Open Canvas, then go to <strong>Account &gt; Settings</strong>.</li>
+          <li>Under <strong>Approved Integrations</strong>, create a new access token.</li>
+          <li>Name it <em>Glide Sync</em>, copy the token, and paste it here.</li>
         </ol>
 
         <input
           className="canvas-token-input"
-          placeholder="Paste your Canvas Access Token..."
+          placeholder="Canvas access token"
           value={token}
           onChange={(e) => setToken(e.target.value)}
         />
@@ -119,22 +116,22 @@ export default function CanvasSetup() {
             onClick={handleSaveToken}
             disabled={saving}
           >
-            {saving ? "Saving..." : "Save Token →"}
+            {saving ? "Saving..." : "Save token"}
           </button>
           <button
             className="canvas-setup-btn"
             onClick={handleSync}
             disabled={syncing}
           >
-            {syncing ? "Syncing..." : "Sync Now"}
+            {syncing ? "Syncing..." : "Sync now"}
           </button>
         </div>
 
         <section className="canvas-status-card" aria-label="Canvas connection status">
           <div className="canvas-status-head">
             <div>
-              <p className="canvas-status-kicker">Connection</p>
-              <h3 className="canvas-status-title">{connected ? "Canvas Connected" : "Canvas Offline"}</h3>
+              <p className="canvas-status-kicker">Canvas</p>
+              <h3 className="canvas-status-title">{connected ? "Connected" : "Not connected"}</h3>
             </div>
             <span className={`canvas-status-pill ${connected ? "is-connected" : ""}`.trim()}>
               {connected ? "Connected" : "Offline"}
@@ -187,7 +184,7 @@ export default function CanvasSetup() {
                     onClick={() => handleDisconnect(true)}
                     disabled={disconnecting}
                   >
-                    {disconnecting ? "Disconnecting..." : "Disconnect + Remove Data"}
+                    {disconnecting ? "Disconnecting..." : "Disconnect and remove data"}
                   </button>
                 </div>
               ) : null}
@@ -197,9 +194,8 @@ export default function CanvasSetup() {
 
         {message && <p className="canvas-message">{message}</p>}
 
-        {/* Return to Dashboard Link */}
         <Link to="/dashboard" className="canvas-return-btn">
-          Return to Dashboard
+          Back to dashboard
         </Link>
       </div>
     </div>

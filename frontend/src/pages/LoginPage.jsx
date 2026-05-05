@@ -3,11 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
-import AuthLogo from "../components/AuthLogo";
+import { apiClient } from "../lib/apiClient.js";
 import AlertBanner from "../components/AlertBanner.jsx";
 
 export default function LoginPage() {
-  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,19 +22,11 @@ export default function LoginPage() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const token = await userCredential.user.getIdToken();
+      await userCredential.user.getIdToken();
 
       let streakData = null;
       try {
-        const res = await fetch(`${API_URL}/api/auth/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ email: email.trim() }),
-        });
-        const data = await res.json();
+        const data = await apiClient.post("/api/auth/login", { email: email.trim() });
         if (data.success) streakData = data.data;
       } catch (err) {
         console.error("Streak update failed:", err);
@@ -59,30 +50,31 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>
-            Log in to <AuthLogo />
-          </h1>
-          <p>Welcome back! Let's pick up where you left off.</p>
+    <div className="glide-auth-page">
+      <div className="glide-auth-card">
+        <div className="glide-auth-head glide-auth-head--centered">
+          <Link to="/" className="glide-auth-brand" aria-label="Glide+ home">
+            Glide<span>+</span>
+          </Link>
+          <h1 className="glide-auth-title glide-auth-title--compact">Log in</h1>
+          <p className="glide-auth-copy">Welcome back. Pick up where you left off.</p>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          <label className="login-label">
-            <span className="login-label-text">Email</span>
+        <form className="glide-auth-form" onSubmit={handleSubmit}>
+          <label className="glide-auth-field">
+            <span className="glide-auth-label">Email</span>
             <input
-              className="login-input"
+              className="glide-auth-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
             />
           </label>
-          <label className="login-label">
-            <span className="login-label-text">Password</span>
+          <label className="glide-auth-field">
+            <span className="glide-auth-label">Password</span>
             <input
-              className="login-input"
+              className="glide-auth-input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -98,25 +90,18 @@ export default function LoginPage() {
             />
           )}
 
-          <button className="login-submit" type="submit" disabled={!canSubmit || loading}>
+          <button className="glide-btn glide-btn--primary glide-auth-submit" type="submit" disabled={!canSubmit || loading}>
             {loading ? "Logging in..." : "Log In"}
           </button>
-          <p className="login-inline-copy">
-            Don't have an account?{" "}
-            <Link to="/signup" className="login-inline-link">
-              Sign up here
+          <div className="glide-auth-form-links">
+            <Link to="/forgot-password" className="glide-auth-link glide-auth-link--muted">
+              Can't log in?
             </Link>
+          </div>
+          <p className="glide-auth-alt">
+            Don&apos;t have an account? <Link to="/signup" className="glide-auth-link glide-auth-link--primary">Start here</Link>
           </p>
         </form>
-
-        <div className="login-footer">
-          <Link to="/signup" className="create-link">
-            Create Account
-          </Link>
-          <Link to="/forgot-password" className="help-link">
-            Can't log in?
-          </Link>
-        </div>
       </div>
     </div>
   );

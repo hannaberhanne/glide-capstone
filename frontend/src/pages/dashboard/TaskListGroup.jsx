@@ -2,7 +2,11 @@ import { useState } from "react";
 
 const capitalize = (value) => {
   if (!value) return null;
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  const normalized = String(value).trim();
+  if (!normalized || ["none", "no category", "uncategorized"].includes(normalized.toLowerCase())) {
+    return null;
+  }
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
 
 const startOfDay = (value) => {
@@ -71,13 +75,20 @@ export default function TaskListGroup({
         const justCompleted = recentlyCompleted.has(taskId);
         const due = parseDueDate?.(task);
         const dueState = due ? Math.sign(startOfDay(due) - startOfDay(new Date())) : null;
-        const metaParts = [capitalize(task.category), formatEstimate?.(task.estimatedMinutes) || null];
+        const category = capitalize(task.category);
+        const priority = capitalize(task.priority);
+        const estimate = formatEstimate?.(task.estimatedMinutes) || null;
+        const metaParts = [
+          category ? { label: category, type: "category" } : null,
+          priority ? { label: `${priority} priority`, type: `priority-${priority.toLowerCase()}` } : null,
+          estimate ? { label: estimate, type: "estimate" } : null,
+        ].filter(Boolean);
         const isCanvasTask =
           task.source === "canvas" || task.syncedFromCanvas === true || Boolean(task.canvasAssignmentId);
         const isGoalTask = Boolean(task.goalId);
 
         if (dueState !== null && dueState < 0) {
-          metaParts.push("Overdue");
+          metaParts.push({ label: "Overdue", type: "overdue" });
         }
 
         return (
@@ -108,11 +119,11 @@ export default function TaskListGroup({
                   </span>
                 ) : null}
               </div>
-              {metaParts.filter(Boolean).length > 0 ? (
+              {metaParts.length > 0 ? (
                 <div className="today-task-meta">
-                  {metaParts.filter(Boolean).map((part) => (
-                    <span key={`${taskId}-${part}`} className="today-task-meta-item">
-                      {part}
+                  {metaParts.map((part) => (
+                    <span key={`${taskId}-${part.type}-${part.label}`} className={`today-task-meta-item is-${part.type}`}>
+                      {part.label}
                     </span>
                   ))}
                 </div>

@@ -1,34 +1,29 @@
 import { Link } from "react-router-dom";
 
-function formatScheduleType(type) {
-  if (type === "routine") return "Routine";
-  if (type === "break") return "Break";
-  return "Task";
-}
-
 export default function DashboardRail({
   level,
   nextLevel,
   currentLevelXP,
+  xpForNext,
+  xpToNext,
   xpProgressPct,
   streakCalendar,
-  scheduleBlocks,
-  scheduleLoading,
-  completingBlockId,
-  onCompleteScheduleBlock,
   railNote,
+  noteSaveState = "saved",
   onRailNoteChange,
   xpAnchorRef,
 }) {
   const rulerMajorTicks = [0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5, 100];
   const rulerMinorTicks = [6.25, 18.75, 31.25, 43.75, 56.25, 68.75, 81.25, 93.75];
+  const noteStatus =
+    noteSaveState === "saving" ? "Saving" : noteSaveState === "error" ? "Not saved" : "Saved";
 
   return (
     <aside className="today-rail" aria-label="Today details">
       <section className="rail-block rail-level-block" aria-label="Level progress">
         <div className="rail-level-meta">
           <span className="rail-level-chip">Lv. {level}</span>
-          <span className="rail-level-xp">{currentLevelXP} XP</span>
+          <span className="rail-level-xp">{currentLevelXP} / {xpForNext} XP</span>
           <span className="rail-level-chip rail-level-chip-next">Lv. {nextLevel}</span>
         </div>
 
@@ -56,6 +51,9 @@ export default function DashboardRail({
             ))}
             <span className="rail-level-ruler-marker" />
           </div>
+        </div>
+        <div className="rail-level-summary">
+          <strong>{Math.max(0, Math.round(xpToNext || 0))} XP to Level {nextLevel}</strong>
         </div>
 
         <div className="rail-calendar" aria-label={`${streakCalendar.previewDays} day streak this month`}>
@@ -99,60 +97,19 @@ export default function DashboardRail({
         </div>
       </section>
 
-      <section className="rail-block rail-schedule-block" aria-label="Today's AI plan">
+      <section className="rail-block rail-planner-link-block" aria-label="Planner link">
         <div className="rail-section-head">
-          <span className="rail-section-label">Today&apos;s Plan</span>
+          <span className="rail-section-label">Planner</span>
           <Link to="/planner" className="rail-section-link">
-            Open Planner
+            Open
           </Link>
         </div>
-
-        {scheduleLoading ? (
-          <div className="rail-schedule-empty">Loading today&apos;s plan…</div>
-        ) : scheduleBlocks.length ? (
-          <div className="rail-schedule-list">
-            {scheduleBlocks.slice(0, 4).map((block) => {
-              const isCompleted = block.status === "completed";
-              const canComplete = !isCompleted && block.type !== "break";
-              return (
-                <article
-                  key={block.blockId}
-                  className={`rail-schedule-item ${isCompleted ? "is-complete" : ""}`.trim()}
-                >
-                  <div className="rail-schedule-meta">
-                    <span className="rail-schedule-time">{block.startTime || "--"}</span>
-                    <span className="rail-schedule-chip">{formatScheduleType(block.type)}</span>
-                  </div>
-                  <strong className="rail-schedule-title">{block.itemTitle || "Untitled block"}</strong>
-                  {block.reasoning ? (
-                    <p className="rail-schedule-reason">{block.reasoning}</p>
-                  ) : null}
-                  {canComplete ? (
-                    <button
-                      type="button"
-                      className="rail-schedule-action"
-                      onClick={(event) => onCompleteScheduleBlock(block.blockId, event.currentTarget)}
-                      disabled={completingBlockId === block.blockId}
-                    >
-                      {completingBlockId === block.blockId ? "..." : "Done"}
-                    </button>
-                  ) : (
-                    <span className="rail-schedule-state">
-                      {isCompleted ? "Done" : "Break"}
-                    </span>
-                  )}
-                </article>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="rail-schedule-empty">
-            Generate a plan in Planner to let Glide shape today for you.
-          </div>
-        )}
       </section>
 
       <section className="rail-note-block" aria-label="Quick notes">
+        <div className={`rail-note-status is-${noteSaveState}`}>
+          {noteStatus}
+        </div>
         <div className="rail-note">
           <textarea
             className="rail-note-input"

@@ -1,222 +1,228 @@
 .onboarding-container {
-  --onboarding-card-bg: #ffffff;
-  --onboarding-card-border: rgba(148, 163, 184, 0.35);
-  --onboarding-card-shadow: rgba(15, 23, 42, 0.1);
-  --onboarding-ink: #0f172a;
-  --onboarding-muted: #475569;
-  --onboarding-accent: var(--highlight-color);
-  --onboarding-brand-alt: #111827;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 24px;
-  background: radial-gradient(circle at top left, #ffffff 0%, #f9fafb 55%, #eef2ff 100%);
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vw, 56px) var(--glide-page-pad-x);
+  background:
+    linear-gradient(180deg, rgba(251, 247, 240, 0.92), rgba(243, 237, 227, 0.96)),
+    var(--glide-bg);
+  color: var(--glide-ink);
 }
 
 .onboarding-card {
-  width: 100%;
-  max-width: 500px;
-  background: var(--onboarding-card-bg);
-  border-radius: 24px;
-  padding: 40px;
-  border: 1px solid var(--onboarding-card-border);
-  box-shadow: 0 18px 40px var(--onboarding-card-shadow);
-  animation: fadeUp 0.4s ease;
+  width: min(560px, 100%);
+  display: grid;
+  gap: var(--space-5);
+  padding: clamp(28px, 4vw, 42px);
+  background: var(--glide-bg-paper);
+  border: 1px solid var(--glide-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel);
+  animation: glide-card-in 0.18s ease;
 }
 
 .onboarding-card--centered {
   text-align: center;
 }
 
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.onboarding-header {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .onboarding-header h1 {
-  margin: 0 0 6px;
-  font-size: 28px;
-  font-weight: 900;
-  color: var(--onboarding-ink);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-page-title);
+  line-height: 1.06;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--glide-ink);
 }
 
-.onboarding-header p {
+.onboarding-header p,
+.onboarding-sub {
   margin: 0;
-  color: var(--onboarding-muted);
+  color: var(--glide-ink-muted);
   line-height: 1.5;
 }
 
 .onboarding-step {
-  margin: 24px 0 12px;
-  font-weight: 600;
-  color: var(--onboarding-muted);
-  font-size: 14px;
+  margin: 0;
+  font-size: var(--text-meta);
+  font-weight: 800;
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  color: var(--glide-ink-muted);
+}
+
+.onboarding-progress {
+  height: 4px;
+  margin-top: calc(var(--space-5) * -1 + var(--space-2));
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--glide-line);
+}
+
+.onboarding-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--glide-moss);
+  transition: width 0.18s ease;
 }
 
 .onboarding-question {
-  margin: 0 0 18px;
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--onboarding-ink);
-}
-
-.onboarding-sub {
-  margin: 0 0 24px;
-  color: var(--onboarding-muted);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.2vw, 28px);
+  line-height: 1.16;
+  font-weight: 700;
+  color: var(--glide-ink);
 }
 
 .onboarding-choices {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.onboarding-choices--stacked {
+  margin-top: var(--space-2);
 }
 
 .onboarding-option {
+  min-height: 54px;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--onboarding-ink);
+  gap: var(--space-3);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glide-line);
+  background: var(--glide-paper-wash);
+  color: var(--glide-ink);
+  font-size: var(--text-body);
+  font-weight: 700;
   cursor: pointer;
-  transition: border 0.2s ease, background 0.2s ease;
-}
-
-.onboarding-option input {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  margin-top: 0;
-  align-self: flex-start;
-}
-
-.onboarding-option-text {
-  flex: 1;
-  text-align: left;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.12s ease;
 }
 
 .onboarding-option:hover {
-  border-color: var(--onboarding-accent);
-  background: #fff5f0;
+  border-color: var(--glide-moss);
+  background: color-mix(in srgb, var(--glide-moss) 8%, var(--glide-bg-paper));
+}
+
+.onboarding-option:active {
+  transform: translateY(1px);
+}
+
+.onboarding-option:has(input:checked) {
+  border-color: color-mix(in srgb, var(--glide-moss) 72%, var(--glide-line));
+  background: color-mix(in srgb, var(--glide-moss) 14%, var(--glide-bg-paper));
+}
+
+.onboarding-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--glide-moss);
+}
+
+.onboarding-option-text {
+  min-width: 0;
+  text-align: left;
 }
 
 .onboarding-textarea {
   width: 100%;
-  min-height: 140px;
-  border-radius: 14px;
-  border: 1px solid #d1d5db;
+  min-height: 144px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glide-line);
   padding: 14px;
-  font-size: 15px;
-  resize: none;
-  font-family: inherit;
-  background: #f8fafc;
+  font: inherit;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  resize: vertical;
+  background: var(--glide-paper-wash);
+  color: var(--glide-ink);
+  outline: none;
+}
+
+.onboarding-textarea:focus {
+  border-color: var(--glide-moss);
+  background: var(--glide-bg-paper);
+  box-shadow: var(--shadow-focus);
 }
 
 .onboarding-nav {
-  margin-top: 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .onboarding-backbtn,
 .onboarding-primary-btn {
-  border-radius: 999px;
-  border: none;
-  padding: 14px 28px;
-  font-size: 16px;
-  font-weight: 700;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  border: 1px solid var(--glide-line);
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: 750;
+  text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s ease, opacity 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
 }
 
 .onboarding-backbtn {
-  background: #e5e7eb;
-  color: var(--onboarding-brand-alt);
-}
-
-.onboarding-backbtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  background: var(--glide-paper-wash);
+  color: var(--glide-ink-muted);
 }
 
 .onboarding-primary-btn {
-  background: var(--onboarding-accent);
-  color: var(--onboarding-brand-alt);
-  width: 150px;
+  min-width: 150px;
+  background: var(--glide-ink);
+  color: var(--glide-bg-paper);
+  border-color: var(--glide-ink);
 }
 
-.onboarding-primary-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.onboarding-footer {
-  margin-top: 26px;
-  text-align: center;
-  color: var(--onboarding-muted);
-  font-size: 14px;
-}
-
-.onboarding-link {
-  color: var(--onboarding-accent);
-  font-weight: 700;
-}
-
-.onboarding-choices--stacked {
-  margin-top: 12px;
-}
-
-.onboarding-choices--stacked .onboarding-primary-btn {
-  width: 100%;
-}
-
-.onboarding-choices--stacked .onboarding-backbtn {
-  width: 100%;
-  margin-top: 8px;
-}
-
-.onboarding-choices--stacked .onboarding-backbtn:hover {
-  opacity: 0.85;
+.onboarding-backbtn:hover:not(:disabled) {
+  background: var(--glide-bg-paper-2);
+  color: var(--glide-ink);
 }
 
 .onboarding-primary-btn:hover:not(:disabled) {
-  background: #111827;
-  color: white;
+  opacity: 0.9;
+  box-shadow: var(--shadow-soft);
 }
 
-.onboarding-footer a.onboarding-link:hover {
-  text-decoration: underline;
+.onboarding-backbtn:active:not(:disabled),
+.onboarding-primary-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+
+.onboarding-backbtn:disabled,
+.onboarding-primary-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.onboarding-choices--stacked .onboarding-primary-btn,
+.onboarding-choices--stacked .onboarding-backbtn {
+  width: 100%;
 }
 
 @media (max-width: 640px) {
-  .onboarding-card {
-    padding: 32px;
+  .onboarding-nav {
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .onboarding-question {
-    font-size: 20px;
-  }
-
-  .onboarding-option {
-    font-size: 14px;
-  }
-
-  .onboarding-choices--stacked .onboarding-primary-btn {
+  .onboarding-backbtn,
+  .onboarding-primary-btn {
     width: 100%;
   }
 }
-  

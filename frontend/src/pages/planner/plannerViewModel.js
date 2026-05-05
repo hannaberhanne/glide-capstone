@@ -106,6 +106,7 @@ export const buildPlannerViewModel = ({ tasks, cursor, today, selectedDayKey, as
   const firstVisible = new Date(monthStart);
   firstVisible.setDate(firstVisible.getDate() - firstVisible.getDay());
 
+  const cutoff = new Date(todayValue.getTime() - 21 * 24 * 60 * 60 * 1000);
   const scheduledByDay = new Map();
   const backlogTasks = [];
 
@@ -115,6 +116,7 @@ export const buildPlannerViewModel = ({ tasks, cursor, today, selectedDayKey, as
       backlogTasks.push(task);
       return;
     }
+    if (startOfDay(due) < startOfDay(cutoff)) return;
     const key = dayKey(due);
     if (!scheduledByDay.has(key)) {
       scheduledByDay.set(key, []);
@@ -143,13 +145,15 @@ export const buildPlannerViewModel = ({ tasks, cursor, today, selectedDayKey, as
     else if (tasksForDay.length >= 3) loadState = "steady";
     else if (tasksForDay.length >= 1) loadState = "light";
 
+    const isToday = dayKey(date) === dayKey(todayValue);
     return {
       key,
       date,
       dateNumber: date.getDate(),
       dayName: new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date),
       inMonth,
-      isToday: dayKey(date) === dayKey(todayValue),
+      isToday,
+      isPast: !isToday && dayKey(date) < dayKey(todayValue),
       isSelected: key === selectedDayKey,
       tasks: tasksForDay,
       visibleTasks: tasksForDay.slice(0, 5),

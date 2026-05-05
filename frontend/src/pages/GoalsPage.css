@@ -1,6 +1,5 @@
 /* ─── Page ───────────────────────────────────────────── */
 .goals-page {
-  padding: 18px 24px 48px;
   box-sizing: border-box;
   min-height: 100%;
 }
@@ -25,7 +24,7 @@
 }
 
 /* ─── Header ─────────────────────────────────────────── */
-.goals-header { margin-bottom: 32px; }
+.goals-header { margin-bottom: var(--space-6); }
 
 .goals-header-row {
   display: flex;
@@ -51,10 +50,10 @@
 
 .goals-title {
   font-family: var(--font-display);
-  font-size: 56px;
+  font-size: var(--text-page-title);
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: var(--glide-ink);
   margin: 0;
 }
@@ -63,47 +62,24 @@
   font-family: var(--font-display);
   font-style: italic;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--glide-ink-muted);
   margin: 0;
-  max-width: 500px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  max-width: 560px;
 }
 
 .goals-new-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--glide-ink);
-  color: var(--glide-bg-paper);
-  border: none;
-  padding: 10px 18px;
-  border-radius: var(--radius-pill);
-  font: inherit;
   font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
   flex-shrink: 0;
-  margin-top: 12px;
-  transition: opacity 0.15s ease;
 }
-
-.goals-new-btn:hover { opacity: 0.84; }
 
 /* ─── Body ───────────────────────────────────────────── */
 .goals-body {
-  display: flex;
-  gap: 40px;
-  align-items: flex-start;
+  --glide-rail-width: 280px;
 }
 
 .goals-main {
-  flex: 1;
   min-width: 0;
-  max-width: 660px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -161,9 +137,12 @@
 
 /* ─── Goals list ─────────────────────────────────────── */
 .goals-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.goals-list:not(.goals-list--odd) .goals-add-row {
+  grid-column: 1 / -1;
 }
 
 /* ─── Goal card ──────────────────────────────────────── */
@@ -172,7 +151,8 @@
   border: 1px solid var(--glide-line);
   border-top: 4px solid transparent;
   border-radius: 14px;
-  padding: 20px 22px;
+  padding: 24px 26px;
+  min-height: 300px;
   cursor: pointer;
   animation: card-in 220ms ease-out both;
   transition: transform 200ms ease, box-shadow 500ms ease;
@@ -430,10 +410,11 @@
 /* ─── Add row ────────────────────────────────────────── */
 .goals-add-row {
   width: 100%;
+  min-height: 96px;
   border: 1px dashed var(--glide-line);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 14px;
-  background: none;
+  background: color-mix(in srgb, var(--glide-bg-paper) 58%, transparent);
   font: inherit;
   font-size: 13px;
   color: var(--glide-ink-muted);
@@ -445,14 +426,11 @@
 .goals-add-row:hover {
   border-color: var(--glide-moss);
   color: var(--glide-moss);
+  background: color-mix(in srgb, var(--glide-moss) 8%, var(--glide-bg-paper));
 }
 
 /* ─── Empty state ────────────────────────────────────── */
 .goals-empty {
-  background: var(--glide-bg-paper);
-  border: 1px solid var(--glide-line);
-  border-radius: 14px;
-  min-height: 360px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -492,25 +470,12 @@
 }
 
 .goals-empty-cta {
-  background: var(--glide-moss);
-  color: #fff;
-  border: none;
-  padding: 11px 22px;
-  border-radius: var(--radius-pill);
-  font: inherit;
   font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
   margin-top: 4px;
-  transition: background 0.15s ease;
 }
-
-.goals-empty-cta:hover { background: var(--glide-moss-strong); }
 
 /* ─── Rail ───────────────────────────────────────────── */
 .goals-rail {
-  width: 256px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -519,9 +484,6 @@
 }
 
 .rail-panel {
-  background: var(--glide-bg-paper);
-  border: 1px solid var(--glide-line);
-  border-radius: 14px;
   padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
@@ -675,14 +637,18 @@
 
 /* ─── Responsive ─────────────────────────────────────── */
 @media (max-width: 960px) {
-  .goals-body { flex-direction: column; }
-  .goals-rail { width: 100%; position: static; flex-direction: row; }
+  .goals-rail { position: static; flex-direction: row; }
   .rail-panel { flex: 1; }
-  .goals-main { max-width: 100%; }
+  .goals-list {
+    grid-template-columns: 1fr;
+  }
+
+  .goals-list .goals-add-row {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 640px) {
-  .goals-title { font-size: 40px; }
   .goals-rail { flex-direction: column; }
   .rail-streak-num { font-size: 40px; }
 }

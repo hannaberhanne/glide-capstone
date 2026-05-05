@@ -154,7 +154,14 @@ export const getDashboardTaskBuckets = ({ tasks, today }) => {
   const parseCompletedDate = (task) =>
     parseMaybeDate(task?.completedAt || task?.lastCompleted || task?.updatedAt);
 
-  const incompleteTasks = tasks.filter((task) => !task.isComplete && !task.completedToday && !task.goalId);
+  const cutoff = new Date(today.getTime() - 21 * 24 * 60 * 60 * 1000);
+
+  const incompleteTasks = tasks.filter((task) => {
+    if (task.isComplete || task.completedToday || task.goalId) return false;
+    const due = parseDueDate(task);
+    if (due && startOfDay(due) < startOfDay(cutoff)) return false;
+    return true;
+  });
   const sortedOpenTasks = sortOpenTasks(incompleteTasks, parseDueDate);
 
   const overdueTasks = sortedOpenTasks.filter((task) => {
@@ -188,7 +195,7 @@ export const getDashboardTaskBuckets = ({ tasks, today }) => {
     dueTodayTasks,
     futureTasks,
     undatedTasks,
-    todayTasks: [...overdueTasks, ...dueTodayTasks],
+    todayTasks: [...dueTodayTasks],
     upcomingTasks: [...futureTasks, ...undatedTasks],
     completedTasks,
   };

@@ -40,10 +40,81 @@ a {
   color: inherit;
 }
 
-/* ─── Shared controls ───────────────────────────────── */
+::selection {
+  background: rgba(178, 138, 30, 0.22);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Shared page primitives */
+
+.glide-page {
+  width: min(var(--glide-content-max), 100%);
+  margin: 0 auto;
+  padding: var(--glide-page-pad-y) var(--glide-page-pad-x) var(--space-7);
+  color: var(--glide-ink);
+}
+
+.glide-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.glide-main-rail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--glide-rail-width);
+  gap: var(--glide-main-rail-gap);
+  align-items: start;
+}
+
+.glide-two-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(var(--glide-card-min), 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.glide-page-title,
+.glide-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-page-title);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--glide-ink);
+}
+
+.glide-page-subtitle,
+.glide-copy {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--glide-ink-muted);
+}
+
+.glide-kicker,
+.glide-label {
+  margin: 0;
+  font-size: var(--text-meta);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  color: var(--glide-ink-muted);
+}
+
+/* Shared controls */
 
 .glide-input {
   width: 100%;
+  min-height: 44px;
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--glide-line);
@@ -76,62 +147,118 @@ html.high-contrast .glide-input:focus {
   border-color: #ff0;
 }
 
-.glide-btn-primary {
+.glide-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.glide-field-label {
+  font-size: var(--text-meta);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--glide-ink-muted);
+}
+
+.glide-btn,
+.glide-btn-primary,
+.glide-btn-secondary,
+.glide-btn-ghost {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-body);
+  line-height: 1;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease;
+}
+
+.glide-btn:active,
+.glide-btn-primary:active,
+.glide-btn-secondary:active,
+.glide-btn-ghost:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.glide-btn:disabled,
+.glide-btn-primary:disabled,
+.glide-btn-secondary:disabled,
+.glide-btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.glide-btn-primary,
+.glide-btn--primary {
   background: var(--glide-ink);
   color: var(--glide-bg-paper);
   border: none;
   padding: 10px 18px;
-  border-radius: var(--radius-pill);
-  font: inherit;
-  font-size: var(--text-body);
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
 }
 
-.glide-btn-primary:hover { opacity: 0.88; }
-.glide-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-html.high-contrast .glide-btn-primary { background: #ff0; color: #000; }
+.glide-btn-primary:hover,
+.glide-btn--primary:hover {
+  opacity: 0.9;
+  box-shadow: var(--shadow-soft);
+}
 
-.glide-btn-secondary {
-  background: transparent;
+html.high-contrast .glide-btn-primary,
+html.high-contrast .glide-btn--primary {
+  background: #ff0;
+  color: #000;
+}
+
+.glide-btn-secondary,
+.glide-btn--secondary,
+.glide-btn--soft {
+  background: var(--glide-paper-wash);
   color: var(--glide-ink);
   border: 1px solid var(--glide-line);
   padding: 10px 18px;
-  border-radius: var(--radius-pill);
-  font: inherit;
-  font-size: var(--text-body);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.glide-btn-secondary:hover {
+.glide-btn-secondary:hover,
+.glide-btn--secondary:hover,
+.glide-btn--soft:hover {
   background: var(--glide-bg-paper-2);
   border-color: var(--glide-line-strong);
 }
 
-.glide-btn-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
-
-html.high-contrast .glide-btn-secondary {
+html.high-contrast .glide-btn-secondary,
+html.high-contrast .glide-btn--secondary,
+html.high-contrast .glide-btn--soft {
   border-color: #fff;
   color: #ff0;
   background: #000;
 }
 
-.glide-btn-ghost {
-  background: none;
-  border: none;
+.glide-btn-ghost,
+.glide-btn--ghost {
+  min-height: 34px;
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--glide-ink-muted);
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  font: inherit;
-  font-size: var(--text-body);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  padding: 8px 12px;
 }
 
-.glide-btn-ghost:hover {
+.glide-btn-ghost:hover,
+.glide-btn--ghost:hover {
   background: var(--glide-bg-paper-2);
   color: var(--glide-ink);
 }
@@ -139,7 +266,230 @@ html.high-contrast .glide-btn-secondary {
 html.high-contrast .glide-btn-ghost { color: #ff0; }
 html.high-contrast .glide-btn-ghost:hover { background: rgba(255, 255, 0, 0.12); }
 
-/* ─── Shared panels ─────────────────────────────────── */
+/* Shared panels */
+
+.glide-panel,
+.glide-card,
+.glide-sheet,
+.glide-rail {
+  color: var(--glide-ink);
+  border: 1px solid var(--glide-line);
+  box-shadow: var(--shadow-soft);
+}
+
+.glide-panel,
+.glide-card {
+  background: var(--glide-bg-paper);
+  border-radius: var(--radius-md);
+}
+
+.glide-sheet {
+  background: var(--glide-bg-paper);
+  border-radius: var(--radius-xl);
+}
+
+.glide-rail {
+  background: var(--glide-bg-rail);
+  border-color: rgba(46, 38, 31, 0.12);
+  border-radius: var(--radius-lg);
+}
+
+.glide-empty {
+  display: grid;
+  gap: var(--space-3);
+  align-content: center;
+  min-height: 160px;
+  padding: var(--space-5);
+  color: var(--glide-ink-muted);
+  background: color-mix(in srgb, var(--glide-bg-paper) 72%, transparent);
+  border: 1px dashed var(--glide-line-strong);
+  border-radius: var(--radius-lg);
+}
+
+.glide-auth-page {
+  min-height: 100vh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vw, 56px) var(--glide-page-pad-x);
+  background:
+    linear-gradient(180deg, rgba(251, 247, 240, 0.92), rgba(243, 237, 227, 0.96)),
+    var(--glide-bg);
+  color: var(--glide-ink);
+}
+
+.glide-auth-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: var(--space-5);
+  padding: clamp(28px, 4vw, 42px);
+  background: var(--glide-bg-paper);
+  border: 1px solid var(--glide-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel);
+  animation: glide-card-in 0.18s ease;
+}
+
+.glide-auth-card--wide {
+  width: min(760px, 100%);
+}
+
+.glide-auth-head {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.glide-auth-head--centered {
+  justify-items: center;
+  text-align: center;
+}
+
+.glide-auth-brand {
+  justify-self: start;
+  margin-bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--glide-ink);
+  text-decoration: none;
+}
+
+.glide-auth-brand span {
+  color: var(--glide-gold);
+}
+
+.glide-auth-head--centered .glide-auth-brand {
+  justify-self: center;
+}
+
+.glide-auth-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-page-title);
+  line-height: 1.06;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--glide-ink);
+}
+
+.glide-auth-title--compact {
+  font-size: clamp(34px, 3vw, 42px);
+}
+
+.glide-auth-copy {
+  margin: 0;
+  color: var(--glide-ink-muted);
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+
+.glide-auth-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.glide-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.glide-auth-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.glide-auth-field--full {
+  grid-column: 1 / -1;
+}
+
+.glide-auth-label {
+  font-size: var(--text-meta);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--glide-ink-muted);
+}
+
+.glide-auth-input,
+.glide-auth-textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glide-line);
+  background: var(--glide-paper-wash);
+  color: var(--glide-ink);
+  font: inherit;
+  font-size: var(--text-body);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.glide-auth-textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.glide-auth-input:focus,
+.glide-auth-textarea:focus {
+  border-color: var(--glide-moss);
+  background: var(--glide-bg-paper);
+  box-shadow: var(--shadow-focus);
+}
+
+.glide-auth-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.glide-auth-submit {
+  width: 100%;
+}
+
+.glide-auth-form-links {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+.glide-auth-alt {
+  margin: 0;
+  color: var(--glide-ink-muted);
+  font-size: var(--text-body);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.glide-auth-link {
+  color: var(--glide-ink);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.glide-auth-link--primary {
+  color: var(--glide-moss-strong);
+}
+
+.glide-auth-link--strong {
+  color: var(--glide-ink);
+  font-weight: 800;
+}
+
+.glide-auth-link--muted {
+  color: color-mix(in srgb, var(--glide-ink-muted) 72%, transparent);
+  font-weight: 700;
+}
+
+.glide-auth-link:hover {
+  color: var(--glide-moss-strong);
+}
 
 .glide-modal-overlay {
   position: fixed;
@@ -185,4 +535,47 @@ html.high-contrast .glide-modal-card {
   background: #000;
   border: 2px solid #ff0;
   color: #ff0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --glide-page-pad-x: 16px;
+    --glide-page-pad-y: 14px;
+  }
+
+  .glide-page-header {
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+
+  .glide-two-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .glide-auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .glide-auth-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 1100px) {
+  .glide-main-rail-layout {
+    grid-template-columns: 1fr;
+  }
 }

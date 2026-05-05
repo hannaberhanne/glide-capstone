@@ -2,15 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase.js";
+import { apiClient } from "../lib/apiClient.js";
 import "./SignupPage.css";
-import AuthLogo from "../components/AuthLogo";
 import AlertBanner from "../components/AlertBanner.jsx";
 
 export default function SignupPage() {
   const nav = useNavigate();
-  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
-  // FIELDS FOR USER COLLECTION IN DB
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -18,9 +16,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [banner, setBanner] = useState(null);
 
-  //const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  //const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{10,}$/;  PASSWORD REQUIREMENTS upper, lower, decimal, 10 chars
 
   const canSubmit =
       email.trim() !== "" &&
@@ -29,8 +25,6 @@ export default function SignupPage() {
       password !== "" &&
       password.length >= 6 &&
       password === confirmPassword;
-
-  // !passwordRegex.test(password.trim())
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -45,27 +39,12 @@ export default function SignupPage() {
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const user = userCred.user;
-      const idToken = await user.getIdToken();
-
-      const response = await fetch(`${API_URL}/api/auth/signup`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-        })
+      await user.getIdToken();
+      await apiClient.post("/api/auth/signup", {
+        email: email.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        setBanner({ message: data.error || "Failed to create profile", type: "error" });
-        setLoading(false);
-        return; // ❌ was missing — code was falling through to success banner
-      }
 
       setBanner({ message: "Account Created Successfully!", type: "success" });
       setTimeout(() => nav("/onboarding"), 2000);
@@ -87,7 +66,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="login-wrap">
+    <div className="glide-auth-page">
       {banner && (
           <AlertBanner
               message={banner.message}
@@ -96,78 +75,76 @@ export default function SignupPage() {
           />
       )}
 
-      <div className="login-top">
-        <div className="login-top-left">Sign Up</div>
-        <Link className="create-link" to="/login">
-          Back to Login
-        </Link>
-      </div>
+      <div className="glide-auth-card">
+        <div className="glide-auth-head glide-auth-head--centered">
+          <Link to="/" className="glide-auth-brand" aria-label="Glide+ home">
+            Glide<span>+</span>
+          </Link>
+          <h1 className="glide-auth-title glide-auth-title--compact">Create account</h1>
+          <p className="glide-auth-copy">Start with the essentials. You can finish your student setup after sign up.</p>
+        </div>
 
-      <div className="login-card">
-        <h1 className="login-title">
-          Create Account
-        </h1>
-
-        <form className="login-form" onSubmit={handleSignup}>
-          <label className="field">
-            <span className="field-label">First Name</span>
+        <form className="glide-auth-form" onSubmit={handleSignup}>
+          <div className="glide-auth-grid">
+          <label className="glide-auth-field">
+            <span className="glide-auth-label">First Name</span>
             <input
-              className="field-input"
+              className="glide-auth-input"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
             />
-            <span className="underline" />
           </label>
 
-          <label className="field">
-            <span className="field-label">Last Name</span>
+          <label className="glide-auth-field">
+            <span className="glide-auth-label">Last Name</span>
             <input
-                className="field-input"
+                className="glide-auth-input"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
             />
-            <span className="underline" />
           </label>
 
-          <label className="field">
-            <span className="field-label">Email</span>
+          <label className="glide-auth-field glide-auth-field--full">
+            <span className="glide-auth-label">Email</span>
             <input
-              className="field-input"
+              className="glide-auth-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <span className="underline" />
           </label>
 
-          <label className="field">
-            <span className="field-label">Password</span>
+          <label className="glide-auth-field">
+            <span className="glide-auth-label">Password</span>
             <input
-              className="field-input"
+              className="glide-auth-input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <span className="underline" />
           </label>
 
-          <label className="field">
-            <span className="field-label">Confirm Password</span>
+          <label className="glide-auth-field">
+            <span className="glide-auth-label">Confirm Password</span>
             <input
-              className="field-input"
+              className="glide-auth-input"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            <span className="underline" />
           </label>
+          </div>
 
-          <button className="login-btn" type="submit" disabled={!canSubmit || loading}>
-            {loading ? "Creating Account..." : "SIGN UP"}
+          <button className="glide-btn glide-btn--primary glide-auth-submit" type="submit" disabled={!canSubmit || loading}>
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
-          {/** error && <error>{error}</error>**/}
+          <div className="glide-auth-form-links">
+            <p className="glide-auth-alt">
+              Already have an account? <Link className="glide-auth-link glide-auth-link--primary" to="/login">Log in</Link>
+            </p>
+          </div>
 
         </form>
       </div>

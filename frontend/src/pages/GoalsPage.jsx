@@ -226,7 +226,7 @@ function TodayBar({ goals }) {
 
 function EmptyGoals({ onAdd }) {
   return (
-    <div className="goals-empty">
+    <div className="goals-empty glide-empty">
       <div className="goals-empty-icon-wrap">
         <LuTarget size={28} />
       </div>
@@ -234,7 +234,7 @@ function EmptyGoals({ onAdd }) {
       <p className="goals-empty-sub">
         Create your first goal to start tracking progress and earning XP.
       </p>
-      <button type="button" className="goals-empty-cta" onClick={onAdd}>
+      <button type="button" className="goals-empty-cta glide-btn glide-btn--primary" onClick={onAdd}>
         Create your first goal
       </button>
     </div>
@@ -367,25 +367,23 @@ export default function GoalsPage() {
 
   return (
     <>
-      <div className="goals-page">
-        <header className="goals-header">
-          <div className="goals-header-row">
-            <div>
-              <div className="goals-title-row">
-                {showDot && <span className="goals-done-dot" />}
-                <h1 className="goals-title">Goals</h1>
-              </div>
-              {quoteText && (
-                <p className="goals-quote">{quoteText} — {quote.author}</p>
-              )}
+      <div className="goals-page glide-page">
+        <header className="goals-header glide-page-header">
+          <div>
+            <div className="goals-title-row">
+              {showDot && <span className="goals-done-dot" />}
+              <h1 className="goals-title glide-page-title">Goals</h1>
             </div>
-            <button type="button" className="goals-new-btn" onClick={() => setShowAdd(true)}>
-              <LuPlus size={14} /> New Goal
-            </button>
+            {quoteText && (
+              <p className="goals-quote">{quoteText} — {quote.author}</p>
+            )}
           </div>
+          <button type="button" className="goals-new-btn glide-btn glide-btn--primary" onClick={() => setShowAdd(true)}>
+            + New Goal
+          </button>
         </header>
 
-        <div className="goals-body">
+        <div className="goals-body glide-main-rail-layout">
           <div className="goals-main">
             <div className="goals-section-row">
               <p className="goals-section-label">
@@ -402,7 +400,7 @@ export default function GoalsPage() {
             {goals.length === 0 ? (
               <EmptyGoals onAdd={() => setShowAdd(true)} />
             ) : (
-              <div className="goals-list">
+              <div className={`goals-list glide-two-card-grid${goals.length % 2 === 1 ? " goals-list--odd" : ""}`}>
                 {goals.map((goal, idx) => (
                   <GoalCard
                     key={goal.goalId}
@@ -413,15 +411,12 @@ export default function GoalsPage() {
                     mountDelay={idx * 60}
                   />
                 ))}
-                <button type="button" className="goals-add-row" onClick={() => setShowAdd(true)}>
-                  + New goal
-                </button>
               </div>
             )}
           </div>
 
           <aside className="goals-rail">
-            <div className="rail-panel">
+            <div className="rail-panel glide-panel">
               <p className="rail-label">Streak</p>
               {hasNoStreak ? (
                 <p className="rail-no-streak">Complete a goal to start your streak.</p>
@@ -440,7 +435,7 @@ export default function GoalsPage() {
               )}
             </div>
 
-            <div className="rail-panel">
+            <div className="rail-panel glide-panel">
               <p className="rail-label">
                 Badges
                 {earned.length > 0 && (

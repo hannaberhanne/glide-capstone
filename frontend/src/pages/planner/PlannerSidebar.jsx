@@ -11,10 +11,11 @@ export default function PlannerSidebar({
   onAddTask,
 }) {
   return (
-    <aside className="planner-sidebar" aria-label="Unscheduled tasks">
+    <aside className="planner-sidebar" aria-label="Planning workbench">
       <div className="planner-sidebar-head">
         <div>
-          <p className="planner-sidebar-kicker">Unscheduled Tasks</p>
+          <p className="planner-sidebar-kicker">Workbench</p>
+          <h2 className="planner-sidebar-title">Ready to plan</h2>
           <span className="planner-sidebar-count">{tasks.length}</span>
         </div>
         <button type="button" className="planner-sidebar-add" onClick={onAddTask}>
@@ -25,8 +26,8 @@ export default function PlannerSidebar({
       <div className="planner-sidebar-body" onDragOver={onDragOverBacklog} onDrop={onDropToBacklog}>
         {tasks.length === 0 ? (
           <div className="planner-backlog-empty">
-            <p>Backlog clear.</p>
-            <span>New work lands here until it is placed.</span>
+            <p>Workbench clear.</p>
+            <span>New tasks and Canvas work land here before Glide+ places them.</span>
           </div>
         ) : (
           <ul className="planner-backlog-list">

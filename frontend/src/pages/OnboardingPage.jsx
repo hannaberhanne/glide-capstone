@@ -160,6 +160,9 @@ export default function OnboardingPage() {
         <p className="onboarding-step">
           Step {step} of {totalSteps}
         </p>
+        <div className="onboarding-progress" aria-hidden>
+          <span style={{ width: `${(step / totalSteps) * 100}%` }} />
+        </div>
 
         <h2 className="onboarding-question">{current.question}</h2>
 

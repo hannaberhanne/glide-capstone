@@ -13,6 +13,7 @@ export default function PlannerGrid({
   scheduleLoading,
   generating,
   completingBlockId,
+  removingBlockId,
   onSelectDay,
   onDragStartTask,
   onDragEnd,
@@ -20,13 +21,11 @@ export default function PlannerGrid({
   onDropOnDay,
   onEditTask,
   onCompleteTask,
-  onAcceptSuggestion,
-  onRejectSuggestion,
   onReturnOverflow,
   onAddTask,
   onGenerateSchedule,
-  onReplanSchedule,
   onCompleteBlock,
+  onRemoveBlock,
 }) {
   return (
     <section className="planner-grid-surface" aria-label="Planning grid">
@@ -52,8 +51,6 @@ export default function PlannerGrid({
             onDrop={(event) => onDropOnDay(event, day)}
             onEditTask={onEditTask}
             onCompleteTask={onCompleteTask}
-            onAcceptSuggestion={onAcceptSuggestion}
-            onRejectSuggestion={onRejectSuggestion}
           />
         ))}
       </div>
@@ -65,11 +62,17 @@ export default function PlannerGrid({
         scheduleLoading={scheduleLoading}
         generating={generating}
         completingBlockId={completingBlockId}
+        removingBlockId={removingBlockId}
+        draggingDisabled={draggingDisabled}
         onReturnOverflow={onReturnOverflow}
         onAddTask={onAddTask}
         onGenerateSchedule={onGenerateSchedule}
-        onReplanSchedule={onReplanSchedule}
         onCompleteBlock={onCompleteBlock}
+        onRemoveBlock={onRemoveBlock}
+        onEditTask={onEditTask}
+        onCompleteTask={onCompleteTask}
+        onDragStartTask={onDragStartTask}
+        onDragEnd={onDragEnd}
       />
     </section>
   );

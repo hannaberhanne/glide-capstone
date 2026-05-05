@@ -1,11 +1,11 @@
 .settings-layout {
-  width: min(1220px, calc(100vw - 96px));
+  width: min(var(--glide-content-max), 100%);
   margin: 0 auto;
-  padding: 16px 0 48px;
+  padding: var(--glide-page-pad-y) var(--glide-page-pad-x) var(--space-7);
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  color: var(--text-color);
+  gap: var(--space-5);
+  color: var(--glide-ink);
 }
 
 .settings-page-head {
@@ -36,32 +36,30 @@
 
 .settings-page-kicker {
   margin: 0 0 6px;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-  font-size: 11px;
+  font-size: var(--text-meta);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--tracking-meta);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--glide-ink-muted);
 }
 
 .settings-page-title {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-  font-size: clamp(34px, 4vw, 44px);
+  font-family: var(--font-display);
+  font-size: var(--text-page-title);
   line-height: 1.02;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--text-color);
+  letter-spacing: 0;
+  color: var(--glide-ink);
 }
 
 .settings-page-subtitle {
   margin: 10px 0 0;
   max-width: 620px;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-  font-size: 15px;
+  font-size: var(--text-body);
   line-height: 1.45;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--glide-ink-muted);
 }
 
 .settings-logout-link {
@@ -128,13 +126,14 @@
 }
 
 .settings-panel {
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
-  border-radius: 24px;
+  background: var(--glide-bg-paper);
+  border: 1px solid var(--glide-line);
+  border-radius: var(--radius-xl);
   padding: 30px;
   display: flex;
   flex-direction: column;
   gap: 30px;
+  box-shadow: var(--shadow-soft);
 }
 
 .settings-panel-header {
@@ -158,21 +157,20 @@
 
 .settings-panel-title {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-  font-size: clamp(28px, 3vw, 36px);
+  font-family: var(--font-display);
+  font-size: clamp(28px, 2.4vw, 34px);
   line-height: 1.06;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--text-color);
+  letter-spacing: 0;
+  color: var(--glide-ink);
 }
 
 .settings-panel-subtitle {
   margin: 8px 0 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   font-size: 15px;
   line-height: 1.45;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--glide-ink-muted);
 }
 
 .settings-form {
@@ -205,12 +203,11 @@
 .settings-input,
 .settings-select {
   width: 100%;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   padding: 14px 16px;
-  border: 1px solid var(--border-default);
-  background: color-mix(in srgb, var(--card-bg) 78%, var(--bg-secondary) 22%);
-  color: var(--text-color);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  border: 1px solid var(--glide-line);
+  background: var(--glide-paper-wash);
+  color: var(--glide-ink);
   font-size: 15px;
   line-height: 1.35;
   font-weight: 500;
@@ -237,12 +234,11 @@
   align-self: flex-start;
   min-height: 44px;
   padding: 0 20px;
-  border-radius: 999px;
-  background: var(--text-color);
-  color: var(--bg-color);
+  border-radius: var(--radius-pill);
+  background: var(--glide-ink);
+  color: var(--glide-bg-paper);
   border: none;
   text-decoration: none;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   font-size: 15px;
   line-height: 1;
   font-weight: 700;
@@ -263,8 +259,7 @@
   background: none;
   border: none;
   padding: 0;
-  color: var(--accent);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  color: var(--glide-ink-soft);
   font-size: 15px;
   line-height: 1;
   font-weight: 700;
@@ -273,10 +268,9 @@
 
 .settings-status {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.35;
-  color: var(--text-muted);
+  color: var(--glide-ink-muted);
 }
 
 .settings-section {
@@ -287,20 +281,19 @@
 
 .settings-section-title {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  font-family: var(--font-display);
   font-size: 22px;
   line-height: 1.1;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-color);
+  letter-spacing: 0;
+  color: var(--glide-ink);
 }
 
 .settings-muted-text {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--text-muted);
+  color: var(--glide-ink-muted);
 }
 
 .settings-preference-list {
@@ -382,8 +375,8 @@
 .settings-stat-card,
 .settings-info-card,
 .badge-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  background: var(--glide-paper-wash);
+  border: 1px solid var(--glide-line);
   border-radius: 18px;
 }
 
@@ -397,23 +390,22 @@
 .settings-stat-label,
 .settings-info-label {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   font-size: 12px;
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--glide-ink-muted);
 }
 
 .settings-stat-value {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   font-size: 32px;
   line-height: 1;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--text-color);
+  letter-spacing: 0;
+  color: var(--glide-ink);
 }
 
 .badge-grid {
@@ -543,10 +535,6 @@ html.high-contrast .settings-logout-link {
 }
 
 @media (max-width: 1100px) {
-  .settings-layout {
-    width: min(100%, calc(100vw - 64px));
-  }
-
   .student-grid,
   .progress-grid,
   .settings-form-grid {
@@ -556,8 +544,6 @@ html.high-contrast .settings-logout-link {
 
 @media (max-width: 760px) {
   .settings-layout {
-    width: min(100%, calc(100vw - 32px));
-    padding: 22px 0 36px;
     gap: 16px;
   }
 

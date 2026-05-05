@@ -12,6 +12,7 @@ import SettingsPage from "./pages/SettingsPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import DemoPage from "./pages/DemoPage.jsx";
 import GoalsPage from "./pages/GoalsPage.jsx";
+import { PrivacyPage, TermsPage } from "./pages/LegalPage.jsx";
 import "./App.css";
 
 function NotFound() {
@@ -37,6 +38,8 @@ export default function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/demo" element={<DemoPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
 
       {/* logged-in setup stuff */}
       <Route

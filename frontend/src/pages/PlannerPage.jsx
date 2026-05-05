@@ -4,11 +4,8 @@ import TaskModal from "../components/TaskModal.jsx";
 import AlertBanner from "../components/AlertBanner.jsx";
 import useTasks from "../hooks/useTasks";
 import useSchedule from "../hooks/useSchedule.js";
-import { apiClient } from "../lib/apiClient.js";
 import PlannerHud from "./planner/PlannerHud.jsx";
-import PlannerSidebar from "./planner/PlannerSidebar.jsx";
 import PlannerGrid from "./planner/PlannerGrid.jsx";
-import AssistOverlay from "./planner/AssistOverlay.jsx";
 import {
   addMonths,
   buildPlannerViewModel,
@@ -43,8 +40,6 @@ export default function PlannerPage() {
   const today = useMemo(() => startOfDay(new Date()), []);
   const [cursor, setCursor] = useState(() => startOfMonth(today));
   const [assistSuggestions, setAssistSuggestions] = useState([]);
-  const [assistSummary, setAssistSummary] = useState("");
-  const [assistLoading, setAssistLoading] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [dragHoverDayKey, setDragHoverDayKey] = useState(null);
@@ -57,10 +52,11 @@ export default function PlannerPage() {
     scheduleLoading,
     generating: scheduleBusy,
     completingBlockId,
+    removingBlockId,
     fetchBlocks,
     generateSchedule,
-    replanSchedule,
     completeBlock: completeScheduleBlock,
+    removeBlock: removeScheduleBlock,
   } = useSchedule();
 
   const [plannerState, dispatch] = useReducer(
@@ -210,24 +206,6 @@ export default function PlannerPage() {
     }
   };
 
-  const handleDropToBacklog = async (event) => {
-    event.preventDefault();
-    const taskId = event.dataTransfer.getData("text/plain") || plannerState.drag.taskId;
-    setDragHoverDayKey(null);
-    if (!taskId) return;
-    try {
-      await updateTask(taskId, { dueAt: null });
-      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.DROP_TO_BACKLOG));
-    } catch (err) {
-      console.error("Failed to return task to backlog:", err);
-    }
-  };
-
-  const handleDragOverBacklog = (event) => {
-    if (interactionLocks.dragDisabled) return;
-    event.preventDefault();
-  };
-
   const handleSelectDay = (day) => {
     dispatch(
       createPlannerEvent(PLANNER_EVENT_TYPES.SELECT_DAY, {
@@ -235,79 +213,6 @@ export default function PlannerPage() {
         overflowCount: day.overflowTasks.length,
       })
     );
-  };
-
-  const toggleAssist = async () => {
-    if (assistLoading) return;
-
-    if (plannerState.assist.active) {
-      setAssistSuggestions([]);
-      setAssistSummary("");
-      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: false }));
-      return;
-    }
-
-    if (!auth.currentUser) return;
-
-    const openTasks = tasks.filter((task) => !isTaskCompleteForToday(task));
-    if (!openTasks.length) {
-      setAssistSummary("Add at least one open task before asking Assist to place work.");
-      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: true }));
-      return;
-    }
-
-    setAssistLoading(true);
-    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: true }));
-
-    try {
-      const data = await apiClient.post("/api/ai/replan", {
-        perDay: 3,
-        apply: false,
-        selectedDate: viewModel.selectedDay.date.toISOString(),
-        instruction: "Create calm, balanced placements for this week.",
-      });
-      const suggestions = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.suggestions)
-          ? data.suggestions
-          : [];
-      setAssistSuggestions(suggestions);
-      setAssistSummary(
-        data?.summary ||
-          (suggestions.length
-            ? "Ghost placements are visible across the month. Tap one to accept it."
-            : "No useful assist placements came back for the current workload.")
-      );
-      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.LOAD_ASSIST_SUGGESTIONS, { suggestions }));
-    } catch (err) {
-      console.error("Assist failed:", err);
-      setAssistSuggestions([]);
-      setAssistSummary(err?.message || "Unable to generate assist suggestions right now.");
-    } finally {
-      setAssistLoading(false);
-    }
-  };
-
-  const handleAcceptSuggestion = async (suggestion) => {
-    if (!suggestion?.taskId) return;
-    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.ACCEPT_ASSIST_SUGGESTION, { taskId: suggestion.taskId }));
-    try {
-      await updateTask(suggestion.taskId, {
-        dueAt: suggestion.suggestedDate || suggestion.date || viewModel.selectedDay.date.toISOString(),
-        priority: suggestion.priority || undefined,
-      });
-      setAssistSuggestions((prev) => prev.filter((item) => item.taskId !== suggestion.taskId));
-      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.LOAD_ASSIST_SUGGESTIONS, {
-        suggestions: assistSuggestions.filter((item) => item.taskId !== suggestion.taskId),
-      }));
-    } catch (err) {
-      console.error("Failed to accept assist suggestion:", err);
-    }
-  };
-
-  const handleRejectSuggestion = (suggestion) => {
-    setAssistSuggestions((prev) => prev.filter((item) => item.taskId !== suggestion.taskId));
-    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.REJECT_ASSIST_SUGGESTION, { taskId: suggestion.taskId }));
   };
 
   const handleReturnOverflow = async () => {
@@ -352,21 +257,11 @@ export default function PlannerPage() {
     }
   };
 
-  const handleReplanSchedule = async () => {
+  const handleRemoveScheduleBlock = async (blockId) => {
     try {
-      await replanSchedule(viewModel.selectedDay.key);
-      setBanner({
-        message:
-          viewModel.selectedDay.key === dayKey(today)
-            ? "Replanned today."
-            : `Replanned ${viewModel.selectedDay.dayName}.`,
-        type: "success",
-      });
+      await removeScheduleBlock(blockId);
     } catch (err) {
-      setBanner({
-        message: err?.message || "Unable to replan right now.",
-        type: "error",
-      });
+      setBanner({ message: err?.message || "Unable to remove that block.", type: "error" });
     }
   };
 
@@ -399,12 +294,24 @@ export default function PlannerPage() {
     }
   };
 
+  const showToday = monthKey(cursor) !== monthKey(today);
+
+  const handleToday = () => {
+    const m = startOfMonth(today);
+    dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.NAVIGATE_MONTH, { monthKey: monthKey(m) }));
+    setCursor(m);
+    setAssistSuggestions([]);
+    setDragHoverDayKey(null);
+    window.setTimeout(() => {
+      dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.MONTH_TRANSITION_COMPLETE));
+    }, 180);
+  };
+
   const handlePrevMonth = () => {
     const next = addMonths(cursor, -1);
     dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.NAVIGATE_MONTH, { monthKey: monthKey(next) }));
     setCursor(next);
     setAssistSuggestions([]);
-    setAssistSummary("");
     setDragHoverDayKey(null);
     window.setTimeout(() => {
       dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.MONTH_TRANSITION_COMPLETE));
@@ -416,7 +323,6 @@ export default function PlannerPage() {
     dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.NAVIGATE_MONTH, { monthKey: monthKey(next) }));
     setCursor(next);
     setAssistSuggestions([]);
-    setAssistSummary("");
     setDragHoverDayKey(null);
     window.setTimeout(() => {
       dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.MONTH_TRANSITION_COMPLETE));
@@ -431,28 +337,13 @@ export default function PlannerPage() {
     <div className={`planner-page ${plannerState.assist.active ? "is-assist-active" : ""}`.trim()}>
       {banner && <AlertBanner message={banner.message} type={banner.type} onClose={() => setBanner(null)} />}
       <div className="planner-shell">
-        <PlannerSidebar
-          tasks={viewModel.backlogTasks}
-          draggingTaskId={plannerState.drag.taskId}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDropToBacklog={handleDropToBacklog}
-          onDragOverBacklog={handleDragOverBacklog}
-          onEdit={openEditModal}
-          onAddTask={openCreateModal}
-        />
-
         <section className="planner-stage">
           <PlannerHud
             monthLabel={viewModel.monthLabel}
-            assistActive={plannerState.assist.active}
-            assistBusy={assistLoading || interactionLocks.assistDisabled}
-            scheduleBusy={scheduleBusy}
             onPrev={handlePrevMonth}
             onNext={handleNextMonth}
-            onToggleAssist={toggleAssist}
-            onGenerateSchedule={handleGenerateSchedule}
-            onReplanSchedule={handleReplanSchedule}
+            showToday={showToday}
+            onToday={handleToday}
           />
 
           <PlannerGrid
@@ -467,6 +358,7 @@ export default function PlannerPage() {
             scheduleLoading={scheduleLoading}
             generating={scheduleBusy}
             completingBlockId={completingBlockId}
+            removingBlockId={removingBlockId}
             onSelectDay={handleSelectDay}
             onDragStartTask={handleDragStart}
             onDragEnd={handleDragEnd}
@@ -474,27 +366,14 @@ export default function PlannerPage() {
             onDropOnDay={handleDropOnDay}
             onEditTask={openEditModal}
             onCompleteTask={handleCompleteTask}
-            onAcceptSuggestion={handleAcceptSuggestion}
-            onRejectSuggestion={handleRejectSuggestion}
             onReturnOverflow={handleReturnOverflow}
             onAddTask={openCreateModal}
             onGenerateSchedule={handleGenerateSchedule}
-            onReplanSchedule={handleReplanSchedule}
             onCompleteBlock={handleCompleteScheduleBlock}
+            onRemoveBlock={handleRemoveScheduleBlock}
           />
         </section>
       </div>
-
-      <AssistOverlay
-        active={plannerState.assist.active}
-        loading={assistLoading}
-        onExit={() => {
-          setAssistSuggestions([]);
-          setAssistSummary("");
-          dispatch(createPlannerEvent(PLANNER_EVENT_TYPES.TOGGLE_ASSIST, { enabled: false }));
-        }}
-        summary={assistSummary}
-      />
 
       {overflowToast ? <div className="planner-toast">{overflowToast}</div> : null}
 

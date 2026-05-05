@@ -1,14 +1,4 @@
-export default function PlannerHud({
-  monthLabel,
-  assistActive,
-  assistBusy,
-  scheduleBusy,
-  onPrev,
-  onNext,
-  onToggleAssist,
-  onGenerateSchedule,
-  onReplanSchedule,
-}) {
+export default function PlannerHud({ monthLabel, onPrev, onNext, showToday, onToday }) {
   return (
     <div className="planner-hud" aria-label="Planner controls">
       <div className="planner-hud-month">
@@ -23,36 +13,12 @@ export default function PlannerHud({
             <path d="M7.2 4.5 11.7 9l-4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
+        {showToday ? (
+          <button type="button" className="planner-hud-action planner-hud-action-secondary" onClick={onToday}>
+            Today
+          </button>
+        ) : null}
       </div>
-
-      <div className="planner-hud-actions">
-        <button
-          type="button"
-          className="planner-hud-action"
-          onClick={onGenerateSchedule}
-          disabled={scheduleBusy}
-        >
-          Generate Day
-        </button>
-        <button
-          type="button"
-          className="planner-hud-action planner-hud-action-secondary"
-          onClick={onReplanSchedule}
-          disabled={scheduleBusy}
-        >
-          Replan
-        </button>
-      </div>
-
-      <button
-        type="button"
-        className={`planner-assist-toggle ${assistActive ? "is-active" : ""}`.trim()}
-        onClick={onToggleAssist}
-        aria-pressed={assistActive}
-        disabled={assistBusy || scheduleBusy}
-      >
-        Assist
-      </button>
     </div>
   );
 }

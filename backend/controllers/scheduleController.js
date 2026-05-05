@@ -281,4 +281,21 @@ const completeBlock = async (req, res) => {
   }
 };
 
-export { generateSchedule, getTodaySchedule, triggerReplan, completeBlock };
+const deleteBlock = async (req, res) => {
+  const { blockId } = req.params;
+  const uid = req.user.uid;
+  try {
+    const blockRef = db.collection('schedule_blocks').doc(blockId);
+    const blockSnap = await blockRef.get();
+    if (!blockSnap.exists || blockSnap.data().userId !== uid) {
+      return res.status(404).json({ error: 'Block not found' });
+    }
+    await blockRef.delete();
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Delete block error:', err);
+    return res.status(500).json({ error: 'Failed to delete block' });
+  }
+};
+
+export { generateSchedule, getTodaySchedule, triggerReplan, completeBlock, deleteBlock };

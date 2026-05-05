@@ -5,12 +5,16 @@
   --glide-bg-paper:   #fbf7f0;
   --glide-bg-paper-2: #f1e8da;
   --glide-bg-panel:   #dfd5c4;
+  --glide-bg-rail:    #e3d5c0;
+  --glide-bg-rail-2:  #d6c4ac;
   --glide-ink:        #2e261f;
   --glide-ink-muted:  #6c5c4b;
+  --glide-ink-soft:   #8a7a68;
   --glide-moss:        #7d9577;
   --glide-moss-strong: #5e7156;
   --glide-gold:        #b28a1e;
   --glide-terracotta:  #a45c46;
+  --glide-paper-wash:  rgba(251, 247, 240, 0.58);
   --glide-line:        rgba(46, 38, 31, 0.1);
   --glide-line-strong: rgba(46, 38, 31, 0.16);
   --glide-success:     #6b8f71;
@@ -19,12 +23,15 @@
   /* Typography */
   --font-display: "Libre Baskerville", serif;
   --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-  --text-hero: 34px;
-  --text-h1:   28px;
+  --text-page-title: clamp(32px, 3.2vw, 42px);
+  --text-hero: 40px;
+  --text-h1:   30px;
   --text-h2:   22px;
   --text-h3:   18px;
   --text-body: 14px;
+  --text-small: 13px;
   --text-meta: 12px;
+  --tracking-meta: 0.1em;
 
   /* Spacing */
   --space-1: 4px;
@@ -35,6 +42,21 @@
   --space-6: 32px;
   --space-7: 40px;
   --space-8: 56px;
+
+  /* Layout */
+  --glide-content-max: 1360px;
+  --glide-page-pad-x: 24px;
+  --glide-page-pad-y: 18px;
+  --glide-rail-width: 280px;
+  --glide-main-rail-gap: 32px;
+  --glide-card-min: 320px;
+  --glide-private-footer-height: 28px;
+  --glide-footer-bg: var(--glide-bg-paper-2);
+  --glide-footer-border: var(--glide-line);
+  --glide-footer-link: var(--glide-ink);
+  --glide-footer-link-hover: var(--glide-moss-strong);
+  --glide-footer-pad-y: 34px;
+  --glide-footer-pad-x: var(--glide-page-pad-x);
 
   /* Radius */
   --radius-sm:   12px;
@@ -84,12 +106,16 @@ html.dark-mode {
   --glide-bg-paper:   #362d26;
   --glide-bg-paper-2: #544437;
   --glide-bg-panel:   #3a3028;
+  --glide-bg-rail:    #45382d;
+  --glide-bg-rail-2:  #5b493a;
   --glide-ink:        #f5efe6;
   --glide-ink-muted:  #c6b8a8;
+  --glide-ink-soft:   #a99582;
   --glide-moss:        #8ea786;
   --glide-moss-strong: #9bb492;
   --glide-gold:        #d2ab3c;
   --glide-terracotta:  #d78a6d;
+  --glide-paper-wash:  rgba(54, 45, 38, 0.66);
   --glide-line:        rgba(245, 239, 230, 0.12);
   --glide-line-strong: rgba(245, 239, 230, 0.18);
   --glide-success:     #8ea786;
@@ -119,12 +145,16 @@ html.high-contrast {
   --glide-bg-paper:   #000;
   --glide-bg-paper-2: #000;
   --glide-bg-panel:   #000;
+  --glide-bg-rail:    #000;
+  --glide-bg-rail-2:  #000;
   --glide-ink:        #fff;
   --glide-ink-muted:  #fff;
+  --glide-ink-soft:   #fff;
   --glide-moss:        #ff0;
   --glide-moss-strong: #ff0;
   --glide-gold:        #ff0;
   --glide-terracotta:  #ff0;
+  --glide-paper-wash:  #000;
   --glide-line:        rgba(255, 255, 255, 0.5);
   --glide-line-strong: #fff;
   --glide-success:     #0f0;

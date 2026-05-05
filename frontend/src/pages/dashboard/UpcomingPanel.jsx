@@ -7,8 +7,9 @@ function EmptyPlannerRows({
   onCreate,
   onQuickAdd,
   bucket = "today",
+  rowCount = 2,
 }) {
-  const [drafts, setDrafts] = useState(() => Array.from({ length: 5 }, () => ""));
+  const [drafts, setDrafts] = useState(() => Array.from({ length: rowCount }, () => ""));
   const [savingIndex, setSavingIndex] = useState(null);
   const inputRefs = useRef([]);
 
@@ -17,6 +18,13 @@ function EmptyPlannerRows({
       inputRefs.current[0].setAttribute("placeholder", note);
     }
   }, [note]);
+
+  useEffect(() => {
+    setDrafts((prev) => {
+      if (prev.length === rowCount) return prev;
+      return Array.from({ length: rowCount }, (_, index) => prev[index] || "");
+    });
+  }, [rowCount]);
 
   const submitDraft = async (index) => {
     const value = (drafts[index] || "").trim();
@@ -57,9 +65,9 @@ function EmptyPlannerRows({
   };
 
   return (
-    <div className="today-empty today-empty-sheet" role="status">
-      <ul className="today-task-list today-task-list-empty" aria-hidden>
-        {Array.from({ length: 5 }).map((_, index) => (
+    <div className="today-empty today-empty-lines" role="status">
+      <ul className="today-task-list today-task-list-empty">
+        {Array.from({ length: rowCount }).map((_, index) => (
           <li key={index} className="today-task-row is-empty">
             <span className="today-task-check today-task-check-empty" />
 
@@ -124,11 +132,42 @@ function EmptyPlannerRows({
   );
 }
 
-function SectionHead({ label, count }) {
+function UpcomingEmptyState() {
+  return (
+    <ul className="today-task-list today-upcoming-empty-lines">
+      <li className="today-task-row today-upcoming-message-row">
+        <span className="today-task-check today-task-check-empty" aria-hidden />
+        <div className="today-task-main today-upcoming-empty-copy">
+          <p>Later work and Canvas imports will land here when they have dates.</p>
+        </div>
+        <div className="today-task-side">
+          <span className="today-task-time today-task-time-empty" />
+          <Link to="/planner" className="today-task-edit today-task-planner-link" aria-label="Open Planner">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+              <rect x="3.2" y="3.8" width="11.6" height="11" rx="2.2" stroke="currentColor" strokeWidth="1.55" />
+              <path d="M5.5 2.8v2.2M12.5 2.8v2.2M3.6 7.1h10.8M6 9.6h5.8M6 12.1h4.2" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" />
+            </svg>
+          </Link>
+        </div>
+      </li>
+      {Array.from({ length: 4 }).map((_, index) => (
+          <li key={index} className="today-task-row is-empty">
+            <span className="today-task-check today-task-check-empty" />
+            <div className="today-task-main" />
+          </li>
+      ))}
+    </ul>
+  );
+}
+
+function SectionHead({ label, count, action }) {
   return (
     <div className="today-section-head">
       <span className="today-section-label">{label}</span>
-      {typeof count === "number" ? <span className="today-section-count">{count}</span> : null}
+      <span className="today-section-head-right">
+        {typeof count === "number" ? <span className="today-section-count">{count}</span> : null}
+        {action}
+      </span>
     </div>
   );
 }
@@ -152,28 +191,46 @@ export default function UpcomingPanel({
   return (
     <div className="today-sheet-body">
       <section className="today-section today-section-primary" aria-labelledby="today-today-heading">
-        <SectionHead label="Today" count={todayTasks.length || undefined} />
+        <SectionHead
+          label="Today"
+          count={todayTasks.length || undefined}
+          action={
+            <button type="button" className="today-add-task-button" onClick={openCreateModal}>
+              Add task
+            </button>
+          }
+        />
         <h2 className="sr-only" id="today-today-heading">
           Today
         </h2>
         {todayTasks.length > 0 ? (
-          <TaskListGroup
-            tasks={todayTasks}
-            variant="lead"
-            onComplete={onComplete}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onDismiss={onDismiss}
-            formatDue={formatDue}
-            formatEstimate={formatEstimate}
-            parseDueDate={parseDueDate}
-          />
+          <>
+            <TaskListGroup
+              tasks={todayTasks}
+              variant="lead"
+              onComplete={onComplete}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onDismiss={onDismiss}
+              formatDue={formatDue}
+              formatEstimate={formatEstimate}
+              parseDueDate={parseDueDate}
+            />
+            <EmptyPlannerRows
+              note=""
+              onCreate={openCreateModal}
+              onQuickAdd={onQuickAdd}
+              bucket="today"
+              rowCount={Math.max(2, 5 - todayTasks.length)}
+            />
+          </>
         ) : (
           <EmptyPlannerRows
             note={hasAnyTasks ? "Add a task" : "Add your first task"}
             onCreate={openCreateModal}
             onQuickAdd={onQuickAdd}
             bucket="today"
+            rowCount={5}
           />
         )}
         {plannerHandoff ? (
@@ -202,7 +259,7 @@ export default function UpcomingPanel({
             parseDueDate={parseDueDate}
           />
         ) : (
-          <EmptyPlannerRows onCreate={openCreateModal} onQuickAdd={onQuickAdd} bucket="upcoming" />
+          <UpcomingEmptyState />
         )}
       </section>
     </div>

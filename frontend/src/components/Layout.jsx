@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import AccessibilityMenu from "./AccessibilityMenu.jsx";
-import Footer from "./Footer.jsx";
 import "./Layout.css";
 
 export default function Layout() {
@@ -126,6 +125,7 @@ export default function Layout() {
                 />
               )}
             </svg>
+            {!sidebarCompact ? <span>Glide+</span> : null}
           </button>
         </div>
 
@@ -136,12 +136,14 @@ export default function Layout() {
                 key={item.label}
                 to={item.to}
                 className={`side-nav-item ${item.active ? "active" : ""}`.trim()}
+                data-label={item.label}
                 title={sidebarCompact ? item.label : undefined}
                 aria-label={item.label}
+                aria-current={item.active ? "page" : undefined}
               >
                 <span className="side-nav-icon">{renderIcon(item.icon)}</span>
                 {!sidebarCompact ? <span className="side-nav-label">{item.label}</span> : null}
-                {!sidebarCompact && item.icon === "canvas" ? <span className="side-nav-dot" aria-hidden /> : null}
+                {item.icon === "canvas" ? <span className="side-nav-dot" aria-hidden /> : null}
               </Link>
             );
           })}
@@ -151,8 +153,10 @@ export default function Layout() {
           <Link
             to="/settings"
             className={`side-nav-item side-nav-item-settings ${(location.pathname === "/settings" && currentTab !== "student") ? "active" : ""}`.trim()}
+            data-label="Settings"
             title={sidebarCompact ? "Settings" : undefined}
             aria-label="Settings"
+            aria-current={(location.pathname === "/settings" && currentTab !== "student") ? "page" : undefined}
           >
             <span className="side-nav-icon">{renderIcon("settings")}</span>
             {!sidebarCompact ? <span className="side-nav-label">Settings</span> : null}
@@ -164,8 +168,6 @@ export default function Layout() {
         <main className="main-content">
           <Outlet />
         </main>
-
-        <Footer />
       </div>
 
       <div className="accessibility-container">

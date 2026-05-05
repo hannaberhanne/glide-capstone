@@ -1,7 +1,7 @@
 .dash {
   --today-bg: #f3ede3;
   --today-sheet-bg: #fbf7f0;
-  --today-rail-bg: #f1e8da;
+  --today-rail-bg: #e6d5bd;
   --today-ink: #2e261f;
   --today-muted: #6c5c4b;
   --today-accent: #7d9577;
@@ -12,7 +12,7 @@
   --today-line-strong: rgba(46, 38, 31, 0.14);
   min-height: 100%;
   width: 100%;
-  padding: 18px 24px 28px;
+  padding-bottom: var(--space-7);
   background: transparent;
   color: var(--today-ink);
   box-sizing: border-box;
@@ -20,24 +20,21 @@
 
 .today-page-head,
 .today-surface {
-  width: min(1360px, 100%);
+  width: min(var(--glide-content-max), 100%);
   margin: 0 auto;
 }
 
 .today-page-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
-  grid-template-areas:
-    "title date"
-    "title icons";
-  align-items: start;
-  row-gap: 2px;
-  column-gap: 18px;
-  margin-bottom: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-4);
+  margin-bottom: 14px;
 }
 
 .today-sheet-date,
-.today-section-label {
+.today-section-label,
+.today-empty-kicker {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   font-size: 12px;
@@ -49,59 +46,98 @@
 }
 
 .today-sheet-title {
-  grid-area: title;
   margin: 0;
-  font-family: "Libre Baskerville", serif;
-  font-size: 34px;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3.2vw, 42px);
   line-height: 1.05;
   font-weight: 700;
   color: var(--today-ink);
 }
 
-.today-page-icons {
-  grid-area: icons;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 7px;
-  color: var(--today-muted);
-  align-self: start;
-  min-height: 18px;
-}
-
-.today-page-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .today-page-head > .today-sheet-date {
-  grid-area: date;
   justify-self: end;
-  align-self: start;
+  align-self: center;
   font-size: 12px;
 }
 
+.today-context {
+  justify-self: end;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid rgba(46, 38, 31, 0.08);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--today-sheet-bg) 56%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.today-context-mark {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: rgba(126, 95, 16, 0.78);
+  background: rgba(178, 138, 30, 0.1);
+}
+
+.today-context-copy {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.today-context-copy span,
+.today-context-copy strong {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  line-height: 1;
+}
+
+.today-context-copy span {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--today-muted);
+}
+
+.today-context-copy strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--today-ink);
+}
+
 .today-surface {
-  width: min(1360px, 100%);
+  width: min(var(--glide-content-max), 100%);
   margin: 0 auto;
   padding-bottom: 16px;
 }
 
 .today-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 272px;
-  gap: 16px;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) var(--glide-rail-width);
+  gap: var(--glide-main-rail-gap);
+  align-items: start;
 }
 
 .today-sheet {
-  min-height: 620px;
+  min-height: 560px;
   padding: 16px 22px 14px;
   background: var(--today-sheet-bg);
   border: 1px solid rgba(46, 38, 31, 0.09);
   border-radius: 28px;
   position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 12px 34px rgba(46, 38, 31, 0.04);
+}
+
+.today-sheet::after {
+  display: none;
 }
 
 .today-sheet::before {
@@ -119,7 +155,9 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  min-height: 100%;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .today-section {
@@ -129,11 +167,11 @@
 }
 
 .today-section-primary {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
 }
 
 .today-section + .today-section {
-  padding-top: 10px;
+  padding-top: 16px;
 }
 
 .today-section-head {
@@ -142,6 +180,12 @@
   align-items: baseline;
   gap: 12px;
   margin-bottom: 10px;
+}
+
+.today-section-head-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .today-section-primary .today-section-head {
@@ -179,6 +223,30 @@
   color: var(--today-muted);
 }
 
+.today-add-task-button {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(46, 38, 31, 0.12);
+  border-radius: 999px;
+  background: rgba(46, 38, 31, 0.9);
+  color: var(--today-sheet-bg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.14s ease, background-color 0.14s ease;
+}
+
+.today-add-task-button:hover {
+  background: rgba(46, 38, 31, 1);
+  transform: translateY(-1px);
+}
+
+.today-add-task-button:active {
+  transform: translateY(0);
+}
+
 .today-task-list {
   list-style: none;
   margin: 0;
@@ -187,12 +255,21 @@
 
 .today-task-row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 72px 24px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   min-height: 50px;
-  padding: 5px 0;
+  padding: 5px 8px;
   border-bottom: 1px solid rgba(46, 38, 31, 0.09);
+  border-radius: 12px;
+  transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
+}
+
+.today-task-row:not(.is-empty):hover,
+.today-task-row:not(.is-empty):focus-within {
+  background: rgba(125, 149, 119, 0.07);
+  border-bottom-color: rgba(94, 113, 86, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(94, 113, 86, 0.06);
 }
 
 .today-task-row.is-empty {
@@ -345,8 +422,8 @@
 
 .today-task-side {
   display: grid;
-  grid-column: 3 / 5;
-  grid-template-columns: 72px 24px 24px;
+  grid-column: 3;
+  grid-template-columns: 76px 24px 24px;
   align-items: center;
   gap: 10px;
   min-width: 0;
@@ -380,12 +457,15 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.14s ease, opacity 0.14s ease;
+  opacity: 1;
+  transform: translateY(0);
+  transition: color 0.14s ease, opacity 0.14s ease, transform 0.14s ease, background-color 0.14s ease;
 }
 
 .today-task-edit:hover,
 .today-task-remove:hover {
   color: rgba(108, 92, 75, 0.8);
+  background: rgba(46, 38, 31, 0.05);
 }
 
 .today-task-edit-empty {
@@ -402,8 +482,8 @@
   position: relative;
 }
 
-.today-empty-sheet {
-  min-height: 284px;
+.today-empty-lines {
+  min-height: 0;
 }
 
 .today-task-list-empty {
@@ -475,20 +555,63 @@
   font-weight: 550;
 }
 
+.today-upcoming-empty-copy strong,
+.today-upcoming-empty-copy p {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+.today-upcoming-empty-copy {
+  padding: 0;
+}
+
+.today-upcoming-empty-copy strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 750;
+  color: var(--today-ink);
+}
+
+.today-upcoming-empty-copy p {
+  max-width: 52ch;
+  margin: 5px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 550;
+  color: var(--today-muted);
+}
+
+.today-upcoming-empty-lines {
+  display: grid;
+}
+
+.today-upcoming-empty-lines .today-task-row {
+  min-height: 42px;
+}
+
+.today-upcoming-message-row {
+  min-height: 72px;
+}
+
+.today-task-planner-link {
+  color: rgba(108, 92, 75, 0.66);
+  text-decoration: none;
+}
+
 .today-rail {
   display: flex;
   flex-direction: column;
   gap: 0;
-  min-height: 600px;
-  align-self: center;
+  min-height: 560px;
+  align-self: start;
   position: sticky;
   top: 14px;
-  width: 248px;
+  width: 100%;
   padding: 24px 18px 14px;
   background:
-    radial-gradient(circle at 18% 16%, color-mix(in srgb, var(--today-sheet-bg) 18%, transparent) 0, transparent 34%),
-    radial-gradient(circle at 82% 72%, color-mix(in srgb, var(--today-accent) 10%, transparent) 0, transparent 42%),
-    linear-gradient(180deg, var(--today-rail-bg) 0%, var(--today-sheet-bg) 100%);
+    radial-gradient(circle at 18% 16%, rgba(255, 246, 226, 0.3) 0, transparent 34%),
+    radial-gradient(circle at 82% 72%, rgba(125, 149, 119, 0.08) 0, transparent 42%),
+    linear-gradient(180deg, var(--today-rail-bg) 0%, #eadcc8 48%, #f5eadb 100%);
   border: 1px solid var(--today-line-strong);
   border-radius: 18px;
   box-shadow: var(--shadow-soft, none);
@@ -659,6 +782,39 @@
   cursor: pointer;
 }
 
+.rail-schedule-action:hover {
+  background: rgba(46, 38, 31, 1);
+}
+
+.rail-schedule-empty-card {
+  display: grid;
+  gap: 5px;
+  margin-top: 0;
+  padding: 12px;
+  border: 1px solid rgba(46, 38, 31, 0.1);
+  border-radius: 14px;
+  background: rgba(251, 247, 240, 0.38);
+}
+
+.rail-schedule-empty-card strong,
+.rail-schedule-empty-card span {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+.rail-schedule-empty-card strong {
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: var(--today-ink);
+}
+
+.rail-schedule-empty-card span {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 550;
+  color: var(--today-muted);
+}
+
 .rail-schedule-action:disabled {
   opacity: 0.58;
   cursor: wait;
@@ -668,6 +824,34 @@
   position: relative;
   margin: auto 2px -10px;
   padding: 34px 0 0;
+}
+
+.rail-note-status {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  z-index: 2;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(108, 92, 75, 0.58);
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.rail-note-block:focus-within .rail-note-status,
+.rail-note-status.is-saving,
+.rail-note-status.is-error {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.rail-note-status.is-error {
+  color: var(--today-alert);
 }
 
 .rail-note-block::before {
@@ -700,6 +884,14 @@
     0 12px 20px rgba(46, 38, 31, 0.09),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   transform: translateY(18px) rotate(-1deg);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.rail-note:focus-within {
+  transform: translateY(14px) rotate(-0.4deg);
+  box-shadow:
+    0 16px 26px rgba(46, 38, 31, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
 .rail-note::before {
@@ -775,6 +967,21 @@
   text-transform: uppercase;
   color: var(--today-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.rail-level-summary {
+  margin: -20px 0 20px;
+  text-align: center;
+}
+
+.rail-level-summary strong {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(108, 92, 75, 0.78);
 }
 
 .rail-level-ruler {
@@ -1013,7 +1220,18 @@
 }
 
 .rail-calendar-day.is-today .rail-calendar-date {
-  color: var(--today-muted);
+  color: var(--today-ink);
+  font-weight: 900;
+}
+
+.rail-calendar-day.is-today::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(178, 138, 30, 0.38);
+  border-radius: 10px;
+  background: rgba(178, 138, 30, 0.08);
+  z-index: 1;
 }
 
 .rail-calendar-day.is-streak .rail-calendar-date {
@@ -1057,7 +1275,11 @@
 
 .today-empty-note:focus-visible,
 .today-task-check:focus-visible,
-.today-task-edit:focus-visible {
+.today-task-edit:focus-visible,
+.today-task-remove:focus-visible,
+.today-add-task-button:focus-visible,
+.rail-schedule-action:focus-visible,
+.rail-note-input:focus-visible {
   outline: 2px solid var(--today-accent-strong);
   outline-offset: 2px;
 }
@@ -1142,6 +1364,7 @@ html.dark-mode .today-section-label {
 }
 
 html.dark-mode .today-page-icons,
+html.dark-mode .today-context,
 html.dark-mode .today-task-meta-item + .today-task-meta-item::before,
 html.dark-mode .today-task-edit,
 html.dark-mode .today-task-remove,
@@ -1248,12 +1471,17 @@ html.dark-mode .today-rail::before {
 
 html.dark-mode .rail-section-label,
 html.dark-mode .rail-schedule-time,
-html.dark-mode .rail-level-xp {
+html.dark-mode .rail-level-xp,
+html.dark-mode .rail-level-summary strong {
   color: rgba(245, 239, 230, 0.62);
 }
 
 html.dark-mode .rail-schedule-item {
   background: rgba(54, 45, 38, 0.34);
+  border-color: rgba(245, 239, 230, 0.1);
+}
+
+html.dark-mode .rail-schedule-empty-card {
   border-color: rgba(245, 239, 230, 0.1);
 }
 
@@ -1385,7 +1613,7 @@ html.reduce-motion .today-task-row {
 
 @media (max-width: 1020px) {
   .dash {
-    padding: 18px 24px 22px;
+    padding-bottom: 22px;
   }
 
   .today-page-head,
@@ -1439,7 +1667,7 @@ html.reduce-motion .today-task-row {
 
 @media (max-width: 760px) {
   .dash {
-    padding: 16px;
+    padding-bottom: 16px;
   }
 
   .today-page-head,
@@ -1450,15 +1678,7 @@ html.reduce-motion .today-task-row {
   .today-page-head {
     margin-bottom: 12px;
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "title"
-      "date"
-      "icons";
     row-gap: 6px;
-  }
-
-  .today-page-icons {
-    justify-content: flex-start;
   }
 
   .today-page-head > .today-sheet-date {
@@ -1481,7 +1701,7 @@ html.reduce-motion .today-task-row {
     row-gap: 6px;
     align-items: start;
     min-height: 50px;
-    padding: 5px 0;
+    padding: 6px;
   }
 
   .today-task-check {
@@ -1495,7 +1715,7 @@ html.reduce-motion .today-task-row {
 
   .today-task-side {
     grid-area: side;
-    grid-template-columns: auto 24px;
+    grid-template-columns: auto 24px 24px;
     justify-content: space-between;
     min-width: 0;
     padding-left: 2px;
@@ -1506,8 +1726,8 @@ html.reduce-motion .today-task-row {
     text-align: left;
   }
 
-  .today-empty-sheet {
-    min-height: 264px;
+  .today-empty-lines {
+    min-height: 132px;
   }
 
   .today-section-upcoming::before {
